@@ -303,10 +303,32 @@ def init_database():
         import exec_native
         exec_native.init_tables(conn)
         jard_native.init_tables(conn)
+        _seed_team_20261120(conn)
         conn.commit()
     except Exception as e:
         print('⚠ gen tables', e)
     return conn
+
+def _seed_team_20261120(conn):
+    """طلب منصور 2026-11-20: حسابات أحمد أبو بكر وإسلام وريّان ورضوى + تفعيل رهف وروز وداريل ونوف وبدرالدين وعمران وفهيم.
+    كلمة المرور عشوائية لا يعرفها أحد — منصور يضغط «كلمة مرور مؤقتة» لكل واحد من شاشة المستخدمين ويعطيه إياها."""
+    import secrets
+    if conn.execute("SELECT 1 FROM settings WHERE key='seed_team_20261120'").fetchone():
+        return
+    for un, name, role, title in (('ahmed', 'أحمد أبو بكر', 'inventory_manager', 'مدير المستودع — الجرد'),
+                                  ('islam', 'إسلام', 'field', 'مدير تشغيل'),
+                                  ('rayyan', 'ريّان', 'supervisor', 'مشرفة'),
+                                  ('radwa', 'رضوى', 'supervisor', 'مشرفة')):
+        if conn.execute("SELECT 1 FROM users WHERE lower(username)=? OR full_name=?", (un, name)).fetchone():
+            continue
+        if not conn.execute("SELECT 1 FROM roles WHERE key=?", (role,)).fetchone():
+            continue
+        conn.execute("""INSERT INTO users (username, password_hash, full_name, role, job_title, language, is_active, must_change_password)
+                        VALUES (?,?,?,?,?,'ar',1,1)""", (un, ac.hash_password(secrets.token_urlsafe(24)), name, role, title))
+    conn.execute("""UPDATE users SET is_active=1 WHERE username IN ('rahaf','rose','daryl','nouf','badruddin','omran','faheem')""")
+    conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('seed_team_20261120', '1')")
+    conn.commit()
+
 
 def get_db():
     conn = sqlite3.connect(str(DB_PATH), timeout=15)
