@@ -74,6 +74,12 @@ def init_tables(conn):
     CREATE TABLE IF NOT EXISTS opn_team (username TEXT PRIMARY KEY, role TEXT, depts TEXT, active TEXT DEFAULT 'نعم');
     CREATE TABLE IF NOT EXISTS opn_blocked (d TEXT PRIMARY KEY, reason TEXT);
     """)
+    # طلب منصور 2026-11-20: إخراج ميهاف وشريفة من فريق إدارة العمليات (مرة واحدة — يُرجَعون من «الفريق»)
+    if not conn.execute("SELECT 1 FROM settings WHERE key='opn_seed_removed_v1'").fetchone():
+        for u in ('mihaf', 'shareefa'):
+            conn.execute("INSERT OR REPLACE INTO opn_team (username, role, depts, active) VALUES (?, '', '', 'لا')", (u,))
+        conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('opn_seed_removed_v1', '1')")
+        conn.commit()
 
 
 # ───────────────────────── أدوات التاريخ (ساعة الرياض كقيمة UTC — نفس التطبيق) ─────────────────────────
@@ -793,6 +799,8 @@ def call(conn, ctx, fn, args):
             card['ops'] = [m['name'] for m in team if m['role'] in (ROLE_OPS, ROLE_ADMIN) and m['active']]
             dp = {}
             for m in team:
+                if not m['active']:
+                    continue
                 for d in re.split(r'[،,]', m['depts'] or ''):
                     if t_(d):
                         dp.setdefault(t_(d), []).append(m['name'])
