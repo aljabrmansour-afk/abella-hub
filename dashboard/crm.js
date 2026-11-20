@@ -591,19 +591,20 @@ async function delLead(id) {
 // ===================================================================
 let QUOTES = { status: '', rows: [] };
 async function renderQuotes() {
-  try { QUOTES.rows = await capi('/quotes'); } catch (e) { return setContent(`<div class="empty">${esc(e.message)}</div>`); }
+  try { QUOTES.rows = await capi('/quotes'); QUOTES.mode = (await capi('/quotes/mode').catch(() => ({}))).master || 'hub'; } catch (e) { return setContent(`<div class="empty">${esc(e.message)}</div>`); }
   const rows = QUOTES.rows;
   const cnt = {}; rows.forEach(r => cnt[r.status] = (cnt[r.status] || 0) + 1);
   const list = QUOTES.status ? rows.filter(r => r.status === QUOTES.status) : rows;
   const tab = (k, l) => `<div class="tab ${QUOTES.status === k ? 'active' : ''}" onclick="QUOTES.status='${k}';renderQuotes()">${l} <span class="cnt">${k ? (cnt[k] || 0) : rows.length}</span></div>`;
-  pageShell('📄 عروض الأسعار والعقود', can('quotes', 'create') ? '<button class="btn" onclick="openQuoteEditor()">+ عرض سعر جديد</button>' : '',
-    `<div class="tabs">${tab('', 'الكل')}${Object.entries(QUOTE_STATUS).map(([k, l]) => tab(k, l === 'عقد' ? 'العقود' : l)).join('')}</div>
+  const genNote = QUOTES.mode === 'generator' ? `<div class="note-box">🔄 العروض والعقود تُصدر حالياً من <b>مولّد العقود</b> — هذي نسخة تتحدّث تلقائياً كل 15 دقيقة (للاطلاع فقط). بعد التحويل للمنصة يصير الإصدار من هنا.</div>` : '';
+  pageShell('📄 عروض الأسعار والعقود', can('quotes', 'create') && QUOTES.mode !== 'generator' ? '<button class="btn" onclick="openQuoteEditor()">+ عرض سعر جديد</button>' : '',
+    `${genNote}<div class="tabs">${tab('', 'الكل')}${Object.entries(QUOTE_STATUS).map(([k, l]) => tab(k, l === 'عقد' ? 'العقود' : l)).join('')}</div>
      <div class="card tight">${list.length ? `<div class="tbl-wrap"><table><thead><tr><th>الرقم</th><th>العميل</th><th>المناسبة</th><th>التاريخ</th><th>الإجمالي</th><th>الحالة</th><th>العقد / التشغيل</th><th>المدفوع</th><th>أعدّه</th></tr></thead><tbody>
      ${list.map(q => `<tr onclick="showQuote(${q.id})"><td><strong>${esc(q.quote_code)}</strong><br><small class="muted">${dShort(q.created_at)}</small></td><td>${esc(q.client_name)}<br><small class="muted" dir="ltr">${esc(q.client_phone || '')}</small></td>
        <td>${esc(EV_TYPES[q.event_type] || '')}<br><small class="muted">${esc(VENUES[q.venue_kind] || '')} ${esc(q.venue_name || '')}</small></td><td>${dShort(q.expected_date)}</td>
        <td><strong>${money(q.total_with_vat)}</strong></td><td>${pill(QUOTE_STATUS[q.status] || q.status, 'q-' + q.status)}${q.status !== 'contracted' && q.valid_until && q.valid_until < todayISO() ? '<br>' + pill('منتهي الصلاحية', 'bad') : ''}</td>
        <td>${q.contract_code ? `<strong>${esc(q.contract_code)}</strong><br><small class="muted">${esc(q.operation_order || 'بانتظار العربون')}</small>` : '—'}</td>
-       <td>${q.event_id ? money(q.paid_amount) : '—'}</td><td>${esc(q.created_by_name || '')}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">لا توجد عروض</div>'}</div>`);
+       <td>${q.event_id || q.source === 'generator' ? money(q.paid_amount) : '—'}</td><td>${q.source === 'generator' ? pill('المولّد', 'info') : esc(q.created_by_name || '')}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">لا توجد عروض</div>'}</div>`);
 }
 let QE = null;
 async function openQuoteEditor(id, preset) {
@@ -719,22 +720,34 @@ async function showQuote(id) {
       </div>
       ${q.notes ? `<div class="note-box">${esc(q.notes)}</div>` : ''}${q.internal_notes ? `<div class="note-box int">🔒 داخلي: ${esc(q.internal_notes)}</div>` : ''}
       ${contracted && q.payments.length ? `<h4 class="sub-h">الدفعات</h4><table><tbody>${q.payments.map(p => `<tr><td>${dShort(p.payment_date)}</td><td>${money(p.amount)}</td><td>${esc(PAY_METHODS[p.payment_method] || p.payment_method || '')}</td><td>${esc(p.reference || '')}</td><td>${esc(p.received_by_name || '')}</td></tr>`).join('')}</tbody></table>` : ''}
-      <p class="muted small">أعدّه ${esc(q.created_by_name || '')} — ${esc((q.created_at || '').slice(0, 16))}</p>`;
+      ${q.source === 'generator' ? genSections(q) : `<p class="muted small">أعدّه ${esc(q.created_by_name || '')} — ${esc((q.created_at || '').slice(0, 16))}</p>`}`;
     const b = [];
     b.push(`<button class="btn btn-outline" onclick="window.open('/dashboard/print_quote.html?id=${q.id}','_blank')">🖨 ${contracted ? 'طباعة العقد' : 'طباعة العرض'}</button>`);
-    if (!contracted && can('quotes', 'edit')) {
+    if (!q.read_only && !contracted && can('quotes', 'edit')) {
       b.push(`<button class="btn btn-outline" onclick="closeModal();openQuoteEditor(${q.id})">تعديل</button>`);
       if (q.status === 'draft') b.push(`<button class="btn btn-outline" onclick="quoteStatus(${q.id},'sent')">أُرسل للعميل</button>`);
       if (['draft', 'sent'].includes(q.status)) b.push(`<button class="btn btn-outline" onclick="quoteStatus(${q.id},'accepted')">قبِل العميل</button>`);
       if (q.status !== 'rejected') b.push(`<button class="btn btn-outline danger-t" onclick="quoteStatus(${q.id},'rejected')">رفض</button>`);
       b.push(`<button class="btn btn-success" onclick="convertQuote(${q.id})">✍ تحويل لعقد</button>`);
     }
-    if (contracted && can('payments', 'create') && (q.total_with_vat - (q.paid_amount || 0)) > 0.01) b.push(`<button class="btn btn-success" onclick="payDialog(${q.event_id})">+ تسجيل دفعة</button>`);
-    if (!contracted && can('quotes', 'delete')) b.push(`<button class="btn btn-outline danger-t" onclick="delQuote(${q.id})">حذف</button>`);
+    if (!q.read_only && contracted && can('payments', 'create') && (q.total_with_vat - (q.paid_amount || 0)) > 0.01) b.push(`<button class="btn btn-success" onclick="payDialog(${q.event_id})">+ تسجيل دفعة</button>`);
+    if (!q.read_only && !contracted && can('quotes', 'delete')) b.push(`<button class="btn btn-outline danger-t" onclick="delQuote(${q.id})">حذف</button>`);
     b.push('<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
     openModal(`📄 ${q.quote_code} — ${q.client_name}`, body, b.join(''));
     document.querySelector('.modal').classList.add('wide');
   } catch (e) { toast(e.message, 'error'); }
+}
+function genSections(q) {
+  const flags = (() => { try { return JSON.parse(q.gen_paid_flags || '{}'); } catch (e) { return {}; } })();
+  const yn = v => v === 'نعم' ? pill('مدفوع', 'ok') : (v === '—' ? '—' : pill('لا', 'warn'));
+  let h = `<div class="note-box">🔄 من <b>مولّد العقود</b> — حالة المستند: <b>${esc(q.gen_status || '')}</b>${q.revision ? ` · النسخة ${esc(q.revision)}` : ''}${q.confirmed_date ? ` · التاريخ المؤكد ${dShort(q.confirmed_date)}` : ''}${q.gen_operation_order ? ` · تشغيل <b>${esc(q.gen_operation_order)}</b>` : ''}. للاطلاع فقط — التعديل من المولّد.</div>
+    <div class="detail-grid"><div class="detail-item"><strong>العربون</strong>${money(q.deposit)} ${yn(flags.deposit)}</div><div class="detail-item"><strong>الدفعة النهائية</strong>${money(q.final_payment)} ${yn(flags.final)}</div>
+    <div class="detail-item"><strong>التأمين</strong>${money(q.insurance)} ${yn(flags.insurance)}</div><div class="detail-item"><strong>المستلم / المتبقي</strong>${money(q.gen_received)} / ${money(q.gen_remaining)}</div></div>`;
+  if ((q.gen_payments || []).length) h += `<h4 class="sub-h">سجل المدفوعات</h4><table><thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>الطريقة</th><th>المرجع</th></tr></thead><tbody>${q.gen_payments.map(p => `<tr><td>${dShort(p.payment_date)}</td><td>${esc(p.payment_type || '')}</td><td>${money(p.amount)}</td><td>${esc(p.method || '')}</td><td>${esc(p.reference || '')}</td></tr>`).join('')}</tbody></table>`;
+  if ((q.gen_addenda || []).length) h += `<h4 class="sub-h">ملاحق العقد</h4><table><thead><tr><th>الملحق</th><th>النوع</th><th>الوصف</th><th>قبل الضريبة</th><th>الإجمالي</th><th>الحالة</th></tr></thead><tbody>${q.gen_addenda.map(a => `<tr><td><strong>${esc(a.addendum_code)}</strong><br><small class="muted">${dShort(a.issued_at)}</small></td><td>${esc(a.change_type || '')}</td><td style="white-space:pre-line;max-width:380px">${esc(a.description || '')}</td><td>${money(a.cost)}</td><td>${money(a.total)}</td><td>${pill(a.status || '', /مدفوع/.test(a.status || '') && !/غير/.test(a.status || '') ? 'ok' : 'warn')}</td></tr>`).join('')}</tbody></table>`;
+  if ((q.gen_changes || []).length) h += `<h4 class="sub-h">طلبات التغيير</h4><table><thead><tr><th>الطلب</th><th>النوع</th><th>الملخص</th><th>الأثر المالي</th><th>موافقة العميل</th><th>الحالة</th></tr></thead><tbody>${q.gen_changes.map(c => `<tr><td><strong>${esc(c.request_code)}</strong><br><small class="muted">${esc(c.created_by || '')} · ${esc((c.created_at || '').slice(0, 16))}</small></td><td>${esc(c.request_type || '')}</td><td>${esc(c.summary || '')}</td><td>${money(c.money_impact)}</td><td>${esc(c.approval_method || '')}</td><td>${pill(c.status || '', c.status === 'معتمد' ? 'ok' : (c.status === 'مرفوض' ? 'bad' : 'warn'))}${c.approved_by ? `<br><small class="muted">${esc(c.approved_by)}</small>` : ''}</td></tr>`).join('')}</tbody></table>`;
+  if ((q.gen_revisions || []).length > 1) h += `<h4 class="sub-h">نسخ العرض</h4><table><tbody>${q.gen_revisions.map(r => `<tr><td>النسخة ${esc(r.revision)}</td><td>${dShort(r.revision_date)}</td><td>${esc(r.reason || '')}</td><td>${money(r.total_with_vat)}</td></tr>`).join('')}</tbody></table>`;
+  return h;
 }
 async function quoteStatus(id, st) {
   try { await capi(`/quotes/${id}/status`, 'POST', { status: st }); toast('تم', 'success'); showQuote(id); if (currentPage === 'quotes') renderQuotes(); } catch (e) { toast(e.message, 'error'); }

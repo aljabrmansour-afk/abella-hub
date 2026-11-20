@@ -37,12 +37,13 @@ threading.Thread(target=backup_loop, daemon=True).start()
 def sheets_sync_loop():
     time.sleep(60)
     sys.path.insert(0, str(pathlib.Path(__file__).parent / 'backend'))
-    import sync_sheets
+    import sync_sheets, sync_generator
     every = int(os.environ.get('SHEETS_SYNC_MINUTES', '15'))
     while every > 0:
         try:
             r = sync_sheets.run_sync(db, log_callback=lambda m: None)
             print('✓ مزامنة Sheets' if r.get('success') else f"⚠ مزامنة Sheets: {r.get('error')}")
+            sync_generator.run(db)
         except Exception as e:
             print('⚠ مزامنة Sheets', e)
         time.sleep(every * 60)

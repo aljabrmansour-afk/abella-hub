@@ -286,6 +286,12 @@ def init_database():
     ac.init_tables(conn)
     crm_routes.init_tables(conn)
     hr_routes.init_tables(conn)
+    try:
+        import sync_generator
+        sync_generator.init_tables(conn)
+        conn.commit()
+    except Exception as e:
+        print('⚠ gen tables', e)
     return conn
 
 def get_db():

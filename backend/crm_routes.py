@@ -697,6 +697,13 @@ def _leads(conn, method, path, query, data, ctx, send_json):
 # ============================================================
 # المبيعات: عروض الأسعار والعقود
 # ============================================================
+def _gen_master():
+    """ما دام مولّد العقود هو المصدر، المنصة تعرض نسخة منه فقط"""
+    import os
+    return (os.environ.get('CONTRACTS_MASTER') or 'generator') != 'hub'
+
+GEN_LOCK_MSG = 'هذا العرض/العقد من مولّد العقود — التعديل يكون من المولّد حتى يتم التحويل للمنصة (النسخة هنا تتحدّث كل 15 دقيقة)'
+
 def _quote_full(conn, qid):
     q = _row(conn, """SELECT q.*, u.full_name AS created_by_name, c.full_name AS customer_name,
                              c.phone AS customer_phone, c.id_number AS customer_id_number,
@@ -714,6 +721,13 @@ def _quote_full(conn, qid):
                               (q['event_id'],))
     else:
         q['payments'] = []
+    if q.get('source') == 'generator':
+        q['read_only'] = True
+        cc, qc = q.get('contract_code'), q.get('quote_code')
+        q['gen_payments'] = _rows(conn, "SELECT * FROM gen_payments WHERE quote_code=? OR (contract_code IS NOT NULL AND contract_code=?) ORDER BY payment_date, id", (qc, cc or '-'))
+        q['gen_addenda'] = _rows(conn, "SELECT * FROM gen_addenda WHERE contract_code=? ORDER BY addendum_code", (cc or '-',))
+        q['gen_changes'] = _rows(conn, "SELECT request_code, request_type, summary, money_impact, approval_method, created_by, created_at, status, approved_by, approved_at, result, diff_json FROM gen_change_requests WHERE quote_code=? OR contract_code=? ORDER BY created_at", (qc, cc or '-'))
+        q['gen_revisions'] = _rows(conn, "SELECT revision, revision_date, reason, total_with_vat FROM gen_quote_revisions WHERE quote_code=? ORDER BY revision", (qc,))
     s = ac.get_settings(conn)
     q['company'] = {k: s.get(k) for k in ('company_name', 'company_cr', 'company_vat', 'company_unified')}
     tkey = 'terms_' + ({'newborn': 'newborn_' + ('home' if q.get('venue_kind') == 'home' else 'hospital')}
@@ -736,7 +750,7 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
         sql = """SELECT q.id, q.quote_code, q.client_name, q.client_phone, q.event_type, q.venue_kind, q.venue_name,
                         q.expected_date, q.total_with_vat, q.deposit, q.status, q.valid_until, q.contract_code,
                         q.event_id, q.lead_id, q.customer_id, q.created_at, u.full_name AS created_by_name,
-                        e.operation_order, e.paid_amount
+                        COALESCE(e.operation_order, q.gen_operation_order) AS operation_order, CASE WHEN q.source='generator' THEN COALESCE(NULLIF((SELECT SUM(gp.amount) FROM gen_payments gp WHERE gp.quote_code=q.quote_code),0), q.gen_received) ELSE e.paid_amount END AS paid_amount, q.source
                  FROM quotes q LEFT JOIN users u ON u.id=q.created_by
                  LEFT JOIN events e ON e.id=q.event_id WHERE 1=1"""
         params = []
@@ -747,7 +761,14 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
         send_json(_rows(conn, sql, params))
         return True
 
+    if path == '/api/quotes/mode' and method == 'GET':
+        send_json({'master': 'generator' if _gen_master() else 'hub'})
+        return True
+
     if path == '/api/quotes' and method == 'POST':
+        if _gen_master():
+            send_json({'error': 'إصدار عروض الأسعار والعقود حالياً من مولّد العقود (عشان ما تتكرر الأرقام) — المنصة تعرض نسخة منه'}, 400)
+            return True
         if data.get('event_type') not in TYPE_PREFIX:
             send_json({'error': 'اختر نوع المناسبة'}, 400)
             return True
@@ -804,6 +825,9 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
         if not q:
             send_json({'error': 'غير موجود'}, 404)
             return True
+        if q.get('source') == 'generator':
+            send_json({'error': GEN_LOCK_MSG}, 400)
+            return True
         if q['status'] == 'contracted':
             send_json({'error': 'العرض صار عقداً — أي تعديل بعد التعاقد يكون بملحق (المرحلة القادمة)'}, 400)
             return True
@@ -834,9 +858,12 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
 
     if m and method == 'DELETE':
         qid = int(m.group(1))
-        q = _row(conn, "SELECT status FROM quotes WHERE id=?", (qid,))
+        q = _row(conn, "SELECT status, source FROM quotes WHERE id=?", (qid,))
         if not q:
             send_json({'error': 'غير موجود'}, 404)
+            return True
+        if q.get('source') == 'generator':
+            send_json({'error': GEN_LOCK_MSG}, 400)
             return True
         if q['status'] == 'contracted':
             send_json({'error': 'ما ينحذف عرض صار عقداً'}, 400)
@@ -856,6 +883,9 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
             send_json({'error': 'حالة غير صحيحة'}, 400)
             return True
         q = _row(conn, "SELECT * FROM quotes WHERE id=?", (qid,))
+        if q and q.get('source') == 'generator':
+            send_json({'error': GEN_LOCK_MSG}, 400)
+            return True
         if not q or q['status'] == 'contracted':
             send_json({'error': 'ما يمكن تغيير الحالة'}, 400)
             return True
@@ -870,6 +900,9 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
 
     m = re.match(r'^/api/quotes/(\d+)/convert$', path)
     if m and method == 'POST':
+        if (_row(conn, "SELECT source FROM quotes WHERE id=?", (int(m.group(1)),)) or {}).get('source') == 'generator':
+            send_json({'error': GEN_LOCK_MSG}, 400)
+            return True
         return _convert_quote(conn, int(m.group(1)), data, ctx, send_json)
 
     send_json({'error': 'المسار غير موجود'}, 404)
