@@ -30,6 +30,12 @@ def init_tables(conn):
     CREATE TABLE IF NOT EXISTS exn_log (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT, by_name TEXT, pid TEXT, tid TEXT, kind TEXT, detail TEXT);
     CREATE TABLE IF NOT EXISTS exn_team (username TEXT PRIMARY KEY, role TEXT, team TEXT, all_projects INTEGER DEFAULT 0, active TEXT DEFAULT 'نعم');
     """)
+    # منصور 2026-11-20: المشرفات ريّان ورضوى — ميهاف وشريفة خارج فريق يوم التنفيذ
+    if not conn.execute("SELECT 1 FROM settings WHERE key='exn_seed_sup_v1'").fetchone():
+        for u in ('mihaf', 'shareefa'):
+            conn.execute("INSERT OR REPLACE INTO exn_team (username, role, team, all_projects, active) VALUES (?, '', '', 0, 'لا')", (u,))
+        conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('exn_seed_sup_v1', '1')")
+        conn.commit()
 
 
 def now():
