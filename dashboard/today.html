@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>أبيلا اليوم — منصّة أبيلا</title>
+<style>
+:root{--g:#8B6F47;--g2:#C9AE84;--ln:#E8DFD0;--bg:#FAF7F2;--ok:#2E7D4F;--bad:#B3261E;--warn:#B7791F;--sup:#8B6F47;--hos:#C9AE84;--exe:#5E7B6A;--pur:#9C6B6B}
+*{box-sizing:border-box}body{margin:0;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;background:var(--bg);color:#2B2420;font-size:14px}
+#hubbar{background:#FFF6E5;border-bottom:1px solid var(--ln);padding:7px 14px;font-size:13px}#hubbar a{color:var(--g);font-weight:700;text-decoration:none}
+header{padding:16px 14px 8px;display:flex;align-items:baseline;gap:10px}header h1{margin:0;font-size:22px;color:var(--g)}
+main{padding:0 14px 30px;max-width:1100px;margin:auto}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:12px}
+.kpi div{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:12px}.kpi b{display:block;font-size:20px;color:var(--g);margin:4px 0}.kpi small{color:#9A8B7A}
+.card{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:12px}.card h3{margin:0 0 10px;font-size:15px;color:var(--g)}
+.alerts div{background:#FFF4E5;border-inline-start:4px solid var(--warn);padding:8px 10px;border-radius:8px;margin-bottom:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 5px;border-bottom:1px solid #F0E9DD;text-align:right;white-space:nowrap}th{color:#7A6A58;font-weight:600}
+.scroll{overflow-x:auto}.num{font-variant-numeric:tabular-nums}.pos{color:var(--ok)}.neg{color:var(--bad)}.muted{color:#9A8B7A;font-size:12px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:10px}.bars .m{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:34px}
+.bars .stack{width:100%;max-width:46px;display:flex;flex-direction:column-reverse;border-radius:6px 6px 0 0;overflow:hidden}.bars .rev{width:100%;max-width:46px;border:2px dashed var(--g);border-bottom:0;border-radius:6px 6px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:4px;margin-inline-end:10px;font-size:12px}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;background:#F1EADF;color:var(--g)}.badge.ok{background:#E6F2EA;color:var(--ok)}.badge.no{background:#FBE9E7;color:var(--bad)}
+.tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}.tabs button{border:1px solid var(--ln);background:#fff;border-radius:20px;padding:6px 14px;font:inherit;cursor:pointer;white-space:nowrap}.tabs button.on{background:var(--g);color:#fff;border-color:var(--g)}
+</style>
+</head>
+<body>
+<div id="hubbar"><a href="/dashboard/">← منصّة أبيلا</a> · أبيلا اليوم</div>
+<header><h1>أبيلا اليوم</h1><span class="muted" id="gen"></span><span style="flex:1"></span><a class="muted" href="#" onclick="load(true);return false">تحديث ↻</a></header>
+<main id="main"><div class="card">جارٍ التحميل…</div></main>
+<script src="/assets/session.js"></script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f=n=>n==null?'—':Math.round(+n).toLocaleString('en-US'),pc=n=>n==null?'—':n+'%';
+const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];const mn=m=>MN[+m.slice(5,7)-1]+' '+m.slice(2,4);
+let D=null,TAB='pnl';
+async function load(){const r=await fetch('/api/today');if(r.status===401){location.href='/dashboard/';return}D=await r.json();if(D.error){$('#main').innerHTML=`<div class="card">${esc(D.error)}</div>`;return}render()}
+function render(){const k=D.kpis;$('#gen').textContent='تحديث '+D.generated+' UTC';
+ const max=Math.max(1,...D.monthly.map(m=>Math.max(m.rev,m.cost)));
+ $('#main').innerHTML=`
+ ${D.alerts.length?`<div class="card alerts"><h3>تنبيهات</h3>${D.alerts.map(a=>`<div>${esc(a)}</div>`).join('')}</div>`:''}
+ <div class="kpi">
+  <div><small>مناسبات ${mn(k.month)}</small><b>${k.events}</b><small>إيراد صافي ${f(k.eventsRevenue)}</small></div>
+  <div><small>المحصّل هذا الشهر</small><b>${f(k.collected)}</b><small>${k.payments} دفعة</small></div>
+  <div><small>مصروفات الشهر (صافي)</small><b>${f(k.expenses)}</b><small>${k.expensesN} فاتورة</small></div>
+  <div><small>عقود جديدة هذا الشهر</small><b>${k.newContracts}</b><small>${f(k.newContractsValue)} شامل</small></div>
+  <div><small>مستحق على العملاء</small><b>${f(k.receivable)}</b></div>
+  <div><small>مستحق للموردين</small><b>${f(k.supplierDues)}</b></div>
+ </div>
+ <div class="card"><h3>الإيراد والتكلفة حسب شهر المناسبة</h3>
+  <div class="legend"><span><i style="border:2px dashed var(--g)"></i>الإيراد</span><span><i style="background:var(--sup)"></i>إشراف</span><span><i style="background:var(--hos)"></i>ضيافة</span><span><i style="background:var(--exe)"></i>تنفيذ</span><span><i style="background:var(--pur)"></i>مشتريات</span></div>
+  <div class="scroll"><div class="bars">${D.monthly.map(m=>`<div class="m"><div style="display:flex;align-items:flex-end;gap:3px;width:100%;justify-content:center;height:140px">
+    <div class="rev" style="height:${m.rev/max*140}px"></div><div class="stack" style="height:${m.cost/max*140}px">${['sup','hos','exe','pur'].map(x=>`<div style="height:${m.cost?m[x]/m.cost*100:0}%;background:var(--${x})"></div>`).join('')}</div></div>
+    <span class="muted">${mn(m.m)}</span></div>`).join('')}</div></div>
+  <div class="scroll"><table><tr><th>الشهر</th><th>مناسبات</th><th>الإيراد</th><th>التكلفة</th><th>الربح</th><th>محصّل</th><th>متبقي</th></tr>
+   ${D.monthly.map(m=>`<tr><td>${mn(m.m)}</td><td>${m.n}</td><td class="num">${f(m.rev)}</td><td class="num">${f(m.cost)}</td><td class="num ${m.profit<0?'neg':'pos'}">${f(m.profit)}</td><td class="num">${f(m.received)}</td><td class="num">${f(m.remaining)}</td></tr>`).join('')}</table></div></div>
+ <div class="card"><h3>المناسبات القادمة (30 يوم)</h3><div class="scroll"><table><tr><th>التاريخ</th><th>O</th><th>العميل</th><th>الموقع</th><th>الموعد</th><th>المتبقي</th><th>يوم التنفيذ</th></tr>
+  ${D.upcoming.map(u=>`<tr><td>${u.date}</td><td>${u.o}</td><td>${esc(u.client)}</td><td>${esc(u.venue||'')}</td><td>${u.confirmed?'<span class="badge ok">مؤكد</span>':'<span class="badge">متوقع</span>'}</td><td class="num">${f(u.remaining)}</td><td>${u.exec||'—'}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">لا يوجد</td></tr>'}</table></div></div>
+ <div class="tabs">${[['pnl','ربحية المناسبات'],['overdue','مستحقات متأخرة'],['sup','الموردين'],['quotes','العروض المفتوحة']].map(([t,l])=>`<button data-t="${t}" class="${t===TAB?'on':''}">${l}</button>`).join('')}</div>
+ <div class="card scroll" id="tab"></div>`;
+ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;render()});renderTab()}
+function renderTab(){const t=$('#tab');
+ if(TAB==='pnl')t.innerHTML=`<h3>ربحية المناسبات (آخر 90 يوم — صافي قبل الضريبة)</h3><table><tr><th>التاريخ</th><th>O</th><th>العميل</th><th>الإيراد</th><th>إشراف</th><th>ضيافة</th><th>تنفيذ</th><th>مشتريات</th><th>الربح</th><th>الهامش</th><th></th></tr>
+  ${D.pnl.map(p=>`<tr><td>${p.date}</td><td>${p.o}</td><td>${esc(p.client)}</td><td class="num">${f(p.rev)}</td><td class="num">${f(p.sup)}</td><td class="num">${f(p.hos)}</td><td class="num">${f(p.exe)}</td><td class="num">${f(p.pur)}</td><td class="num ${p.profit<0?'neg':'pos'}">${f(p.profit)}</td><td>${pc(p.margin)}</td><td class="muted">${esc(p.flags)}</td></tr>`).join('')}</table>`;
+ if(TAB==='overdue')t.innerHTML=`<h3>عقود انتهت مناسبتها وعليها متبقي</h3><table><tr><th>O</th><th>العميل</th><th>التاريخ</th><th>قيمة العقد</th><th>المتبقي</th></tr>${D.overdue.map(o=>`<tr><td>${o.o}</td><td>${esc(o.client)}</td><td>${o.date}</td><td class="num">${f(o.rev)}</td><td class="num neg">${f(o.remaining)}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">لا يوجد</td></tr>'}</table>`;
+ if(TAB==='sup')t.innerHTML=`<h3>أكبر الموردين (صافي)</h3><table><tr><th>المورد</th><th>فواتير</th><th>الإجمالي</th><th>هذا الشهر</th><th>المستحق له</th></tr>${D.suppliers.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.n}</td><td class="num">${f(s.total)}</td><td class="num">${f(s.month)}</td><td class="num ${s.due>0?'neg':''}">${f(s.due)}</td></tr>`).join('')}</table>`;
+ if(TAB==='quotes')t.innerHTML=`<h3>عروض أسعار لم تتحول لعقد</h3><table><tr><th>العرض</th><th>العميل</th><th>تاريخ المناسبة</th><th>القيمة</th><th>الحالة</th><th>تاريخ العرض</th></tr>${D.quotes.map(q=>`<tr><td>${esc(q.quote_code)}</td><td>${esc(q.client_name)}</td><td>${esc(q.expected_date||'')}</td><td class="num">${f(q.total_with_vat)}</td><td>${esc(q.gen_status||q.status)}</td><td>${esc((q.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">لا يوجد</td></tr>'}</table>`;}
+load();setInterval(load,300000);
+</script>
+</body>
+</html>

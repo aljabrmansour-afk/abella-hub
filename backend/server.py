@@ -49,6 +49,7 @@ import wpgen_routes
 import ops_routes
 import expenses_routes
 import jard_native
+import today_routes
 import contracts_routes
 import hr_routes
 
@@ -676,6 +677,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
         if not handled and ctx:
             handled = wpgen_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
+            handled = today_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
+        if not handled and ctx:
             handled = jard_native.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
             handled = expenses_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
@@ -709,6 +712,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return self.send_static_file(UPLOADS_DIR / path.replace('/uploads/', '', 1))
         if path in ('/operations', '/operations/'):
             return self.send_static_file(DASHBOARD_DIR / 'operations.html')
+        if path in ('/today', '/today/'):
+            return self.send_static_file(DASHBOARD_DIR / 'today.html')
         if path in ('/jard', '/jard/'):
             return self.send_static_file(DASHBOARD_DIR / 'jard.html')
         if path in ('/execution', '/execution/'):
