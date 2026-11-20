@@ -25,6 +25,7 @@ MODULES = [
     ('payments',      'الدفعات والمستحقات',       'المالية'),
     ('finance',       'المالية والأرباح',         'المالية'),
     ('reports',       'التقارير',                 'المالية'),
+    ('expenses',      'المصروفات والمشتريات',     'المالية'),
     ('events',        'المناسبات',                'العمليات'),
     ('work_plans',    'خطط العمل',                'العمليات'),
     ('sub_plans',     'الخطط الفرعية',            'العمليات'),
@@ -64,7 +65,7 @@ DEFAULT_ROLES = [
     ('finance', 'المالية', 0, {
         'dashboard': 'V', 'customers': 'V', 'quotes': 'V', 'payments': 'VCE',
         'finance': 'V', 'reports': 'V', 'events': 'V', 'sync': 'VE',
-        'employees': 'V', 'payroll': 'VCE', 'assets': 'V'}),
+        'employees': 'V', 'payroll': 'VCE', 'assets': 'V', 'expenses': 'VCE'}),
     ('project_manager', 'مدير المشروع', 0, {
         'dashboard': 'V', 'calendar': 'V', 'customers': 'V', 'appointments': 'V',
         'confirmations': 'V', 'events': 'VE', 'work_plans': 'VCE', 'sub_plans': 'VCE',
@@ -77,7 +78,7 @@ DEFAULT_ROLES = [
         'dashboard': 'V', 'inventory': 'VCE', 'raw_materials': 'VCE', 'assets': 'VCE'}),
     ('supervisor', 'الإشراف', 0, {
         'dashboard': 'V', 'calendar': 'V', 'customers': 'V', 'confirmations': 'V',
-        'events': 'V', 'work_plans': 'V', 'sub_plans': 'V'}),
+        'events': 'V', 'work_plans': 'V', 'sub_plans': 'V', 'expenses': 'VC'}),
     ('field', 'التنفيذ الميداني', 0, {
         'dashboard': 'V', 'events': 'V', 'inventory': 'V'}),
     ('warehouse', 'المستودع', 0, {
@@ -89,9 +90,9 @@ DEFAULT_ROLES = [
     ('factory', 'المصنع', 0, {
         'dashboard': 'V', 'raw_materials': 'VCE', 'sub_plans': 'V', 'inventory': 'V'}),
     ('hospitality', 'الضيافة', 0, {
-        'dashboard': 'V', 'events': 'V', 'sub_plans': 'V'}),
+        'dashboard': 'V', 'events': 'V', 'sub_plans': 'V', 'expenses': 'VC'}),
     ('purchasing', 'المشتريات', 0, {
-        'dashboard': 'V', 'raw_materials': 'VCE', 'inventory': 'V', 'sync': 'V'}),
+        'dashboard': 'V', 'raw_materials': 'VCE', 'inventory': 'V', 'sync': 'V', 'expenses': 'VC'}),
 ]
 
 DEFAULT_SETTINGS = {
@@ -448,6 +449,8 @@ RULES = [
     (r'POST',       r'^/api/events$',                  [('events', 'create')]),
     (r'PUT',        r'^/api/events/',                  [('events', 'edit')]),
     (r'DELETE',     r'^/api/events/',                  [('events', 'delete')]),
+    (r'GET',        r'^/api/exp/',                     [('expenses', 'view'), ('finance', 'view')]),
+    (r'POST',       r'^/api/exp/',                     [('expenses', 'view'), ('finance', 'view')]),
     (r'POST',       r'^/api/wpgen/',                  [('work_plans', 'view')]),
     (r'POST',       r'^/api/workplans$',               [('work_plans', 'create')]),
     (r'POST',       r'^/api/workplans/approve',        [('work_plans', 'edit')]),

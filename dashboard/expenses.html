@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المصروفات — منصّة أبيلا</title>
+<style>
+:root{--g:#8B6F47;--g2:#B89B72;--bg:#FAF7F2;--ln:#E8DFD0;--ok:#2E7D4F;--bad:#B3261E;--warn:#B7791F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;background:var(--bg);color:#2B2420;font-size:14px}
+#hubbar{background:#FFF6E5;border-bottom:1px solid var(--ln);padding:7px 14px;font-size:13px}
+#hubbar a{color:var(--g);font-weight:700;text-decoration:none}
+header{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+header h1{font-size:18px;margin:0;color:var(--g)}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;background:#F1EADF;color:var(--g)}
+.badge.test{background:#FFF0D6;color:var(--warn)}.badge.hub{background:#E6F2EA;color:var(--ok)}.badge.red{background:#FBE9E7;color:var(--bad)}
+nav{display:flex;gap:4px;padding:8px 10px;background:#fff;border-bottom:1px solid var(--ln);overflow-x:auto}
+nav button{border:0;background:none;padding:8px 14px;border-radius:8px;font:inherit;color:#6B5B4B;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--g);color:#fff}
+main{padding:14px;max-width:1200px;margin:auto}
+.card{background:#fff;border:1px solid var(--ln);border-radius:12px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+label{display:block;font-size:12px;color:#7A6A58;margin-bottom:3px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;font:inherit;background:#fff}
+textarea{min-height:60px}
+.btn{border:0;background:var(--g);color:#fff;padding:9px 16px;border-radius:8px;font:inherit;cursor:pointer}
+.btn.sec{background:#F1EADF;color:var(--g)}.btn.bad{background:var(--bad)}.btn.ok{background:var(--ok)}.btn.sm{padding:5px 10px;font-size:12px}
+.types{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.types button{flex:1;min-width:120px;padding:12px;border:1px solid var(--ln);border-radius:10px;background:#fff;font:inherit;cursor:pointer}
+.types button.on{border-color:var(--g);background:#FFF6E5;font-weight:700;color:var(--g)}
+.types button:disabled{opacity:.4}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 6px;border-bottom:1px solid #F0E9DD;text-align:right;vertical-align:top}
+th{background:#FBF8F3;color:#7A6A58;font-weight:600;position:sticky;top:0}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.muted{color:#9A8B7A;font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sum{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.sum div{background:#FBF8F3;border-radius:8px;padding:8px 12px}
+.sum b{display:block;font-size:16px;color:var(--g)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#2B2420;color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:9}
+.dlg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:8}
+.dlg .card{width:min(560px,94vw);max-height:90vh;overflow:auto}
+.scroll{overflow:auto;max-height:65vh}
+@media(max-width:640px){.hide-m{display:none}}
+</style>
+</head>
+<body>
+<div id="hubbar"><a href="/dashboard/">← منصّة أبيلا</a> · المصروفات والمشتريات</div>
+<header><h1>المصروفات</h1><span id="mode" class="badge"></span><span style="flex:1"></span><span id="adminBox" class="row"></span></header>
+<nav id="tabs"></nav>
+<main id="main"><div class="card">جارٍ التحميل…</div></main>
+<div class="toast" id="toast"></div>
+<script src="/assets/session.js"></script>
+<script>
+const S = { tab: 'add', k: null, boot: null, list: [], filter: { k: '', q: '' } };
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = n => (Math.round((+n || 0) * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const toast = (m, ms = 2600) => { const t = $('#toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', ms); };
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {});
+  if (r.status === 401) { location.href = '/dashboard/'; throw new Error('سجّل الدخول'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.error) throw new Error(j.error || 'خطأ');
+  return j;
+}
+const fileData = f => new Promise((res, rej) => { if (!f) return res(''); if (f.size > 8e6) return rej(new Error('الملف أكبر من 8MB')); const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+
+async function boot() {
+  try { S.boot = await api('/api/exp/boot'); } catch (e) { $('#main').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
+  const B = S.boot;
+  $('#mode').className = 'badge ' + (B.hubMaster ? 'hub' : 'test');
+  $('#mode').textContent = B.hubMaster ? 'التسجيل من المنصة' : 'تشغيل متوازٍ — التسجيل الرسمي من التطبيق القديم' + (B.isSuper ? ' (تقدر تجرّب بفواتير تجريبية)' : '');
+  if (B.isSuper) $('#adminBox').innerHTML = `<button class="btn sec sm" onclick="clearTest()">حذف بيانات التجربة</button>
+     <button class="btn sec sm" onclick="switchMaster()">${B.hubMaster ? 'رجوع للتطبيق القديم' : 'تحويل التسجيل للمنصة'}</button>`;
+  const tabs = [['add', 'تسجيل فاتورة'], ['list', 'كل الفواتير'], ['dues', 'مستحقات الموردين'], ['pays', 'الدفعات']];
+  if (B.isApprover) tabs.push(['req', 'الاعتمادات' + (B.pending ? ` (${B.pending})` : '')]);
+  $('#tabs').innerHTML = tabs.map(([k, l]) => `<button data-t="${k}">${l}</button>`).join('');
+  $('#tabs').onclick = e => { const t = e.target.dataset.t; if (t) { S.tab = t; render(); } };
+  S.k = Object.keys(B.types).find(k => B.types[k].canEnter) || 'sup';
+  render();
+}
+function render() {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === S.tab));
+  ({ add: renderAdd, list: renderList, dues: renderDues, pays: renderPays, req: renderReq })[S.tab]();
+}
+
+// ───── تسجيل ─────
+function renderAdd() {
+  const B = S.boot, T = B.types[S.k], canWrite = B.hubMaster || B.isSuper;
+  const dl = (id, arr) => `<datalist id="${id}">${(arr || []).map(x => `<option value="${esc(x)}">`).join('')}</datalist>`;
+  $('#main').innerHTML = `
+  ${!canWrite ? `<div class="card">التسجيل حالياً من تطبيق المصروفات القديم. المنصة تعرض كل الفواتير وتتحدّث كل 15 دقيقة.</div>` : ''}
+  ${canWrite && !B.hubMaster ? `<div class="card" style="background:#FFF6E5">وضع التجربة: أي فاتورة تسجّلها هنا تُعلَّم «تجريبية» ولا تدخل في الأرقام الرسمية — تقدر تحذفها كلها بزر «حذف بيانات التجربة».</div>` : ''}
+  <div class="types">${Object.entries(B.types).map(([k, t]) => `<button data-k="${k}" class="${k === S.k ? 'on' : ''}" ${t.canEnter ? '' : 'disabled'}>${t.label}</button>`).join('')}</div>
+  <div class="card"><div class="grid">
+    <div><label>رقم التشغيل *</label><input id="f_o" list="dl_o" placeholder="O…" oninput="showOp()">${dl('dl_o', B.ops.map(o => o.o))}<div id="opInfo" class="muted"></div></div>
+    <div><label>المسؤول (اللي اشترى) *</label><input id="f_person" list="dl_p" value="">${dl('dl_p', B.people)}</div>
+    <div><label>${T.item} *</label><input id="f_item" list="dl_i">${dl('dl_i', B.items[S.k])}</div>
+    ${S.k !== 'hos' ? `<div><label>المورد</label><input id="f_supplier" list="dl_s">${dl('dl_s', B.suppliers)}</div>` : ''}
+    <div><label>البيان</label><input id="f_desc"></div>
+    <div><label>الكمية</label><input id="f_qty"></div>
+    <div><label>رقم الفاتورة</label><input id="f_inv"></div>
+    <div><label>تاريخ الفاتورة</label><input id="f_invDate" type="date" value="${new Date().toISOString().slice(0, 10)}"></div>
+    <div><label>المبلغ الإجمالي *</label><input id="f_total" type="number" step="0.01" inputmode="decimal" oninput="calc()"></div>
+    <div><label>الضريبة</label><select id="f_vatInc" onchange="calc()"><option value="1">شامل الضريبة 15%</option><option value="">بدون ضريبة</option></select></div>
+    <div><label>طريقة الدفع</label><select id="f_method" onchange="calc()">${B.methods.map(m => `<option>${m}</option>`).join('')}</select></div>
+    <div id="paidBox" style="display:none"><label>المدفوع الآن (آجل)</label><input id="f_paid" type="number" step="0.01" value="0" oninput="calc()"></div>
+    <div><label>صورة الفاتورة</label><input id="f_file" type="file" accept="image/*,application/pdf" capture="environment"></div>
+    <div style="grid-column:1/-1"><label>ملاحظات</label><textarea id="f_notes"></textarea></div>
+  </div>
+  <div class="sum" id="calc"></div>
+  <button class="btn" ${canWrite && T.canEnter ? '' : 'disabled'} onclick="saveInv(this)">حفظ الفاتورة</button></div>`;
+  document.querySelectorAll('.types button').forEach(b => b.onclick = () => { S.k = b.dataset.k; renderAdd(); });
+  calc();
+}
+function showOp() { const o = S.boot.ops.find(x => x.o === $('#f_o').value.trim()); $('#opInfo').textContent = o ? `${o.client || ''} · ${o.type || ''} · ${o.d1 || ''}` : ''; }
+function calc() {
+  const t = +$('#f_total').value || 0, inc = !!$('#f_vatInc').value, m = $('#f_method').value;
+  $('#paidBox').style.display = m === 'آجل' ? '' : 'none';
+  const vat = inc ? t * 0.15 / 1.15 : 0, paid = m === 'آجل' ? Math.min(+$('#f_paid').value || 0, t) : t;
+  $('#calc').innerHTML = `<div>الضريبة المستردة<b>${fmt(vat)}</b></div><div>الصافي<b>${fmt(t - vat)}</b></div><div>المدفوع<b>${fmt(paid)}</b></div><div>المتبقي للمورد<b>${fmt(t - paid)}</b></div>`;
+}
+async function saveInv(btn) {
+  const v = id => ($('#f_' + id) || {}).value || '';
+  btn.disabled = true;
+  try {
+    const file = await fileData($('#f_file').files[0]);
+    const r = await api('/api/exp/add', { k: S.k, o: v('o').trim(), person: v('person'), item: v('item'), supplier: v('supplier'), desc: v('desc'), qty: v('qty'),
+      inv: v('inv'), invDate: v('invDate'), total: v('total'), vatInc: !!v('vatInc'), method: v('method'), paid: v('method') === 'آجل' ? v('paid') : '', notes: v('notes'), file });
+    toast(r.test ? 'حُفظت كفاتورة تجريبية ✓' : 'حُفظت الفاتورة ✓'); renderAdd();
+  } catch (e) { toast(e.message, 4000); btn.disabled = false; }
+}
+
+// ───── كل الفواتير ─────
+async function renderList() {
+  const B = S.boot, F = S.filter;
+  $('#main').innerHTML = `<div class="card"><div class="row">
+    <select id="lk" style="width:auto"><option value="">كل الأنواع</option>${Object.entries(B.types).map(([k, t]) => `<option value="${k}" ${F.k === k ? 'selected' : ''}>${t.label}</option>`).join('')}</select>
+    <input id="lq" placeholder="بحث: عميل، بند، مورد، رقم فاتورة، O…" value="${esc(F.q)}" style="flex:1;min-width:180px">
+    <label class="row" style="margin:0"><input type="checkbox" id="lm" ${F.missing ? 'checked' : ''} style="width:auto"> ناقصة (رقم/صورة/مسؤول)</label>
+    <button class="btn sm" onclick="loadList()">عرض</button></div><div class="sum" id="lsum"></div><div class="scroll" id="ltab">…</div></div>`;
+  $('#lq').onkeydown = e => e.key === 'Enter' && loadList();
+  loadList();
+}
+async function loadList() {
+  S.filter = { k: $('#lk').value, q: $('#lq').value.trim(), missing: $('#lm').checked };
+  const qs = new URLSearchParams({ k: S.filter.k, q: S.filter.q, missing: S.filter.missing ? '1' : '', limit: 1500 });
+  const rows = S.list = await api('/api/exp/list?' + qs).catch(e => (toast(e.message), []));
+  const T = S.boot.types, sum = f => fmt(rows.filter(r => !r.is_test).reduce((a, r) => a + (+r[f] || 0), 0));
+  $('#lsum').innerHTML = `<div>عدد<b>${rows.length}</b></div><div>الإجمالي<b>${sum('total')}</b></div><div>الضريبة<b>${sum('vat')}</b></div><div>المدفوع<b>${sum('paid')}</b></div><div>المتبقي<b>${sum('remaining')}</b></div>`;
+  $('#ltab').innerHTML = `<table><tr><th>النوع</th><th>O</th><th>العميل</th><th>البند / المورد</th><th class="hide-m">فاتورة</th><th class="hide-m">التاريخ</th><th>الإجمالي</th><th>الطريقة</th><th>المتبقي</th><th class="hide-m">المسؤول</th><th></th></tr>
+  ${rows.map(r => `<tr><td>${T[r.k]?.label || r.k}${r.is_test ? ' <span class="badge test">تجربة</span>' : ''}${r.source === 'hub' ? ' <span class="badge hub">منصة</span>' : ''}</td>
+    <td>${esc(r.operation_order)}</td><td>${esc(r.client)}</td><td>${esc(r.item)}${r.supplier && r.supplier !== r.item ? `<div class="muted">${esc(r.supplier)}</div>` : ''}${r.description ? `<div class="muted">${esc(r.description)}</div>` : ''}</td>
+    <td class="hide-m">${esc(r.invoice_number)}${r.attachment ? ` <a href="${esc(r.attachment)}" target="_blank">📎</a>` : ''}</td><td class="hide-m num">${esc(r.invoice_date || '')}</td>
+    <td class="num">${fmt(r.total)}</td><td>${esc(r.method)}</td><td class="num">${r.remaining > 0.009 ? `<span class="badge red">${fmt(r.remaining)}</span>` : '—'}</td><td class="hide-m">${esc(r.person)}</td>
+    <td>${r.source === 'hub' ? (r.pending ? '<span class="badge test">بانتظار منصور</span>' : `<button class="btn sec sm" onclick="reqDlg(${r.id})">تعديل/حذف</button>`) : ''}${r.edited ? `<div class="muted">${esc(r.edited)}</div>` : ''}</td></tr>`).join('')}</table>`;
+}
+function reqDlg(id) {
+  const r = S.list.find(x => x.id === id);
+  const d = document.createElement('div'); d.className = 'dlg';
+  d.innerHTML = `<div class="card"><h3 style="margin-top:0">طلب تعديل أو حذف — ${esc(r.operation_order)} · ${esc(r.item)}</h3>
+   <p class="muted">ما يُطبّق إلا بعد اعتماد منصور.</p>
+   <div class="row"><label class="row" style="margin:0"><input type="radio" name="rk" value="edit" checked style="width:auto"> تعديل</label>
+   <label class="row" style="margin:0"><input type="radio" name="rk" value="delete" style="width:auto"> حذف</label></div>
+   <div class="grid" id="editF" style="margin-top:10px">
+     <div><label>رقم التشغيل</label><input data-f="o" value="${esc(r.operation_order)}"></div>
+     <div><label>البند/المورد</label><input data-f="item" value="${esc(r.item)}"></div>
+     <div><label>رقم الفاتورة</label><input data-f="inv" value="${esc(r.invoice_number)}"></div>
+     <div><label>الإجمالي</label><input data-f="total" type="number" step="0.01" value="${r.total}"></div>
+     <div><label>الطريقة</label><select data-f="method">${S.boot.methods.map(m => `<option ${m === r.method ? 'selected' : ''}>${m}</option>`).join('')}</select></div>
+     <div><label>المسؤول</label><input data-f="person" value="${esc(r.person)}"></div>
+   </div>
+   <label style="margin-top:10px">السبب *</label><textarea id="rreason"></textarea>
+   <div class="row" style="margin-top:10px"><button class="btn" id="rsend">إرسال الطلب</button><button class="btn sec" onclick="this.closest('.dlg').remove()">إلغاء</button></div></div>`;
+  document.body.appendChild(d);
+  d.querySelectorAll('[name=rk]').forEach(x => x.onchange = () => d.querySelector('#editF').style.display = x.value === 'edit' && x.checked ? '' : 'none');
+  d.querySelector('#rsend').onclick = async () => {
+    const kind = d.querySelector('[name=rk]:checked').value, proposed = {};
+    if (kind === 'edit') d.querySelectorAll('[data-f]').forEach(i => { const f = i.dataset.f, old = { o: r.operation_order, inv: r.invoice_number }[f] ?? r[f]; if (String(i.value) !== String(old ?? '')) proposed[f] = f === 'total' ? +i.value : i.value; });
+    if (kind === 'edit' && !Object.keys(proposed).length) return toast('ما غيّرت شي');
+    try { await api('/api/exp/request', { id, kind, reason: d.querySelector('#rreason').value, proposed }); d.remove(); toast('أُرسل الطلب لمنصور ✓'); loadList(); }
+    catch (e) { toast(e.message, 4000); }
+  };
+}
+
+// ───── المستحقات ─────
+async function renderDues() {
+  const rows = await api('/api/exp/dues').catch(e => (toast(e.message), []));
+  const T = S.boot.types, tot = rows.reduce((a, r) => a + r.due, 0);
+  $('#main').innerHTML = `<div class="card"><div class="sum"><div>إجمالي المستحق للموردين<b>${fmt(tot)}</b></div><div>عدد الموردين<b>${rows.length}</b></div></div>
+   <p class="muted">السداد من المنصة متاح لفواتير المنصة فقط؛ فواتير الجداول تُسدّد من التطبيق القديم حتى التحويل.</p>
+   <div class="scroll"><table><tr><th>النوع</th><th>المورد</th><th>فواتير</th><th>أقدم فاتورة</th><th>المستحق</th><th></th></tr>
+   ${rows.map((r, i) => `<tr><td>${T[r.k]?.label}</td><td>${esc(r.supplier)}</td><td>${r.n}</td><td class="num">${esc((r.oldest || '').slice(0, 10))}</td><td class="num"><b>${fmt(r.due)}</b></td>
+     <td>${r.hub_n ? `<button class="btn sm" onclick='payDlg(${JSON.stringify({ k: r.k, supplier: r.supplier })})'>سداد</button>` : ''}</td></tr>`).join('')}</table></div></div>`;
+}
+function payDlg(x) {
+  const d = document.createElement('div'); d.className = 'dlg';
+  d.innerHTML = `<div class="card"><h3 style="margin-top:0">سداد — ${esc(x.supplier)}</h3><p class="muted">المبلغ يتوزع على أقدم الفواتير أولاً.</p><div class="grid">
+   <div><label>المبلغ *</label><input id="pa" type="number" step="0.01"></div>
+   <div><label>الطريقة</label><select id="pm"><option>تحويل</option><option>كاش</option><option>بطاقة 1</option></select></div>
+   <div><label>البنك</label><input id="pb"></div><div><label>المرجع</label><input id="pr"></div>
+   <div><label>التاريخ</label><input id="pd" type="date" value="${new Date().toISOString().slice(0, 10)}"></div>
+   <div><label>السند</label><input id="pf" type="file" accept="image/*,application/pdf"></div></div>
+   <div class="row" style="margin-top:10px"><button class="btn" id="psend">تسجيل السداد</button><button class="btn sec" onclick="this.closest('.dlg').remove()">إلغاء</button></div></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#psend').onclick = async () => {
+    try {
+      const file = await fileData(d.querySelector('#pf').files[0]);
+      const r = await api('/api/exp/pay', { mode: 'supplier', k: x.k, supplier: x.supplier, amount: d.querySelector('#pa').value, method: d.querySelector('#pm').value,
+        bank: d.querySelector('#pb').value, ref: d.querySelector('#pr').value, date: d.querySelector('#pd').value, file });
+      d.remove(); toast(`سُجّل ${fmt(r.amount)} على ${r.count} فاتورة ✓`); renderDues();
+    } catch (e) { toast(e.message, 4000); }
+  };
+}
+
+// ───── الدفعات ─────
+async function renderPays() {
+  const rows = await api('/api/exp/payments').catch(e => (toast(e.message), []));
+  $('#main').innerHTML = `<div class="card scroll"><table><tr><th>الدفعة</th><th>التاريخ</th><th>المورد</th><th>O</th><th>المبلغ</th><th>الطريقة</th><th>المرجع</th><th>بواسطة</th></tr>
+   ${rows.map(r => `<tr><td>${esc(r.pay_id)}${r.is_test ? ' <span class="badge test">تجربة</span>' : ''}</td><td class="num">${esc(r.pay_date)}</td><td>${esc(r.supplier)}</td><td>${esc(r.operation_order)}</td>
+   <td class="num">${fmt(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.reference || '')}${r.attachment ? ` <a href="${esc(r.attachment)}" target="_blank">📎</a>` : ''}</td><td>${esc(r.by_name)}</td></tr>`).join('') || '<tr><td colspan="8" class="muted">لا توجد دفعات من المنصة بعد</td></tr>'}</table></div>`;
+}
+
+// ───── الاعتمادات (منصور) ─────
+async function renderReq(st = 'بانتظار الاعتماد') {
+  const rows = await api('/api/exp/requests?status=' + encodeURIComponent(st)).catch(e => (toast(e.message), []));
+  const lbl = { o: 'رقم التشغيل', item: 'البند', inv: 'رقم الفاتورة', total: 'الإجمالي', method: 'الطريقة', person: 'المسؤول' };
+  $('#main').innerHTML = `<div class="card"><div class="row"><button class="btn sm ${st === 'all' ? 'sec' : ''}" onclick="renderReq()">بانتظار الاعتماد</button><button class="btn sm ${st === 'all' ? '' : 'sec'}" onclick="renderReq('all')">السجل الكامل</button></div></div>
+  ${rows.map(r => { const p = JSON.parse(r.proposed_json || '{}'), s = JSON.parse(r.snapshot_json || '{}');
+    return `<div class="card"><div class="row"><b>${r.kind}</b> · ${esc(r.operation_order)} · ${esc(r.item)} · ${fmt(r.total)} <span class="badge ${r.status === 'معتمد' ? 'hub' : r.status === 'مرفوض' ? 'red' : 'test'}">${r.status}</span></div>
+    <div class="muted">${esc(r.requested_by)} · ${esc(r.requested_at)}${r.decided_by ? ` — ${esc(r.decided_by)} · ${esc(r.decided_at)}` : ''}</div>
+    <p>السبب: ${esc(r.reason)}</p>
+    ${Object.keys(p).length ? `<table>${Object.entries(p).map(([f, v]) => `<tr><td>${lbl[f] || f}</td><td class="muted">${esc({ o: s.operation_order, inv: s.invoice_number }[f] ?? s[f])}</td><td>← <b>${esc(v)}</b></td></tr>`).join('')}</table>` : ''}
+    ${r.status === 'بانتظار الاعتماد' ? `<div class="row" style="margin-top:8px"><button class="btn ok sm" onclick="decide(${r.id},'approve')">اعتماد</button><button class="btn bad sm" onclick="decide(${r.id},'reject')">رفض</button></div>` : ''}</div>`; }).join('') || '<div class="card muted">لا توجد طلبات</div>'}`;
+}
+async function decide(id, decision) {
+  try { await api(`/api/exp/requests/${id}/decide`, { decision }); toast(decision === 'approve' ? 'اعتُمد وطُبّق ✓' : 'رُفض'); S.boot.pending = Math.max(0, S.boot.pending - 1); renderReq(); }
+  catch (e) { toast(e.message, 4000); }
+}
+async function clearTest() { if (!confirm('حذف كل فواتير ودفعات التجربة؟')) return; const r = await api('/api/exp/test-data', {}); toast(`حُذفت ${r.deleted} فاتورة تجريبية`); render(); }
+async function switchMaster() {
+  const to = S.boot.hubMaster ? 'generator' : 'hub';
+  if (!confirm(to === 'hub' ? 'بعد التحويل يصير التسجيل الرسمي من المنصة. متأكد؟' : 'رجوع التسجيل للتطبيق القديم؟')) return;
+  await api('/api/exp/master', { master: to }); boot();
+}
+boot();
+</script>
+</body>
+</html>

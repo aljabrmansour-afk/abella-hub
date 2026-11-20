@@ -52,6 +52,12 @@ def sheets_sync_loop():
                 except Exception as e:
                     print('⚠ مزامنة إدارة العمليات', e)
                 try:
+                    import expenses_routes
+                    expenses_routes.init_tables(_c)
+                    expenses_routes.import_sheets(_c)
+                except Exception as e:
+                    print('⚠ استيراد المصروفات', e)
+                try:
                     if not wpgen_routes.is_hub_master(_c):
                         wpgen_routes.import_from_generator(_c)
                 except Exception as e:
