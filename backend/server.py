@@ -298,6 +298,8 @@ def init_database():
         expenses_routes.init_tables(conn)
         import ops_native
         ops_native.init_tables(conn)
+        import exec_native
+        exec_native.init_tables(conn)
         conn.commit()
     except Exception as e:
         print('⚠ gen tables', e)
@@ -703,6 +705,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return self.send_static_file(UPLOADS_DIR / path.replace('/uploads/', '', 1))
         if path in ('/operations', '/operations/'):
             return self.send_static_file(DASHBOARD_DIR / 'operations.html')
+        if path in ('/execution', '/execution/'):
+            return self.send_static_file(DASHBOARD_DIR / 'execution.html')
         if path in ('/expenses', '/expenses/'):
             return self.send_static_file(DASHBOARD_DIR / 'expenses.html')
         if path in ('/workplans', '/workplans/'):
@@ -1187,6 +1191,13 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
         conn = get_db()
         try:
             data = self.get_body_json()
+            if path == '/api/exec/call' and self._ctx:
+                import exec_native
+                try:
+                    return self.send_json(exec_native.call(conn, self._ctx, data or {}))
+                except Exception as e:
+                    import traceback; traceback.print_exc()
+                    return self.send_json({'ok': False, 'error': 'خطأ في الخادم: ' + str(e)})
             if crm_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if contracts_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
