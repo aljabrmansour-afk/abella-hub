@@ -76,7 +76,7 @@ function showLogin(msg) {
   ov.innerHTML = `
     <form class="login-card" onsubmit="event.preventDefault(); doLogin()">
       <img src="/assets/logo-abella.png" alt="أبيلا" class="login-logo" onerror="this.style.display='none'">
-      <h2>نظام أبيلا</h2>
+      <h2>منصّة أبيلا</h2>
       <p class="login-sub">سجّل دخولك بحسابك</p>
       <label>اسم المستخدم<input id="li-user" autocomplete="username" dir="ltr" required></label>
       <label>كلمة المرور<input id="li-pass" type="password" autocomplete="current-password" dir="ltr" required></label>
@@ -989,7 +989,7 @@ async function userSave(id) {
 }
 function showCredentials(name, username, pw) {
   const link = location.origin + '/';
-  const msg = `السلام عليكم ${name}\nحسابك في نظام أبيلا:\nالرابط: ${link}\nاسم الدخول: ${username}\nكلمة المرور المؤقتة: ${pw}\n(بيطلب منك تغييرها أول دخول)`;
+  const msg = `السلام عليكم ${name}\nحسابك في منصّة أبيلا:\nالرابط: ${link}\nاسم الدخول: ${username}\nكلمة المرور المؤقتة: ${pw}\n(بيطلب منك تغييرها أول دخول)`;
   openModal('✅ بيانات الدخول', `<p>أرسلها للموظف — كلمة المرور المؤقتة ما تظهر مرة ثانية.</p><pre class="cred">${esc(msg)}</pre>`,
     `<button class="btn" onclick="navigator.clipboard.writeText(document.querySelector('.cred').innerText).then(()=>toast('تم النسخ','success'))">نسخ</button><button class="btn btn-outline" onclick="closeModal()">تم</button>`);
 }

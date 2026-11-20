@@ -642,7 +642,7 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             '.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8',
             '.js':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8',
             '.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp',
-            '.svg':'image/svg+xml','.ico':'image/x-icon',
+            '.svg':'image/svg+xml','.ico':'image/x-icon','.woff2':'font/woff2','.woff':'font/woff',
         }
         ext = Path(file_path).suffix.lower()
         fname = str(file_path).lower()
@@ -653,7 +653,9 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(body)))
             # sw.js لا يُكاش أبداً (المتصفح لازم يفحصه كل مرة عشان يكتشف التحديثات)
             # HTML أيضاً no-store عشان التغييرات تظهر فوراً
-            if fname.endswith('sw.js') or fname.endswith('.html'):
+            if fname.endswith('.woff2') or fname.endswith('.woff'):
+                self.send_header('Cache-Control', 'public, max-age=31536000, immutable')
+            elif fname.endswith('sw.js') or fname.endswith('.html'):
                 self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
                 self.send_header('Pragma', 'no-cache')
                 self.send_header('Expires', '0')
