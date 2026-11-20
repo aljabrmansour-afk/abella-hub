@@ -47,6 +47,7 @@ import access_control as ac
 import crm_routes
 import wpgen_routes
 import ops_routes
+import contracts_routes
 import hr_routes
 
 # ============================================================
@@ -663,6 +664,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             data = {}
         handled = crm_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
+            handled = contracts_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
+        if not handled and ctx:
             handled = wpgen_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
             handled = hr_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
@@ -924,7 +927,17 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
                     "SELECT * FROM event_photos WHERE event_id=? ORDER BY uploaded_at DESC", (eid,)).fetchall())
                 d['workplans'] = rows_to_list(conn.execute(
                     """SELECT wp.*, u.full_name as planner_name FROM work_plans wp
-                       JOIN users u ON wp.planner_id=u.id WHERE wp.event_id=? ORDER BY wp.id DESC""", (eid,)).fetchall())
+                       LEFT JOIN users u ON wp.designer_id=u.id WHERE wp.event_id=? ORDER BY wp.id DESC""", (eid,)).fetchall())
+                # خطط مولّد الخطط + إدارة العمليات المرتبطة بالمناسبة
+                try:
+                    d['wpg_plan'] = rows_to_list(conn.execute(
+                        "SELECT * FROM wpg_plans WHERE contract_code=? OR (operation_order<>'' AND operation_order=?)",
+                        (d.get('contract_code') or '-', d.get('operation_order') or '-')).fetchall())
+                    d['ops_tasks'] = rows_to_list(conn.execute(
+                        """SELECT t.dept, t.title, t.status, t.assignee FROM ops_tasks t JOIN ops_orders o ON o.quote_code=t.quote_code
+                           WHERE o.contract_code=? ORDER BY t.dept""", (d.get('contract_code') or '-',)).fetchall())
+                except Exception:
+                    pass
                 return self.send_json(d)
 
             # ===== العملاء =====
@@ -1167,6 +1180,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
         try:
             data = self.get_body_json()
             if crm_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
+                return
+            if contracts_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if wpgen_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return

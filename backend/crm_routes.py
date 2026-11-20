@@ -702,6 +702,27 @@ def _gen_master():
     import os
     return (os.environ.get('CONTRACTS_MASTER') or 'generator') != 'hub'
 
+def _test_mode(ctx):
+    """أثناء التشغيل المتوازي: الإدارة تجرّب الدورة كاملة ببيانات تجريبية بأرقام T (ما تتصادم مع المولّد)"""
+    return _gen_master() and bool((ctx or {}).get('perms', {}).get('is_super'))
+
+def _snapshot_revision(conn, qid, uid, reason):
+    import json as _j
+    q = _row(conn, "SELECT * FROM quotes WHERE id=?", (qid,))
+    items = _rows(conn, "SELECT name, qty, notes FROM quote_items WHERE quote_id=? ORDER BY sort_order, id", (qid,))
+    rev = (conn.execute("SELECT COALESCE(MAX(revision),0) FROM gen_quote_revisions WHERE quote_code=?", (q['quote_code'],)).fetchone()[0] or 0) + 1
+    u = _row(conn, "SELECT full_name FROM users WHERE id=?", (uid,)) or {}
+    conn.execute("""INSERT INTO gen_quote_revisions (quote_code, revision, revision_date, reason, client_name, contract_value,
+                      additional, discount, total_with_vat, deposit, final_payment, insurance, data_json, source, by_name)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'hub', ?)""",
+                 (q['quote_code'], rev, datetime.datetime.now().strftime('%Y-%m-%d %H:%M'), reason, q['client_name'],
+                  q['contract_value'], q['additional'], q['discount'], q['total_with_vat'], q['deposit'],
+                  round((q['total_with_vat'] or 0) - (q['deposit'] or 0), 2), q['insurance'],
+                  _j.dumps({**{k: q[k] for k in q if k not in ('id',)}, 'items': items}, ensure_ascii=False, default=str),
+                  (u.get('full_name') or '').split(' — ')[0]))
+    conn.execute("UPDATE quotes SET revision=? WHERE id=?", (rev, qid))
+    return rev
+
 GEN_LOCK_MSG = 'هذا العرض/العقد من مولّد العقود — التعديل يكون من المولّد حتى يتم التحويل للمنصة (النسخة هنا تتحدّث كل 15 دقيقة)'
 
 def _quote_full(conn, qid):
@@ -728,6 +749,11 @@ def _quote_full(conn, qid):
         q['gen_addenda'] = _rows(conn, "SELECT * FROM gen_addenda WHERE contract_code=? ORDER BY addendum_code", (cc or '-',))
         q['gen_changes'] = _rows(conn, "SELECT request_code, request_type, summary, money_impact, approval_method, created_by, created_at, status, approved_by, approved_at, result, diff_json FROM gen_change_requests WHERE quote_code=? OR contract_code=? ORDER BY created_at", (qc, cc or '-'))
         q['gen_revisions'] = _rows(conn, "SELECT revision, revision_date, reason, total_with_vat FROM gen_quote_revisions WHERE quote_code=? ORDER BY revision", (qc,))
+    try:
+        import contracts_routes
+        contracts_routes.extend_quote(conn, q)
+    except Exception as e:
+        print('extend_quote', e)
     s = ac.get_settings(conn)
     q['company'] = {k: s.get(k) for k in ('company_name', 'company_cr', 'company_vat', 'company_unified')}
     tkey = 'terms_' + ({'newborn': 'newborn_' + ('home' if q.get('venue_kind') == 'home' else 'hospital')}
@@ -750,7 +776,7 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
         sql = """SELECT q.id, q.quote_code, q.client_name, q.client_phone, q.event_type, q.venue_kind, q.venue_name,
                         q.expected_date, q.total_with_vat, q.deposit, q.status, q.valid_until, q.contract_code,
                         q.event_id, q.lead_id, q.customer_id, q.created_at, u.full_name AS created_by_name,
-                        COALESCE(e.operation_order, q.gen_operation_order) AS operation_order, CASE WHEN q.source='generator' THEN COALESCE(NULLIF((SELECT SUM(gp.amount) FROM gen_payments gp WHERE gp.quote_code=q.quote_code),0), q.gen_received) ELSE e.paid_amount END AS paid_amount, q.source
+                        COALESCE(e.operation_order, q.gen_operation_order) AS operation_order, CASE WHEN q.source='generator' THEN COALESCE(NULLIF((SELECT SUM(gp.amount) FROM gen_payments gp WHERE gp.quote_code=q.quote_code),0), q.gen_received) ELSE e.paid_amount END AS paid_amount, q.source, q.is_test
                  FROM quotes q LEFT JOIN users u ON u.id=q.created_by
                  LEFT JOIN events e ON e.id=q.event_id WHERE 1=1"""
         params = []
@@ -762,11 +788,12 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
         return True
 
     if path == '/api/quotes/mode' and method == 'GET':
-        send_json({'master': 'generator' if _gen_master() else 'hub'})
+        send_json({'master': 'generator' if _gen_master() else 'hub', 'test': _test_mode(ctx)})
         return True
 
     if path == '/api/quotes' and method == 'POST':
-        if _gen_master():
+        is_test = _test_mode(ctx)
+        if _gen_master() and not is_test:
             send_json({'error': 'إصدار عروض الأسعار والعقود حالياً من مولّد العقود (عشان ما تتكرر الأرقام) — المنصة تعرض نسخة منه'}, 400)
             return True
         if data.get('event_type') not in TYPE_PREFIX:
@@ -783,7 +810,8 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
             send_json({'error': 'اكتب اسم العميل'}, 400)
             return True
         t = compute_totals(conn, data)
-        code = _next_code(conn, 'quotes', 'quote_code', 'Q')
+        code = (_next_seq(conn, ["SELECT quote_code FROM quotes WHERE quote_code LIKE 'TQ%'"], 'TQ', 1000) if is_test
+                else _next_seq(conn, ["SELECT quote_code FROM quotes WHERE quote_code LIKE 'Q%'"], 'Q', 1000))
         valid_days = int(_num(ac.get_setting(conn, 'quote_valid_days', 7), 7))
         valid_until = (datetime.date.today() + datetime.timedelta(days=valid_days)).isoformat()
         cur = conn.execute("""INSERT INTO quotes (quote_code, lead_id, customer_id, client_name, client_phone, client_id_number,
@@ -802,7 +830,10 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
                             t['vat_rate'], t['vat_amount'], t['total_with_vat'], t['insurance'], t['deposit'],
                             valid_until, data.get('notes'), data.get('internal_notes'), uid))
         qid = cur.lastrowid
+        conn.execute("UPDATE quotes SET source='hub', is_test=?, client_title=?, client_email=? WHERE id=?",
+                     (1 if is_test else 0, data.get('client_title'), data.get('client_email'), qid))
         _save_items(conn, qid, data.get('items'))
+        _snapshot_revision(conn, qid, uid, 'النسخة الأولى')
         if lead and lead['stage'] in ('new', 'contacted', 'meeting'):
             conn.execute("UPDATE leads SET stage='quoted', updated_at=CURRENT_TIMESTAMP WHERE id=?", (lead['id'],))
         ac.audit(conn, uid, 'CREATE', 'quote', qid, new={'code': code, 'total': t['total_with_vat']})
@@ -829,7 +860,7 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
             send_json({'error': GEN_LOCK_MSG}, 400)
             return True
         if q['status'] == 'contracted':
-            send_json({'error': 'العرض صار عقداً — أي تعديل بعد التعاقد يكون بملحق (المرحلة القادمة)'}, 400)
+            send_json({'error': 'العرض صار عقداً — أي تعديل بعد التعاقد يكون بطلب تغيير أو ملحق'}, 400)
             return True
         merged = {**q, **data}
         if merged.get('event_type') not in TYPE_PREFIX:
@@ -851,6 +882,9 @@ def _quotes(conn, method, path, query, data, ctx, send_json):
                       merged.get('valid_until'), merged.get('notes'), merged.get('internal_notes'), qid))
         if 'items' in data:
             _save_items(conn, qid, data['items'])
+        conn.execute("UPDATE quotes SET client_title=?, client_email=? WHERE id=?",
+                     (merged.get('client_title'), merged.get('client_email'), qid))
+        _snapshot_revision(conn, qid, uid, data.get('revision_reason') or 'تعديل')
         ac.audit(conn, uid, 'UPDATE', 'quote', qid, new={'total': t['total_with_vat']})
         conn.commit()
         send_json({'success': True})
@@ -945,7 +979,12 @@ def _convert_quote(conn, qid, data, ctx, send_json):
                                (q['client_name'], phone or '', q.get('client_id_number'), uid))
             cust_id = cur.lastrowid
 
-    contract_code = next_contract_code(conn, q['event_type'])
+    is_test = bool(q.get('is_test'))
+    if is_test:
+        p = 'T' + TYPE_PREFIX.get(q['event_type'], 'W')
+        contract_code = _next_seq(conn, [f"SELECT contract_code FROM quotes WHERE contract_code LIKE '{p}%'"], p, 1000)
+    else:
+        contract_code = next_contract_code(conn, q['event_type'])
     year = datetime.date.today().year
     mx = 0
     for (v,) in conn.execute("SELECT event_code FROM events WHERE event_code LIKE ?", (f"EVT-{year}-%",)).fetchall():
@@ -964,6 +1003,7 @@ def _convert_quote(conn, qid, data, ctx, send_json):
                         q['expected_date'], t, q.get('venue_name'), q.get('guests_count'),
                         q['total_with_vat'], q['insurance'], q['discount'], uid, qid))
     eid = cur.lastrowid
+    conn.execute("UPDATE events SET is_test=? WHERE id=?", (1 if is_test else 0, eid))
     conn.execute("""UPDATE quotes SET status='contracted', customer_id=?, event_id=?, contract_code=?,
                       contracted_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP WHERE id=?""",
                  (cust_id, eid, contract_code, qid))
@@ -1190,7 +1230,8 @@ def _payments(conn, method, path, query, data, ctx, send_json):
         q = _row(conn, "SELECT deposit FROM quotes WHERE id=?", (ev.get('quote_id'),)) if ev.get('quote_id') else None
         deposit = (q or {}).get('deposit') or (ev['total_price'] or 0) * 0.5
         if not ev.get('operation_order') and paid >= deposit - 0.01:
-            new_op = next_operation_order(conn)
+            new_op = (_next_seq(conn, ["SELECT operation_order FROM events WHERE operation_order LIKE 'TO%'"], 'TO', 1000)
+                      if ev.get('is_test') else next_operation_order(conn))
             conn.execute("UPDATE events SET operation_order=?, status=CASE WHEN status='contract_issued' THEN 'contracted' ELSE status END WHERE id=?",
                          (new_op, eid))
         ac.audit(conn, uid, 'PAYMENT', 'event', eid, new={'amount': amount, 'operation_order': new_op})

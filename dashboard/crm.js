@@ -595,20 +595,22 @@ async function delLead(id) {
 // ===================================================================
 let QUOTES = { status: '', rows: [] };
 async function renderQuotes() {
-  try { QUOTES.rows = await capi('/quotes'); QUOTES.mode = (await capi('/quotes/mode').catch(() => ({}))).master || 'hub'; } catch (e) { return setContent(`<div class="empty">${esc(e.message)}</div>`); }
+  try { QUOTES.rows = await capi('/quotes'); const _m = await capi('/quotes/mode').catch(() => ({})); QUOTES.mode = _m.master || 'hub'; QUOTES.test = !!_m.test; } catch (e) { return setContent(`<div class="empty">${esc(e.message)}</div>`); }
   const rows = QUOTES.rows;
   const cnt = {}; rows.forEach(r => cnt[r.status] = (cnt[r.status] || 0) + 1);
   const list = QUOTES.status ? rows.filter(r => r.status === QUOTES.status) : rows;
   const tab = (k, l) => `<div class="tab ${QUOTES.status === k ? 'active' : ''}" onclick="QUOTES.status='${k}';renderQuotes()">${l} <span class="cnt">${k ? (cnt[k] || 0) : rows.length}</span></div>`;
   const genNote = QUOTES.mode === 'generator' ? `<div class="note-box">🔄 العروض والعقود تُصدر حالياً من <b>مولّد العقود</b> — هذي نسخة تتحدّث تلقائياً كل 15 دقيقة (للاطلاع فقط). بعد التحويل للمنصة يصير الإصدار من هنا.</div>` : '';
-  pageShell('📄 عروض الأسعار والعقود', can('quotes', 'create') && QUOTES.mode !== 'generator' ? '<button class="btn" onclick="openQuoteEditor()">+ عرض سعر جديد</button>' : '',
+  const addBtn = can('quotes', 'create') && QUOTES.mode !== 'generator' ? '<button class="btn" onclick="openQuoteEditor()">+ عرض سعر جديد</button>'
+    : (QUOTES.test ? '<button class="btn" onclick="openQuoteEditor()">+ عرض تجريبي</button> <button class="btn btn-outline danger-t" onclick="clearTestData()">حذف بيانات التجربة</button>' : '');
+  pageShell('📄 عروض الأسعار والعقود', addBtn,
     `${genNote}<div class="tabs">${tab('', 'الكل')}${Object.entries(QUOTE_STATUS).map(([k, l]) => tab(k, l === 'عقد' ? 'العقود' : l)).join('')}</div>
      <div class="card tight">${list.length ? `<div class="tbl-wrap"><table><thead><tr><th>الرقم</th><th>العميل</th><th>المناسبة</th><th>التاريخ</th><th>الإجمالي</th><th>الحالة</th><th>العقد / التشغيل</th><th>المدفوع</th><th>أعدّه</th></tr></thead><tbody>
      ${list.map(q => `<tr onclick="showQuote(${q.id})"><td><strong>${esc(q.quote_code)}</strong><br><small class="muted">${dShort(q.created_at)}</small></td><td>${esc(q.client_name)}<br><small class="muted" dir="ltr">${esc(q.client_phone || '')}</small></td>
        <td>${esc(EV_TYPES[q.event_type] || '')}<br><small class="muted">${esc(VENUES[q.venue_kind] || '')} ${esc(q.venue_name || '')}</small></td><td>${dShort(q.expected_date)}</td>
        <td><strong>${money(q.total_with_vat)}</strong></td><td>${pill(QUOTE_STATUS[q.status] || q.status, 'q-' + q.status)}${q.status !== 'contracted' && q.valid_until && q.valid_until < todayISO() ? '<br>' + pill('منتهي الصلاحية', 'bad') : ''}</td>
        <td>${q.contract_code ? `<strong>${esc(q.contract_code)}</strong><br><small class="muted">${esc(q.operation_order || 'بانتظار العربون')}</small>` : '—'}</td>
-       <td>${q.event_id || q.source === 'generator' ? money(q.paid_amount) : '—'}</td><td>${q.source === 'generator' ? pill('المولّد', 'info') : esc(q.created_by_name || '')}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">لا توجد عروض</div>'}</div>`);
+       <td>${q.event_id || q.source === 'generator' ? money(q.paid_amount) : '—'}</td><td>${q.source === 'generator' ? pill('المولّد', 'info') : (q.is_test ? pill('تجريبي', 'warn') + ' ' : '') + esc(q.created_by_name || '')}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">لا توجد عروض</div>'}</div>`);
 }
 let QE = null;
 async function openQuoteEditor(id, preset) {
@@ -626,7 +628,9 @@ async function openQuoteEditor(id, preset) {
     <h4 class="sub-h first">العميل</h4>
     <div class="form-group"><label class="form-label">عميل مسجّل (اختياري)</label><select id="qe-cust" class="form-select" onchange="qePickCustomer(this)"><option value="">— عميل جديد —</option>${customers.map(c => `<option value="${c.id}" data-name="${esc(c.full_name)}" data-phone="${esc(c.phone || '')}" data-idn="${esc(c.id_number || '')}" ${String(q.customer_id) === String(c.id) ? 'selected' : ''}>${esc(c.full_name)} ${c.phone && c.phone !== '0500000000' ? '— ' + esc(c.phone) : ''}</option>`).join('')}</select></div>
     <div class="form-row three"><div class="form-group"><label class="form-label">الاسم *</label><input id="qe-name" class="form-input" value="${esc(q.client_name || '')}"></div>
+    <div class="form-group"><label class="form-label">اللقب</label><select id="qe-title" class="form-input">${['', 'السيدة', 'السيد', 'الأميرة', 'الأمير', 'الدكتورة', 'الدكتور'].map(t => `<option ${q.client_title === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <div class="form-group"><label class="form-label">الجوال</label><input id="qe-phone" class="form-input" dir="ltr" value="${esc(q.client_phone || '')}"></div>
+    <div class="form-group"><label class="form-label">البريد</label><input id="qe-email" class="form-input" dir="ltr" value="${esc(q.client_email || '')}"></div>
     <div class="form-group"><label class="form-label">رقم الهوية</label><input id="qe-idn" class="form-input" dir="ltr" value="${esc(q.client_id_number || '')}"></div></div>
     <h4 class="sub-h">المناسبة</h4>
     <div class="form-row three"><div class="form-group"><label class="form-label">النوع *</label><select id="qe-type" class="form-select">${Object.entries(EV_TYPES).map(([k, v]) => `<option value="${k}" ${q.event_type === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
@@ -683,7 +687,7 @@ function qeCalc() {
 }
 async function saveQuote(id) {
   const d = {
-    customer_id: val('qe-cust') || null, client_name: val('qe-name'), client_phone: val('qe-phone'), client_id_number: val('qe-idn'),
+    customer_id: val('qe-cust') || null, client_name: val('qe-name'), client_phone: val('qe-phone'), client_title: val('qe-title'), client_email: val('qe-email'), client_id_number: val('qe-idn'),
     event_type: val('qe-type'), venue_kind: val('qe-venue'), venue_name: val('qe-vname'), expected_date: val('qe-date'), event_time: val('qe-time'),
     guests_count: val('qe-guests'), execution_days: val('qe-days'), package: val('qe-pkg'),
     contract_value: val('qe-cv'), additional: val('qe-add'), discount: val('qe-disc'), notes: val('qe-notes'), internal_notes: val('qe-inotes'),
@@ -720,11 +724,12 @@ async function showQuote(id) {
         <div><span>قيمة العقد</span><b>${money(q.contract_value)}</b></div>${q.additional ? `<div><span>إضافي</span><b>${money(q.additional)}</b></div>` : ''}${q.discount ? `<div><span>خصم</span><b>- ${money(q.discount)}</b></div>` : ''}
         <div><span>الضريبة</span><b>${money(q.vat_amount)}</b></div><div class="big"><span>الإجمالي</span><b>${money(q.total_with_vat)}</b></div>
         <div><span>العربون</span><b>${money(q.deposit)}</b></div><div><span>التأمين</span><b>${money(q.insurance)}</b></div>
-        ${contracted ? `<div><span>المدفوع</span><b>${money(q.paid_amount)}</b></div><div><span>المتبقي</span><b>${money((q.total_with_vat || 0) - (q.paid_amount || 0))}</b></div>` : ''}
+        ${contracted && q.event_total != null && Math.abs(q.event_total - q.total_with_vat) > 0.01 ? `<div><span>مع الملاحق</span><b>${money(q.event_total)}</b></div>` : ''}
+        ${contracted ? `<div><span>المدفوع</span><b>${money(q.paid_amount)}</b></div><div><span>المتبقي</span><b>${money((q.event_total != null ? q.event_total : q.total_with_vat || 0) - (q.paid_amount || 0))}</b></div>` : ''}
       </div>
       ${q.notes ? `<div class="note-box">${esc(q.notes)}</div>` : ''}${q.internal_notes ? `<div class="note-box int">🔒 داخلي: ${esc(q.internal_notes)}</div>` : ''}
       ${contracted && q.payments.length ? `<h4 class="sub-h">الدفعات</h4><table><tbody>${q.payments.map(p => `<tr><td>${dShort(p.payment_date)}</td><td>${money(p.amount)}</td><td>${esc(PAY_METHODS[p.payment_method] || p.payment_method || '')}</td><td>${esc(p.reference || '')}</td><td>${esc(p.received_by_name || '')}</td></tr>`).join('')}</tbody></table>` : ''}
-      ${q.source === 'generator' ? genSections(q) : `<p class="muted small">أعدّه ${esc(q.created_by_name || '')} — ${esc((q.created_at || '').slice(0, 16))}</p>`}`;
+      ${q.source === 'generator' ? genSections(q) : hubSections(q) + `<p class="muted small">${q.is_test ? pill('تجريبي — أرقام T ما تتصادم مع المولّد', 'warn') + ' ' : ''}أعدّه ${esc(q.created_by_name || '')} — ${esc((q.created_at || '').slice(0, 16))}</p>`}`;
     const b = [];
     b.push(`<button class="btn btn-outline" onclick="window.open('/dashboard/print_quote.html?id=${q.id}','_blank')">🖨 ${contracted ? 'طباعة العقد' : 'طباعة العرض'}</button>`);
     if (!q.read_only && !contracted && can('quotes', 'edit')) {
@@ -734,12 +739,97 @@ async function showQuote(id) {
       if (q.status !== 'rejected') b.push(`<button class="btn btn-outline danger-t" onclick="quoteStatus(${q.id},'rejected')">رفض</button>`);
       b.push(`<button class="btn btn-success" onclick="convertQuote(${q.id})">✍ تحويل لعقد</button>`);
     }
-    if (!q.read_only && contracted && can('payments', 'create') && (q.total_with_vat - (q.paid_amount || 0)) > 0.01) b.push(`<button class="btn btn-success" onclick="payDialog(${q.event_id})">+ تسجيل دفعة</button>`);
+    if (!q.read_only && contracted && can('quotes', 'edit')) {
+      b.push(`<button class="btn btn-outline" onclick="addendumDialog(${q.id})">+ ملحق</button>`);
+      b.push(`<button class="btn btn-outline" onclick="changeDialog(${q.id})">✎ طلب تغيير</button>`);
+    }
+    if (!q.read_only && contracted && can('payments', 'create') && ((q.event_total != null ? q.event_total : q.total_with_vat) - (q.paid_amount || 0)) > 0.01) b.push(`<button class="btn btn-success" onclick="payDialog(${q.event_id})">+ تسجيل دفعة</button>`);
     if (!q.read_only && !contracted && can('quotes', 'delete')) b.push(`<button class="btn btn-outline danger-t" onclick="delQuote(${q.id})">حذف</button>`);
     b.push('<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
     openModal(`📄 ${q.quote_code} — ${q.client_name}`, body, b.join(''));
     document.querySelector('.modal').classList.add('wide');
   } catch (e) { toast(e.message, 'error'); }
+}
+const CR_PILL = st => pill(st || '', st === 'معتمد' ? 'ok' : (st === 'مرفوض' ? 'bad' : 'warn'));
+function crDiffLine(d) {
+  if (d.k === 'svc+') return 'بند جديد: <b>' + esc(d.name) + '</b>' + (d.qty ? ' — ' + esc(d.qty) : '');
+  if (d.k === 'svc-') return 'بند محذوف: <b>' + esc(d.name) + '</b>';
+  if (d.k === 'svcQty') return 'العدد: <b>' + esc(d.name) + '</b> من ' + esc(d.from) + ' إلى ' + esc(d.to);
+  if (d.k === 'money') return esc(d.label) + ': ' + money(d.from) + ' ← ' + money(d.to);
+  return esc(d.label) + ': ' + esc(d.from || '—') + ' ← ' + esc(d.to || '—');
+}
+function hubSections(q) {
+  window.__Q = q;
+  let h = '';
+  const approver = CRM.me && (['finance', 'owner', 'general_manager', 'admin'].includes(CRM.me.role) || (CRM.perms || {}).is_super);
+  if ((q.addenda || []).length) h += `<h4 class="sub-h">ملاحق العقد</h4><table><thead><tr><th>الملحق</th><th>النوع</th><th>الوصف</th><th>قبل الضريبة</th><th>الإجمالي</th><th>الحالة</th><th></th></tr></thead><tbody>${q.addenda.map(a => `<tr><td><strong>${esc(a.addendum_code)}</strong><br><small class="muted">${dShort(a.issued_at)} · ${esc(a.created_by || '')}</small></td><td>${esc(a.change_type || '')}</td><td style="white-space:pre-line;max-width:340px">${esc(a.description || '')}</td><td>${money(a.cost)}</td><td>${money(a.total)}</td><td>${pill(a.status, a.status === 'مدفوع' ? 'ok' : 'warn')}</td><td>${a.status !== 'مدفوع' && can('payments', 'create') ? `<button class="btn btn-sm btn-outline" onclick="payAddendum('${esc(a.addendum_code)}',${q.id})">سداد</button>` : ''}</td></tr>`).join('')}</tbody></table>`;
+  if ((q.changes || []).length) h += `<h4 class="sub-h">طلبات التغيير</h4>${q.changes.map(c => { let d = []; try { d = JSON.parse(c.diff_json || '[]'); } catch (e) { }
+    return `<div class="note-box"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${esc(c.request_code)}</b> ${CR_PILL(c.status)} <span class="muted small">${esc(c.request_type)} · ${esc(c.created_by || '')} ${esc((c.created_at || '').slice(0, 16))} · موافقة العميل: ${esc(c.approval_method || '')}${c.evidence_path ? ` (<a class="link" target="_blank" href="${esc(c.evidence_path)}">الإثبات</a>)` : ''}</span>${c.money_impact ? ' · الأثر: <b>' + money(c.money_impact) + '</b>' : ''}</div>
+      <ul style="margin:6px 18px 0">${d.map(x => '<li>' + crDiffLine(x) + '</li>').join('')}</ul>
+      ${c.approved_by ? `<div class="muted small">${esc(c.status)} من ${esc(c.approved_by)} ${esc((c.approved_at || '').slice(0, 16))}${c.result ? ' — ' + esc(c.result) : ''}${c.approver_note ? ' — ' + esc(c.approver_note) : ''}</div>` : ''}
+      ${c.status === 'بانتظار الاعتماد' && approver ? `<div style="margin-top:6px"><button class="btn btn-sm btn-success" onclick="decideChange('${esc(c.request_code)}','approve',${q.id})">اعتماد وتطبيق</button> <button class="btn btn-sm btn-outline danger-t" onclick="decideChange('${esc(c.request_code)}','reject',${q.id})">رفض</button></div>` : ''}</div>`; }).join('')}`;
+  if ((q.revisions || []).length > 1) h += `<h4 class="sub-h">نسخ العرض/العقد</h4><table><tbody>${q.revisions.map(r => `<tr><td>النسخة ${esc(r.revision)}</td><td>${esc((r.revision_date || '').slice(0, 16))}</td><td>${esc(r.reason || '')}</td><td>${esc(r.by_name || '')}</td><td>${money(r.total_with_vat)}</td></tr>`).join('')}</tbody></table>`;
+  return h;
+}
+function addendumDialog(qid) {
+  openModal('+ ملحق عقد', `<div class="form-grid">
+    <label>نوع التغيير<select id="ad-type"><option>إضافة</option><option>تعديل</option><option>خصم</option></select></label>
+    <label>التكلفة قبل الضريبة<input id="ad-cost" type="number" step="0.01" min="0"></label>
+    <label style="grid-column:1/-1">الوصف<textarea id="ad-desc" rows="6" placeholder="تفاصيل الإضافة/التعديل"></textarea></label></div>
+    <p class="muted small">يُضاف 15% ضريبة، والإجمالي يُضاف لقيمة المناسبة. أي تعديل على الملحق بعد إصداره يكون بطلب تغيير.</p>`,
+    `<button class="btn btn-success" onclick="saveAddendum(${qid})">إصدار الملحق</button><button class="btn btn-outline" onclick="showQuote(${qid})">رجوع</button>`);
+}
+async function saveAddendum(qid) {
+  try { const r = await capi('/contracts/' + qid + '/addenda', 'POST', { change_type: $v('ad-type'), cost: $v('ad-cost'), description: $v('ad-desc') });
+    toast('صدر الملحق ' + r.addendum_code); showQuote(qid); } catch (e) { toast(e.message, 'error'); }
+}
+async function payAddendum(code, qid) {
+  const ref = prompt('رقم الحوالة/المرجع (اختياري) — سداد ' + code); if (ref === null) return;
+  try { await capi('/addenda/' + encodeURIComponent(code) + '/pay', 'POST', { payment_method: 'bank_transfer', reference: ref }); toast('تم تسجيل السداد'); showQuote(qid); } catch (e) { toast(e.message, 'error'); }
+}
+function $v(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function changeDialog(qid) {
+  const q = window.__Q || {}; const adds = (q.addenda || []).filter(a => a.status !== 'مدفوع');
+  const items = (q.items || []).map(i => i.name + ' | ' + (+i.qty || '')).join('\n');
+  openModal('✎ طلب تغيير — ' + (q.contract_code || ''), `<div class="form-grid">
+    <label>نوع الطلب<select id="cr-type" onchange="document.getElementById('cr-c').style.display=this.value==='تعديل العقد'?'':'none';document.getElementById('cr-a').style.display=this.value==='تعديل ملحق'?'':'none'"><option>تعديل العقد</option>${adds.length ? '<option>تعديل ملحق</option>' : ''}</select></label>
+    <label>موافقة العميل<select id="cr-ap"><option>موافقة واتساب</option><option>توقيع العميل</option><option>سداد</option></select></label>
+    <label style="grid-column:1/-1">إثبات الموافقة (صورة التوقيع/الواتساب)<input id="cr-ev" type="file" accept="image/*,application/pdf"></label></div>
+    <div id="cr-c"><div class="form-grid">
+      <label>قيمة العقد (قبل الضريبة)<input id="cr-cv" type="number" step="0.01" value="${q.contract_value || 0}"></label>
+      <label>مبالغ إضافية<input id="cr-ad" type="number" step="0.01" value="${q.additional || 0}"></label>
+      <label>الخصم<input id="cr-ds" type="number" step="0.01" value="${q.discount || 0}"></label>
+      <label>تاريخ المناسبة<input id="cr-dt" type="date" value="${esc(q.expected_date || '')}"></label>
+      <label>الموقع<input id="cr-vn" value="${esc(q.venue_name || '')}"></label>
+      <label>عدد الضيوف<input id="cr-gs" type="number" value="${esc(q.guests_count || '')}"></label>
+      <label style="grid-column:1/-1">الخدمات (سطر لكل بند: الاسم | العدد)<textarea id="cr-it" rows="8">${esc(items)}</textarea></label></div></div>
+    <div id="cr-a" style="display:none"><div class="form-grid">
+      <label>الملحق<select id="cr-an">${adds.map(a => `<option>${esc(a.addendum_code)}</option>`).join('')}</select></label>
+      <label>التكلفة الجديدة قبل الضريبة<input id="cr-ac" type="number" step="0.01" value="${adds[0] ? adds[0].cost : ''}"></label>
+      <label style="grid-column:1/-1">الوصف الجديد<textarea id="cr-adsc" rows="5">${esc(adds[0] ? adds[0].description : '')}</textarea></label></div></div>
+    <p class="muted small">الطلب ما يُطبّق إلا بعد اعتماد المحاسب. التغييرات تنعكس تلقائياً على المناسبة والمبالغ وخطط العمل.</p>`,
+    `<button class="btn btn-success" onclick="saveChange(${qid})">إرسال للاعتماد</button><button class="btn btn-outline" onclick="showQuote(${qid})">رجوع</button>`);
+}
+function fileData(input) { return new Promise((res, rej) => { const f = input.files && input.files[0]; if (!f) return res(null); const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }); }
+async function saveChange(qid) {
+  try {
+    const type = $v('cr-type'); const ev = await fileData(document.getElementById('cr-ev'));
+    const body = { request_type: type, approval_method: $v('cr-ap'), evidence: ev };
+    if (type === 'تعديل ملحق') Object.assign(body, { addendum_code: $v('cr-an'), cost: $v('cr-ac'), description: $v('cr-adsc') });
+    else body.proposed = { contract_value: $v('cr-cv'), additional: $v('cr-ad'), discount: $v('cr-ds'), expected_date: $v('cr-dt'), venue_name: $v('cr-vn'), guests_count: $v('cr-gs'),
+      items: $v('cr-it').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const p = l.split('|'); return { name: p[0].trim(), qty: (p[1] || '').trim() || 1 }; }) };
+    const r = await capi('/contracts/' + qid + '/changes', 'POST', body);
+    toast('أُرسل ' + r.request_code + ' للاعتماد'); showQuote(qid);
+  } catch (e) { toast(e.message, 'error'); }
+}
+async function decideChange(code, decision, qid) {
+  const note = decision === 'reject' ? prompt('سبب الرفض') : '';
+  if (note === null) return;
+  try { const r = await capi('/changes/' + encodeURIComponent(code) + '/decide', 'POST', { decision, note }); toast(r.status + (r.result ? ' — ' + r.result : '')); showQuote(qid); } catch (e) { toast(e.message, 'error'); }
+}
+async function clearTestData() {
+  if (!confirm('حذف كل العروض والعقود والمناسبات التجريبية (أرقام T)؟')) return;
+  try { const r = await capi('/contracts/test-data', 'DELETE'); toast('حُذفت (' + r.events + ' مناسبة)'); renderQuotes(); } catch (e) { toast(e.message, 'error'); }
 }
 function genSections(q) {
   const flags = (() => { try { return JSON.parse(q.gen_paid_flags || '{}'); } catch (e) { return {}; } })();

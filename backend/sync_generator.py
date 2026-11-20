@@ -86,6 +86,18 @@ def init_tables(conn):
     CREATE INDEX IF NOT EXISTS idx_gen_add_contract ON gen_addenda(contract_code);
     CREATE INDEX IF NOT EXISTS idx_gen_cr_contract ON gen_change_requests(contract_code);
     """)
+    for t, extra in (('gen_quote_revisions', [('source', "TEXT DEFAULT 'generator'"), ('by_name', 'TEXT')]),
+                     ('gen_payments', [('source', "TEXT DEFAULT 'generator'")]),
+                     ('gen_addenda', [('source', "TEXT DEFAULT 'generator'"), ('event_id', 'INTEGER'), ('created_by', 'TEXT')]),
+                     ('gen_change_requests', [('source', "TEXT DEFAULT 'generator'"), ('evidence_path', 'TEXT')])):
+        have = {r[1] for r in conn.execute(f"PRAGMA table_info({t})")}
+        for c, d in extra:
+            if c not in have:
+                conn.execute(f"ALTER TABLE {t} ADD COLUMN {c} {d}")
+    for t in ('quotes', 'events'):
+        have = {r[1] for r in conn.execute(f"PRAGMA table_info({t})")}
+        if 'is_test' not in have:
+            conn.execute(f"ALTER TABLE {t} ADD COLUMN is_test INTEGER DEFAULT 0")
 
 
 def _table(rows):
@@ -186,7 +198,7 @@ def sync_revisions(conn, rows):
 
 
 def sync_payments(conn, rows):
-    conn.execute("DELETE FROM gen_payments")  # السجل في المولّد هو المرجع — نعيد بناءه كاملاً
+    conn.execute("DELETE FROM gen_payments WHERE COALESCE(source,'generator')='generator'")  # سجل المولّد هو المرجع لدفعاته فقط
     n = 0
     for i, r in enumerate(_table(rows)):
         amt = to_number(r.get('المبلغ'))
@@ -215,6 +227,9 @@ def sync_addenda(conn, rows):
                 to_number(r.get('الضريبة')), to_number(r.get('الإجمالي')), _date(r.get('تاريخ الإصدار')),
                 clean_text(r.get('الحالة')), clean_text(r.get('طريقة السداد')) or None, _date(r.get('تاريخ السداد')),
                 clean_text(r.get('المرجع')) or None, clean_text(r.get('ملاحظات')) or None)
+        own = conn.execute("SELECT source FROM gen_addenda WHERE addendum_code=?", (code,)).fetchone()
+        if own and own[0] == 'hub':
+            continue
         conn.execute("""INSERT INTO gen_addenda (addendum_code, contract_code, operation_order, client_name, change_type,
                           description, cost, vat, total, issued_at, status, pay_method, paid_at, reference, notes)
                         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -241,6 +256,9 @@ def sync_changes(conn, rows):
                 clean_text(r.get('أنشأه')), _date(r.get('تاريخ الإنشاء')), clean_text(r.get('الحالة')),
                 clean_text(r.get('اعتمده')) or None, _date(r.get('تاريخ الاعتماد')), clean_text(r.get('ملاحظة المعتمد')) or None,
                 clean_text(r.get('النتيجة')) or None, r.get('الفروقات') or None)
+        own = conn.execute("SELECT source FROM gen_change_requests WHERE request_code=?", (code,)).fetchone()
+        if own and own[0] == 'hub':
+            continue
         cols = ('contract_code, quote_code, operation_order, client_name, request_type, summary, proposed_json, money_impact, '
                 'approval_method, evidence_json, payment_json, created_by, created_at, status, approved_by, approved_at, '
                 'approver_note, result, diff_json')
