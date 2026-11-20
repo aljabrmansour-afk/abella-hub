@@ -32,6 +32,21 @@ def backup_loop():
             print('⚠ backup', e)
         time.sleep(3600)
 threading.Thread(target=backup_loop, daemon=True).start()
+
+# المرحلة الانتقالية: سحب بيانات التطبيقات القديمة (Google Sheets) تلقائياً كل 15 دقيقة
+def sheets_sync_loop():
+    time.sleep(60)
+    sys.path.insert(0, str(pathlib.Path(__file__).parent / 'backend'))
+    import sync_sheets
+    every = int(os.environ.get('SHEETS_SYNC_MINUTES', '15'))
+    while every > 0:
+        try:
+            r = sync_sheets.run_sync(db, log_callback=lambda m: None)
+            print('✓ مزامنة Sheets' if r.get('success') else f"⚠ مزامنة Sheets: {r.get('error')}")
+        except Exception as e:
+            print('⚠ مزامنة Sheets', e)
+        time.sleep(every * 60)
+threading.Thread(target=sheets_sync_loop, daemon=True).start()
 sys.path.insert(0, str(pathlib.Path(__file__).parent / 'backend'))
 os.chdir(pathlib.Path(__file__).parent)
 runpy.run_path('backend/server.py', run_name='__main__')
