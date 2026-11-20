@@ -44,6 +44,20 @@ def sheets_sync_loop():
             r = sync_sheets.run_sync(db, log_callback=lambda m: None)
             print('✓ مزامنة Sheets' if r.get('success') else f"⚠ مزامنة Sheets: {r.get('error')}")
             sync_generator.run(db)
+            _c = sqlite3.connect(str(db), timeout=30)
+            try:
+                import ops_routes, wpgen_routes
+                try:
+                    ops_routes.sync(_c)
+                except Exception as e:
+                    print('⚠ مزامنة إدارة العمليات', e)
+                try:
+                    if not wpgen_routes.is_hub_master(_c):
+                        wpgen_routes.import_from_generator(_c)
+                except Exception as e:
+                    print('⚠ استيراد خطط العمل', e)
+            finally:
+                _c.close()
         except Exception as e:
             print('⚠ مزامنة Sheets', e)
         time.sleep(every * 60)

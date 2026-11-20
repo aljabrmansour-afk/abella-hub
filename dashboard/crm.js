@@ -216,6 +216,10 @@ function buildSidebar() {
       }
       nav.appendChild(a);
       if (m.key === 'sub_plans' && existing.plan_builder && can('work_plans', 'create')) nav.appendChild(existing.plan_builder);
+      if (m.key === 'work_plans' && !document.getElementById('nav-ops')) {
+        const o = document.createElement('a'); o.className = 'nav-item'; o.id = 'nav-ops'; o.href = '/operations'; o.title = 'إدارة العمليات';
+        o.innerHTML = (NEW_NAV_ICONS.work_plans || '') + '<span>إدارة العمليات</span>'; nav.appendChild(o);
+      }
     });
   });
   // بطاقة المستخدم + خروج

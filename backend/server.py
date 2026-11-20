@@ -46,6 +46,7 @@ except ImportError:
 import access_control as ac
 import crm_routes
 import wpgen_routes
+import ops_routes
 import hr_routes
 
 # ============================================================
@@ -291,6 +292,7 @@ def init_database():
         import sync_generator
         sync_generator.init_tables(conn)
         wpgen_routes.init_tables(conn)
+        ops_routes.init_tables(conn)
         conn.commit()
     except Exception as e:
         print('⚠ gen tables', e)
@@ -690,6 +692,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return self.send_static_file(ASSETS_DIR / path.replace('/assets/', '', 1))
         if path.startswith('/uploads/'):
             return self.send_static_file(UPLOADS_DIR / path.replace('/uploads/', '', 1))
+        if path in ('/operations', '/operations/'):
+            return self.send_static_file(DASHBOARD_DIR / 'operations.html')
         if path in ('/workplans', '/workplans/'):
             return self.send_static_file(DASHBOARD_DIR / 'workplans.html')
         if path.startswith('/wpimg/'):
@@ -1165,6 +1169,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             if crm_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if wpgen_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
+                return
+            if ops_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if self._ctx and hr_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
