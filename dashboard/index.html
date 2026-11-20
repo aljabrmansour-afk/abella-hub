@@ -1291,7 +1291,7 @@ function renderPage() {
     case 'appointments': return (typeof renderAppointments === 'function' ? renderAppointments() : null);
     case 'calendar': return (typeof renderCalendar === 'function' ? renderCalendar() : null);
     case 'sub_plans': return (typeof renderSubPlans === 'function' ? renderSubPlans() : null);
-    case 'work_plans': return renderWorkPlansList();
+    case 'work_plans': location.href = '/workplans'; return;
   }
 }
 

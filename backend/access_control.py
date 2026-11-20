@@ -448,6 +448,7 @@ RULES = [
     (r'POST',       r'^/api/events$',                  [('events', 'create')]),
     (r'PUT',        r'^/api/events/',                  [('events', 'edit')]),
     (r'DELETE',     r'^/api/events/',                  [('events', 'delete')]),
+    (r'POST',       r'^/api/wpgen/',                  [('work_plans', 'view')]),
     (r'POST',       r'^/api/workplans$',               [('work_plans', 'create')]),
     (r'POST',       r'^/api/workplans/approve',        [('work_plans', 'edit')]),
     (r'PUT',        r'^/api/workplans/',               [('work_plans', 'edit')]),

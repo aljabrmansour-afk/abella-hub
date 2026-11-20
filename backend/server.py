@@ -45,6 +45,7 @@ except ImportError:
     code_generator = None
 import access_control as ac
 import crm_routes
+import wpgen_routes
 import hr_routes
 
 # ============================================================
@@ -289,6 +290,7 @@ def init_database():
     try:
         import sync_generator
         sync_generator.init_tables(conn)
+        wpgen_routes.init_tables(conn)
         conn.commit()
     except Exception as e:
         print('⚠ gen tables', e)
@@ -659,6 +661,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             data = {}
         handled = crm_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
+            handled = wpgen_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
+        if not handled and ctx:
             handled = hr_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         return bool(handled)
 
@@ -686,6 +690,26 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return self.send_static_file(ASSETS_DIR / path.replace('/assets/', '', 1))
         if path.startswith('/uploads/'):
             return self.send_static_file(UPLOADS_DIR / path.replace('/uploads/', '', 1))
+        if path in ('/workplans', '/workplans/'):
+            return self.send_static_file(DASHBOARD_DIR / 'workplans.html')
+        if path.startswith('/wpimg/'):
+            c = get_db()
+            try:
+                r = c.execute("SELECT path FROM wpg_uploads WHERE id=?", (path.split('/')[2],)).fetchone()
+            finally:
+                c.close()
+            if r:
+                return self.send_static_file(UPLOADS_DIR / r[0])
+            self.send_response(404); self.end_headers(); return
+        if path.startswith('/wpdoc/'):
+            c = get_db()
+            try:
+                return wpgen_routes.serve_doc(self, c, path.split('/')[2], (query.get('k') or [''])[0])
+            finally:
+                c.close()
+        if path == '/api/bridge/verify':
+            ok = wpgen_routes.verify_nonce((query.get('n') or [''])[0])
+            return self.send_json({'ok': ok}, 200 if ok else 403)
         if path.startswith('/api/'):
             return self.handle_api_get(path, query)
         self.send_response(404); self.end_headers()
@@ -1139,6 +1163,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
         try:
             data = self.get_body_json()
             if crm_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
+                return
+            if wpgen_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if self._ctx and hr_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
