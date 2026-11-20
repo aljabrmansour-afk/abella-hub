@@ -690,6 +690,7 @@ function renderCal() {
 function renderTeam() {
   $('#main').innerHTML = '<div class="loading"><div class="spin"></div></div>';
   call('team').then(function (d) {
+    if (d.native) return renderTeamNative(d);
     var h = '<div class="sec"><h3>الفريق والروابط الشخصية</h3><p style="color:var(--mut);font-size:13px;margin-top:0">كل شخص له رابط فيه مفتاح خاص + رمز سري من 4 أرقام يختاره بنفسه أول دخول (الجهاز يتذكره 30 يوم، و5 محاولات خاطئة تقفل الحساب). الأدوار والأقسام تُعدّل من تبويب «الفريق» في جدول إدارة العمليات. الدور «قسم» يحتاج تحديد القسم (المصنع، الكماليات، الورد، الضيافة، المشتريات، التشغيل، العمليات) ويقبل أكثر من قسم مفصولة بفاصلة.</p>' +
       (d.bookUrl ? '<p><a class="btn sm" href="' + esc(d.bookUrl) + '" target="_blank">فتح جدول إدارة العمليات</a></p>' : '') +
       '<div class="card" style="overflow-x:auto"><table class="team"><tr><th>الاسم</th><th>الدور</th><th>الأقسام</th><th>الحالة</th><th>الرمز السري</th><th></th></tr>' +
@@ -714,6 +715,27 @@ function renderTeam() {
       };
     });
   }).catch(function (e) { $('#main').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; });
+}
+function renderTeamNative(d) {
+  var h = '<div class="sec"><h3>الفريق والأقسام</h3><p style="color:var(--mut);font-size:13px;margin-top:0">الدخول من حساب كل شخص في المنصة. الدور الافتراضي يُستنتج من دوره في المنصة (المصنع، الضيافة، المشتريات…) — وتقدر تحدده هنا. كل قسم يشوف مهامه فقط، ومهام خطة العمل المعتمدة توصل لحساب القسم المختص تلقائياً.</p>' +
+    '<div class="card" style="overflow-x:auto"><table class="team"><tr><th>الاسم</th><th>الدور</th><th>الأقسام</th><th>المصدر</th><th></th></tr>' +
+    d.members.map(function (m, i) {
+      if (m.super) return '<tr><td><b>' + esc(m.name) + '</b></td><td>الإدارة</td><td>—</td><td>' + esc(m.src) + '</td><td></td></tr>';
+      var dis = DATA.me.isAdmin ? '' : ' disabled';
+      return '<tr data-m="' + i + '"><td><b>' + esc(m.name) + '</b><div style="font-size:11px;color:var(--mut)">' + esc(m.username) + '</div></td>' +
+        '<td><select class="mrole"' + dis + '><option value="">— بدون —</option>' + d.roles.map(function (r) { return '<option' + (r === m.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select></td>' +
+        '<td>' + d.depts.map(function (x) { return '<label style="white-space:nowrap;margin-left:8px;font-size:12px"><input type="checkbox" class="mdep" value="' + esc(x) + '"' + ((m.depts || '').indexOf(x) >= 0 ? ' checked' : '') + dis + '> ' + esc(x) + '</label>'; }).join('') + '</td>' +
+        '<td style="font-size:12px;color:var(--mut)">' + esc(m.src || '') + (m.active ? '' : ' · <span class="badge b-out">موقوف</span>') + '</td>' +
+        '<td>' + (DATA.me.isAdmin ? '<button class="btn sm" data-save="' + i + '">حفظ</button>' : '') + '</td></tr>';
+    }).join('') + '</table></div></div>';
+  $('#main').innerHTML = h;
+  $$('[data-save]').forEach(function (b) {
+    b.onclick = function () {
+      var i = +b.getAttribute('data-save'), tr = document.querySelector('tr[data-m="' + i + '"]'), m = d.members[i];
+      var deps = Array.prototype.slice.call(tr.querySelectorAll('.mdep:checked')).map(function (x) { return x.value; });
+      call('setMember', m.username, tr.querySelector('.mrole').value, deps, true).then(function () { toast('حُفظ ' + m.name); renderTeam(); }).catch(function (e) { toast(e.message, true); });
+    };
+  });
 }
 function renderLog() {
   $('#main').innerHTML = '<div class="loading"><div class="spin"></div></div>';
@@ -785,7 +807,7 @@ call = function (fn) { var a = Array.prototype.slice.call(arguments); a[0] = 'ap
 
 window.__opsApp = { boot: boot, setUser: function (u, k) { U = u; KEY = k; TOK = tokGet(); S = { view: 'board', filter: 'all', q: '', order: null, sub: 'timeline', chan: null, off: 0, openTask: {} }; boot(); } };
 if (window.google && google.script && google.script.url) start();
-else { window.__HUB__ = true; var hb = document.createElement('div'); hb.id = 'hubbar'; hb.innerHTML = '<a href="/dashboard/">← منصّة أبيلا</a> · إدارة العمليات — الدخول من حسابك في المنصة، والبيانات نفسها اللي في تطبيق إدارة العمليات.'; document.body.insertBefore(hb, document.body.firstChild); window.__opsApp.setUser('hub', 'hub'); }
+else { window.__HUB__ = true; var hb = document.createElement('div'); hb.id = 'hubbar'; hb.innerHTML = '<a href="/dashboard/">← منصّة أبيلا</a> · إدارة العمليات — الدخول من حسابك في المنصة، الأوامر من العقود، والمهام حسب الشروط وخطة العمل المعتمدة — كل قسم يشوف مهامه.'; document.body.insertBefore(hb, document.body.firstChild); window.__opsApp.setUser('hub', 'hub'); }
 })();
 </script>
 </body>

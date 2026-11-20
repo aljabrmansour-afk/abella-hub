@@ -197,6 +197,8 @@ function buildSidebar() {
     if (!myAdded && g !== 'عام') {
       const h0 = document.createElement('div'); h0.className = 'nav-group'; h0.textContent = 'أنا'; nav.appendChild(h0);
       nav.appendChild(mk('myhr', 'ملفي ومهامي')); myAdded = true;
+      const o = document.createElement('a'); o.className = 'nav-item'; o.id = 'nav-ops'; o.href = '/operations'; o.title = 'مهام القسم — إدارة العمليات';
+      o.innerHTML = (NEW_NAV_ICONS.work_plans || '') + '<span>مهام قسمي (العمليات)</span>'; nav.appendChild(o);
     }
     const visible = mods.filter(m => can(m.key));
     if (!visible.length) return;

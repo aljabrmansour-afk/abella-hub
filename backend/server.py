@@ -296,6 +296,8 @@ def init_database():
         wpgen_routes.init_tables(conn)
         ops_routes.init_tables(conn)
         expenses_routes.init_tables(conn)
+        import ops_native
+        ops_native.init_tables(conn)
         conn.commit()
     except Exception as e:
         print('⚠ gen tables', e)

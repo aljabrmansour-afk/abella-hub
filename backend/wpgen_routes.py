@@ -409,6 +409,14 @@ def call(conn, ctx, fn, args):
         r = write_version(conn, plan, m['name'], 'اعتماد', note, pdfs)
         r['pdfs'] = pdfs
         conn.commit()
+        # توزيع الخطة المعتمدة على الأقسام (كل قسم تجيه مهامه في حسابه)
+        try:
+            import ops_native
+            if conn.execute("SELECT 1 FROM opn_orders WHERE Q=?", (Q,)).fetchone():
+                r['distributed'] = ops_native.import_plan(conn, Q, m['name'])
+                conn.commit()
+        except Exception as e:
+            r['distributeError'] = str(e)
         return r
     if fn == 'api_logo':
         return LOGO

@@ -48,7 +48,17 @@ def sheets_sync_loop():
             try:
                 import ops_routes, wpgen_routes
                 try:
-                    ops_routes.sync(_c)
+                    import ops_native
+                    _o = sqlite3.connect(str(db), timeout=30); _o.row_factory = sqlite3.Row
+                    try:
+                        ops_native.init_tables(_o)
+                        mode = (_o.execute("SELECT value FROM settings WHERE key='ops_mode'").fetchone() or ['native'])[0]
+                        if mode == 'native':
+                            ops_native.sync_orders(_o)
+                        else:
+                            ops_routes.sync(_c)
+                    finally:
+                        _o.close()
                 except Exception as e:
                     print('⚠ مزامنة إدارة العمليات', e)
                 try:

@@ -99,6 +99,17 @@ def handle(h, conn, method, path, query, data, ctx, send_json):
         if fn == 'api_logo':
             send_json({'ok': True, 'data': wpg.LOGO})
             return True
+        if (wpg._setting(conn, 'ops_mode') or 'native') == 'native':
+            import ops_native
+            try:
+                r = {'ok': True, 'data': ops_native.call(conn, ctx, fn, data.get('args') or [])}
+            except (PermissionError, ValueError) as e:
+                r = {'ok': False, 'error': str(e)}
+            except Exception as e:
+                import traceback; traceback.print_exc()
+                r = {'ok': False, 'error': 'خطأ في الخادم: ' + str(e)}
+            send_json(r)
+            return True
         name = ops_name(conn, ctx['user'])
         try:
             r = bridge('call', call=fn, args=data.get('args') or [], **{'as': name})
