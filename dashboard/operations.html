@@ -420,6 +420,8 @@ function renderOrder() {
       (o.path === 'ولادة' ? '<button class="btn pri" id="aConfirm">' + (o.C ? 'تعديل التأكيد' : 'تسجيل التأكيد') + '</button>' : '') +
       '<button class="btn" id="aPlan">استيراد / تحديث الخطة</button>' +
       '<button class="btn" id="aAdd">+ مهمة</button>' +
+      '<a class="btn" href="/checklist?q=' + encodeURIComponent(o.Q) + '" target="_blank">قائمة التحميل</a>' +
+      '<a class="btn" href="/execution" target="_blank">يوم التنفيذ' + (o.exec ? ' (' + o.exec.done + '/' + o.exec.total + ')' : '') + '</a>' +
       (o.cls === 'مستعجل' ? '<button class="btn ' + (o.rushPaid ? '' : 'red') + '" id="aRush">' + (o.rushPaid ? 'إلغاء سداد الرسوم' : 'رسوم الاستعجال مسددة ✓') + '</button>' : '') +
       '<select class="btn" id="aOwner"><option value="">مسؤول العمليات…</option>' + (o.ops || []).map(function (n) { return '<option ' + (n === o.owner ? 'selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>' +
       '<button class="btn" id="aClose">' + (o.closed ? 'إعادة فتح' : 'إغلاق الأمر') + '</button></div>';

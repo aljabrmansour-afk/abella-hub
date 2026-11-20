@@ -698,6 +698,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             handled = contracts_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
             handled = wpgen_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
+        if not handled and ctx and path.startswith('/api/ops/'):
+            handled = ops_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
             handled = today_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
@@ -734,6 +736,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return self.send_static_file(UPLOADS_DIR / path.replace('/uploads/', '', 1))
         if path in ('/operations', '/operations/'):
             return self.send_static_file(DASHBOARD_DIR / 'operations.html')
+        if path in ('/checklist', '/checklist/'):
+            return self.send_static_file(DASHBOARD_DIR / 'checklist.html')
         if path in ('/today', '/today/'):
             return self.send_static_file(DASHBOARD_DIR / 'today.html')
         if path in ('/jard', '/jard/'):

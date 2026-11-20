@@ -347,6 +347,16 @@ def sync_orders(conn, log=print):
                 if tpl_applies(tp, o):
                     _upd_task(conn, tpl_task(tp, Q, n))
             added += 1
+    # جدول يوم التنفيذ: للمؤكد، وللمناسبات الثابتة قبلها بـ 21 يوم
+    try:
+        import exec_native
+        lim = add_d(today_s(), 21)
+        for o in _orders(conn, "WHERE COALESCE(closed,'')<>'نعم'"):
+            d0 = t_(o['C']) or (t_(o['E']) if o['path'] != 'ولادة' else '')
+            if d0 and today_s() <= d0 <= lim:
+                exec_native.ensure_project(conn, o)
+    except Exception as e:
+        log(f'⚠ يوم التنفيذ: {e}')
     # الخطط المعتمدة اللي ما استُوردت بعد → توزيعها على الأقسام
     for p in conn.execute("SELECT quote_code, approved_version FROM wpg_plans WHERE COALESCE(approved_version,0)>0").fetchall():
         o = conn.execute("SELECT plan_ver FROM opn_orders WHERE Q=?", (p[0],)).fetchone()
@@ -794,6 +804,11 @@ def call(conn, ctx, fn, args):
             if not c['C']:
                 card['place'] = ''
         else:
+            try:
+                import exec_native
+                card['exec'] = exec_native.ops_summary(conn, c['O']) if c['O'] else None
+            except Exception:
+                card['exec'] = None
             card['classify'] = classify(c['E'], c['birth'], c['C']) if c['path'] == 'ولادة' and c['birth'] else None
             team = _team(conn)
             card['ops'] = [m['name'] for m in team if m['role'] in (ROLE_OPS, ROLE_ADMIN) and m['active']]
@@ -890,6 +905,11 @@ def call(conn, ctx, fn, args):
         # التاريخ المؤكد في العرض والمناسبة داخل المنصة
         conn.execute("UPDATE quotes SET confirmed_date=? WHERE quote_code=?", (ex, Q))
         conn.execute("UPDATE events SET actual_date=? WHERE id=(SELECT event_id FROM quotes WHERE quote_code=?)", (ex, Q))
+        try:
+            import exec_native
+            exec_native.ensure_project(conn, o, me['name'])
+        except Exception as e:
+            warn.append('تعذّر إنشاء جدول يوم التنفيذ: ' + str(e))
         log_(conn, me['name'], Q, 'تأكيد الموعد', f"الولادة {birth} · التنفيذ {ex} · {cls}" + (' · ' + ' / '.join(warn) if warn else ''))
         conn.commit()
         return {'cls': cls, 'warnings': warn}
@@ -993,3 +1013,42 @@ def dept_tasks_for_user(conn, user, is_super, days=14):
             if not t['done']:
                 out.append(dict(t, client=c['client'], O=c['O']))
     return sorted(out, key=lambda x: x['dueMs'] or 9e15)
+
+
+# ───────────────────────── قائمة تحقق التحميل (من خطة العمل) ─────────────────────────
+OPS_SUPPLIES = ['تمديدات سلك', 'قلوقن', 'دريل وبطارية', 'سلّم', 'شنطة تثبيت (براغي، لاصق، ربطات)', 'أغطية حماية']
+
+
+def checklist(conn, key):
+    o = conn.execute("SELECT * FROM opn_orders WHERE Q=? OR O=?", (key, key)).fetchone()
+    if not o:
+        raise ValueError('الأمر غير موجود')
+    o = dict(o)
+    R = read_plan(conn, o['Q'])
+    sections = []
+    if R:
+        P = R['plan']
+
+        def q(r):
+            try:
+                return float(r.get('qty') or 1)
+            except Exception:
+                return 1
+        sections.append(('الديكور (المصنع)', [{'code': r.get('code') or '', 'name': t_(r.get('item')), 'qty': q(r),
+                                               'note': ' · '.join(x for x in (t_(r.get('area')), _J(r.get('paints'))) if x)} for r in P.get('decor') or []]))
+        sections.append(('الكماليات', [{'code': r.get('code') or '', 'name': t_(r.get('nameAr')), 'qty': q(r),
+                                         'note': ' · '.join(x for x in (t_(r.get('area')), t_(r.get('color'))) if x)} for r in P.get('amen') or []]))
+        sections.append(('الورد الصناعي', [{'code': '', 'name': t_(r.get('area')) or 'تنسيق', 'qty': q(r),
+                                             'note': ' · '.join(x for x in (_J(r.get('types')), _J(r.get('colors'))) if x)} for r in P.get('artificial') or []]))
+        hosp = [r for r in (P.get('hosp') or []) if r.get('sec') != 'staff']
+        sections.append(('أدوات الضيافة', [{'code': '', 'name': t_(r.get('item')), 'qty': q(r), 'note': t_(r.get('unit'))} for r in hosp]))
+        b = P.get('baby') or {}
+        if b.get('nameAr') or b.get('nameEn'):
+            sections.append(('الاسم والاستيكر', [{'code': '', 'name': ' / '.join(x for x in (b.get('nameAr'), b.get('nameEn')) if x), 'qty': 1, 'note': t_(b.get('font'))}]))
+    sections = [(t, rows) for t, rows in sections if rows]
+    sections.append(('مستلزمات التشغيل', [{'code': '', 'name': x, 'qty': '', 'note': ''} for x in OPS_SUPPLIES]))
+    ex = conn.execute("SELECT ops, sup FROM exn_projects WHERE code=?", (o['O'],)).fetchone()
+    return {'order': {k: o.get(k) for k in ('Q', 'B', 'O', 'client', 'type', 'venue', 'location', 'E', 'C', 'place')},
+            'plan': {'version': R['version'], 'approved': R['approved']} if R else None,
+            'ops': ex['ops'] if ex else '', 'sup': ex['sup'] if ex else '',
+            'sections': [{'title': t, 'rows': rows} for t, rows in sections]}

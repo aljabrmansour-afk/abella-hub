@@ -122,6 +122,14 @@ def handle(h, conn, method, path, query, data, ctx, send_json):
                 pass
         send_json(r)
         return True
+    if path.startswith('/api/ops/checklist/') and method == 'GET':
+        import ops_native
+        try:
+            ops_native.member(conn, ctx['user'], bool(ctx['perms'].get('is_super')))
+            send_json(ops_native.checklist(conn, path.split('/')[-1]))
+        except (PermissionError, ValueError) as e:
+            send_json({'error': str(e)}, 400)
+        return True
     if path == '/api/ops/map' and method == 'POST':
         if not ctx['perms'].get('is_super'):
             send_json({'error': 'للإدارة فقط'}, 403)

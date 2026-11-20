@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قائمة تحقق التحميل — أبيلا</title>
+<style>
+:root{--g:#8B6F47;--ln:#D9CDB8}
+*{box-sizing:border-box}body{margin:0;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;color:#2B2420;font-size:13px;background:#FAF7F2}
+.page{overflow-x:auto;max-width:900px;margin:16px auto;background:#fff;padding:22px;border:1px solid var(--ln);border-radius:10px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--g);padding-bottom:10px;margin-bottom:12px}
+h1{margin:0;font-size:20px;color:var(--g)}.muted{color:#8A7B6A;font-size:12px}
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;margin-bottom:12px}.info div{border-bottom:1px dotted var(--ln);padding:4px 0}.info b{color:#6B5B4B;font-weight:600;margin-inline-end:6px}
+h3{background:#F5EFE4;color:var(--g);padding:6px 10px;border-radius:6px;margin:14px 0 6px;font-size:14px}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid var(--ln);padding:5px 6px;text-align:right;vertical-align:top}th{background:#FBF8F3;font-weight:600;font-size:12px}
+.box{display:inline-block;width:14px;height:14px;border:1.5px solid #6B5B4B;border-radius:3px;vertical-align:middle}
+td.c{text-align:center;width:52px}.sum{display:flex;gap:10px;margin:14px 0}.sum div{flex:1;border:1px solid var(--ln);border-radius:8px;padding:8px;text-align:center}
+.warn{border:2px solid #B3261E;color:#B3261E;font-weight:700;text-align:center;padding:8px;border-radius:8px;margin:12px 0}
+.sig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.sig div{border-top:1px solid #6B5B4B;padding-top:6px;text-align:center;height:60px}
+.bar{max-width:900px;margin:10px auto 0;display:flex;gap:8px}.bar button,.bar a{background:var(--g);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer;text-decoration:none}
+@media print{body{background:#fff}.bar{display:none}.page{border:0;margin:0;max-width:none;padding:0}h3{break-after:avoid}tr{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="bar"><button onclick="print()">طباعة / PDF</button><a href="/operations">← إدارة العمليات</a></div>
+<div class="page" id="pg">جارٍ التحميل…</div>
+<script src="/assets/session.js"></script>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+(async()=>{const q=new URLSearchParams(location.search).get('q')||'';
+ const r=await fetch('/api/ops/checklist/'+encodeURIComponent(q));if(r.status===401){location.href='/dashboard/';return}
+ const d=await r.json();if(d.error){document.getElementById('pg').textContent=d.error;return}
+ const o=d.order,date=o.C||o.E||'';let n=0;
+ document.title='قائمة تحقق التحميل — '+(o.O||o.Q);
+ document.getElementById('pg').innerHTML=`<div class="top"><div><h1>قائمة تحقق تحميل الأغراض من المستودع</h1><div class="muted">أبيلا للأفراح والمناسبات${d.plan?` · من خطة العمل نسخة ${d.plan.version} ${d.plan.approved?'(معتمدة)':'(مسودة)'}`:' · لا توجد خطة عمل — البنود الثابتة فقط'}</div></div><div style="text-align:left"><b style="font-size:18px">${esc(o.O||'')}</b><div class="muted">${esc(o.B||'')} · ${esc(o.Q)}</div></div></div>
+ <div class="info"><div><b>العميل</b>${esc(o.client)}</div><div><b>الموقع</b>${esc(o.location||o.venue||'')}</div><div><b>${o.venue==='مستشفى'?'الجناح':'العنوان'}</b>${esc(o.place||'')}</div>
+  <div><b>تاريخ المناسبة</b>${esc(date)}${o.C?'':' (متوقع)'}</div><div><b>مدير التشغيل</b>${esc(d.ops||'')}</div><div><b>المشرف</b>${esc(d.sup||'')}</div>
+  <div><b>تاريخ التحميل</b></div><div><b>وقت المغادرة</b></div><div><b>السائق / السيارة</b></div></div>
+ ${d.sections.map(s=>`<h3>${esc(s.title)} (${s.rows.length})</h3><table><tr><th style="width:28px">#</th><th style="width:70px">الرمز</th><th>البند</th><th style="width:44px">الكمية</th><th class="c">حُمّل</th><th class="c">مطابق</th><th class="c">يحتاج تصحيح</th><th class="c">رجع</th><th class="c">ناقص/تالف</th><th style="width:110px">ملاحظات</th></tr>
+  ${s.rows.map(x=>`<tr><td>${++n}</td><td>${esc(x.code)}</td><td>${esc(x.name)}${x.note?`<div class="muted">${esc(x.note)}</div>`:''}</td><td>${x.qty===''?'':esc(x.qty)}</td>${'<td class="c"><span class="box"></span></td>'.repeat(5)}<td></td></tr>`).join('')}</table>`).join('')}
+ <div class="sum"><div>إجمالي البنود<br><b>${n}</b></div><div>حُمّل<br>____</div><div>يحتاج تصحيح<br>____</div><div>رجع كامل<br>____</div><div>ناقص/تالف<br>____</div></div>
+ <div class="warn">لا تتحرك السيارة قبل اكتمال القائمة والتوقيع</div>
+ <div class="sig"><div>أمين المستودع</div><div>مدير التشغيل</div><div>السائق</div></div>`;
+})();
+</script>
+</body>
+</html>
