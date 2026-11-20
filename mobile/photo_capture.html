@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script src="/assets/session.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#5C4528">
+<title>أبيلا — التوثيق بالصور</title>
+<style>
+:root {
+  --primary: #8B6F47; --primary-light: #B8975D; --primary-dark: #5C4528;
+  --accent: #C9A560; --gold: #D4B97A;
+  --success: #7A8A5F; --warning: #D4A04C; --danger: #A04545;
+  --bg: #F8F4ED; --surface: #FFFFFF; --border: #E8DFD0;
+  --text: #2D1F14; --text-light: #8B7E6E;
+}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html, body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; font-size: 15px;
+}
+
+.app-header {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: #fff; padding: 16px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 12px rgba(92,69,40,0.3);
+}
+.app-title { font-size: 16px; font-weight: 700; }
+.back-btn {
+  background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;
+}
+
+.content { padding: 16px; padding-bottom: 100px; }
+
+.event-info {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: #fff; padding: 16px; border-radius: 14px;
+  margin-bottom: 16px;
+}
+.event-info h3 { font-size: 18px; margin-bottom: 4px; }
+.event-info .meta { font-size: 12px; opacity: 0.9; margin-top: 4px; }
+
+.section-title {
+  font-size: 14px; font-weight: 700; color: var(--primary-dark);
+  margin: 18px 4px 10px;
+}
+
+.phase-card {
+  background: var(--surface); border-radius: 12px; padding: 16px;
+  margin-bottom: 10px; box-shadow: 0 2px 8px rgba(139,111,71,0.06);
+  border-right: 4px solid var(--primary-light);
+  cursor: pointer; transition: all 0.15s;
+}
+.phase-card:active { transform: scale(0.98); }
+.phase-card.has-photo { border-color: var(--success); background: #F0F5E8; }
+
+.phase-icon { font-size: 28px; margin-left: 10px; }
+.phase-title { font-weight: 700; font-size: 15px; }
+.phase-status {
+  font-size: 11px; color: var(--text-light); margin-top: 4px;
+}
+.phase-status.done { color: var(--success); font-weight: 700; }
+
+.btn {
+  display: block; width: 100%; padding: 14px;
+  background: var(--primary); color: #fff;
+  border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; text-align: center; margin-top: 8px;
+  font-family: inherit;
+}
+.btn:active { transform: scale(0.98); opacity: 0.9; }
+.btn-success { background: var(--success); }
+.btn-danger { background: var(--danger); }
+.btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+
+/* ============ شاشة الكاميرا ============ */
+.camera-screen {
+  position: fixed; inset: 0; background: #000; z-index: 200;
+  display: none; flex-direction: column;
+}
+.camera-screen.show { display: flex; }
+.camera-header {
+  background: rgba(0,0,0,0.8); color: #fff; padding: 14px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.camera-video { flex: 1; position: relative; overflow: hidden; }
+.camera-video video {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.camera-overlay {
+  position: absolute; bottom: 30px; left: 0; right: 0;
+  text-align: center; padding: 0 20px;
+}
+.capture-btn {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: #fff; border: 5px solid var(--accent);
+  cursor: pointer; margin: 0 auto;
+}
+.capture-btn:active { transform: scale(0.9); }
+
+.preview-screen {
+  position: fixed; inset: 0; background: #000; z-index: 200;
+  display: none; flex-direction: column;
+}
+.preview-screen.show { display: flex; }
+.preview-image {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+}
+.preview-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.preview-actions {
+  background: rgba(0,0,0,0.85); padding: 16px; display: flex; gap: 8px;
+}
+.preview-actions button { flex: 1; }
+
+/* ============ معرض الصور ============ */
+.photo-gallery {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  margin-top: 8px;
+}
+.gallery-item {
+  aspect-ratio: 1; border-radius: 8px; overflow: hidden;
+  background: var(--border); cursor: pointer; position: relative;
+}
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+.gallery-item .phase-tag {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.7); color: #fff;
+  padding: 2px 4px; font-size: 9px; text-align: center;
+}
+
+.toast {
+  position: fixed; top: 80px; left: 16px; right: 16px;
+  background: var(--text); color: #fff; padding: 14px;
+  border-radius: 12px; text-align: center; z-index: 500;
+  opacity: 0; transition: opacity 0.3s;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+.empty {
+  text-align: center; padding: 30px 20px; color: var(--text-light);
+}
+.loading { text-align: center; padding: 40px; color: var(--text-light); }
+
+.form-input, .form-textarea {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+  border-radius: 10px; font-size: 15px; font-family: inherit;
+  background: #fff; margin-bottom: 12px;
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <div class="app-title">📷 التوثيق بالصور</div>
+  <div style="width:24px"></div>
+</header>
+
+<main class="content" id="content">
+  <div class="loading">جارِ التحميل...</div>
+</main>
+
+<!-- شاشة الكاميرا -->
+<div class="camera-screen" id="camera-screen">
+  <div class="camera-header">
+    <button class="back-btn" onclick="closeCamera()">✕</button>
+    <div id="camera-phase-label">المرحلة</div>
+    <div style="width:24px"></div>
+  </div>
+  <div class="camera-video" id="camera-video"></div>
+  <div class="camera-overlay">
+    <div class="capture-btn" onclick="takePhoto()"></div>
+    <div style="color:#fff;font-size:11px;margin-top:8px">اضغط لالتقاط الصورة</div>
+  </div>
+</div>
+
+<!-- شاشة معاينة الصورة -->
+<div class="preview-screen" id="preview-screen">
+  <div class="preview-image" id="preview-image"></div>
+  <div class="preview-actions">
+    <button class="btn btn-outline" onclick="retakePhoto()">🔄 إعادة</button>
+    <button class="btn btn-success" onclick="uploadPhoto()">✓ حفظ</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('abela_token');
+let currentEventId = null;
+let currentEvent = null;
+let currentPhase = null;
+let currentRole = null;
+let videoStream = null;
+let capturedImage = null;
+
+// المراحل حسب الدور
+const ROLE_PHASES = {
+  warehouse: [
+    { key: 'warehouse_loading_start', icon: '🚚', label: 'وصول السيارة للتحميل' },
+    { key: 'warehouse_loading_done',  icon: '📦', label: 'بعد التحميل' },
+    { key: 'warehouse_return',        icon: '🚛', label: 'رجوع السيارة' },
+    { key: 'warehouse_unload',        icon: '✓',  label: 'بعد التفريغ' },
+  ],
+  warehouse_decor: [
+    { key: 'warehouse_loading_start', icon: '🚚', label: 'وصول السيارة للتحميل' },
+    { key: 'warehouse_loading_done',  icon: '📦', label: 'بعد التحميل' },
+    { key: 'warehouse_return',        icon: '🚛', label: 'رجوع السيارة' },
+    { key: 'warehouse_unload',        icon: '✓',  label: 'بعد التفريغ' },
+  ],
+  warehouse_acc: [
+    { key: 'warehouse_loading_start', icon: '🚚', label: 'Vehicle Arrival' },
+    { key: 'warehouse_loading_done',  icon: '📦', label: 'Loading Complete' },
+    { key: 'warehouse_return',        icon: '🚛', label: 'Vehicle Return' },
+    { key: 'warehouse_unload',        icon: '✓',  label: 'Unloading Complete' },
+  ],
+  field: [
+    { key: 'execution_arrival', icon: '📍', label: 'الوصول للموقع' },
+    { key: 'execution_stage',   icon: '⚙', label: 'مرحلة من التنفيذ' },
+    { key: 'execution_done',    icon: '✓',  label: 'نهاية التنفيذ' },
+    { key: 'damage_report',     icon: '⚠️', label: 'توثيق ضرر' },
+  ],
+  supervisor: [
+    { key: 'supervision_review',   icon: '👁', label: 'المراجعة قبل المناسبة' },
+    { key: 'supervision_handover', icon: '🤝', label: 'تسليم العميل' },
+  ],
+  factory: [
+    { key: 'execution_stage', icon: '🛠', label: 'مرحلة التصنيع' },
+    { key: 'execution_done',  icon: '✓',  label: 'انتهاء القطعة' },
+  ],
+};
+
+const PHASE_LABELS = {
+  warehouse_loading_start: 'وصول السيارة للتحميل',
+  warehouse_loading_done: 'بعد التحميل',
+  warehouse_return: 'رجوع السيارة',
+  warehouse_unload: 'بعد التفريغ',
+  execution_arrival: 'الوصول للموقع',
+  execution_stage: 'مرحلة تنفيذ',
+  execution_done: 'نهاية التنفيذ',
+  supervision_review: 'مراجعة الإشراف',
+  supervision_handover: 'تسليم العميل',
+  damage_report: 'توثيق ضرر',
+  inventory_item: 'صورة قطعة',
+  other: 'أخرى',
+};
+
+async function api(path, opts={}) {
+  const headers = { 'Content-Type':'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { headers, ...opts });
+  if (!res.ok) throw new Error((await res.json().catch(()=>({error:'خطأ'}))).error);
+  return res.json();
+}
+
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 2500);
+}
+
+async function loadEventAndPhotos() {
+  // قراءة event_id من URL
+  const params = new URLSearchParams(location.search);
+  currentEventId = Number(params.get('event_id'));
+  if (!currentEventId) {
+    document.getElementById('content').innerHTML = '<div class="empty">لم يتم تحديد المناسبة. ارجع للتطبيق واختر مناسبة.</div>';
+    return;
+  }
+  try {
+    const me = await api('/permissions/me');
+    currentRole = me.user?.role;
+    currentEvent = await api('/events/' + currentEventId);
+    const photos = await api('/photo-documents?event_id=' + currentEventId);
+    renderUI(photos);
+  } catch(e) {
+    document.getElementById('content').innerHTML = '<div class="empty">خطأ: ' + e.message + '</div>';
+  }
+}
+
+function renderUI(photos) {
+  const phases = ROLE_PHASES[currentRole] || ROLE_PHASES.field;
+  const photosByPhase = {};
+  photos.forEach(p => {
+    if (!photosByPhase[p.photo_phase]) photosByPhase[p.photo_phase] = [];
+    photosByPhase[p.photo_phase].push(p);
+  });
+
+  const html = `
+    <div class="event-info">
+      <h3>${currentEvent.title}</h3>
+      <div class="meta">📅 ${currentEvent.event_date} | 📍 ${currentEvent.venue_name || ''}</div>
+      <div class="meta">👤 ${currentEvent.customer_name}</div>
+    </div>
+
+    <div class="section-title">📸 المراحل (اضغط أي مرحلة للتصوير)</div>
+    ${phases.map(p => {
+      const count = (photosByPhase[p.key] || []).length;
+      return `<div class="phase-card ${count > 0 ? 'has-photo' : ''}" onclick="openCamera('${p.key}', '${p.label.replace(/'/g, "")}')">
+        <div style="display:flex;align-items:center">
+          <span class="phase-icon">${p.icon}</span>
+          <div style="flex:1">
+            <div class="phase-title">${p.label}</div>
+            <div class="phase-status ${count > 0 ? 'done' : ''}">
+              ${count > 0 ? '✓ ' + count + ' صورة' : 'لم يتم التوثيق بعد'}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+
+    <div class="section-title">🖼 معرض كل الصور (${photos.length})</div>
+    ${photos.length ? `<div class="photo-gallery">
+      ${photos.map(p => `
+        <div class="gallery-item" onclick="viewPhoto('${p.photo_path}')">
+          <img src="${p.photo_path}" alt="">
+          <div class="phase-tag">${PHASE_LABELS[p.photo_phase] || p.photo_phase}</div>
+        </div>
+      `).join('')}
+    </div>` : '<div class="empty">لا توجد صور بعد</div>'}
+
+    <div style="margin-top:20px;background:#FFF8E7;padding:12px;border-radius:8px;font-size:12px;color:var(--text-light)">
+      ℹ️ الصور تُحذف تلقائيًا بعد 30 يوم لتوفير المساحة.
+    </div>
+  `;
+  document.getElementById('content').innerHTML = html;
+}
+
+async function openCamera(phaseKey, phaseLabel) {
+  currentPhase = phaseKey;
+  document.getElementById('camera-phase-label').textContent = phaseLabel;
+  document.getElementById('camera-screen').classList.add('show');
+
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    let video = document.getElementById('camera-video').querySelector('video');
+    if (!video) {
+      video = document.createElement('video');
+      video.autoplay = true;
+      video.playsInline = true;
+      document.getElementById('camera-video').appendChild(video);
+    }
+    video.srcObject = videoStream;
+  } catch(e) {
+    toast('لا يمكن فتح الكاميرا: ' + e.message, 'error');
+  }
+}
+
+function closeCamera() {
+  document.getElementById('camera-screen').classList.remove('show');
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+}
+
+function takePhoto() {
+  const video = document.getElementById('camera-video').querySelector('video');
+  if (!video) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  capturedImage = canvas.toDataURL('image/jpeg', 0.85);
+
+  closeCamera();
+
+  // عرض المعاينة
+  document.getElementById('preview-image').innerHTML = `<img src="${capturedImage}" alt="">`;
+  document.getElementById('preview-screen').classList.add('show');
+}
+
+function retakePhoto() {
+  document.getElementById('preview-screen').classList.remove('show');
+  capturedImage = null;
+  // فتح الكاميرا من جديد بنفس المرحلة
+  const phases = ROLE_PHASES[currentRole] || ROLE_PHASES.field;
+  const ph = phases.find(p => p.key === currentPhase);
+  openCamera(currentPhase, ph?.label || '');
+}
+
+async function uploadPhoto() {
+  try {
+    // 1. رفع الصورة
+    const upRes = await api('/upload-image', {
+      method: 'POST',
+      body: JSON.stringify({ image: capturedImage, subfolder: 'documents' })
+    });
+
+    // 2. تسجيلها في photo_documents
+    await api('/photo-documents', {
+      method: 'POST',
+      body: JSON.stringify({
+        event_id: currentEventId,
+        photo_path: upRes.url,
+        photo_phase: currentPhase,
+        caption: PHASE_LABELS[currentPhase],
+      })
+    });
+
+    document.getElementById('preview-screen').classList.remove('show');
+    capturedImage = null;
+    toast('✓ تم حفظ الصورة', 'success');
+
+    // إعادة تحميل
+    setTimeout(loadEventAndPhotos, 500);
+  } catch(e) {
+    toast('فشل الرفع: ' + e.message, 'error');
+  }
+}
+
+function viewPhoto(url) {
+  document.getElementById('preview-image').innerHTML = `<img src="${url}" alt="">`;
+  document.getElementById('preview-screen').classList.add('show');
+  document.querySelector('.preview-actions').innerHTML = `
+    <button class="btn btn-outline" onclick="document.getElementById('preview-screen').classList.remove('show')">إغلاق</button>
+  `;
+}
+
+// تحميل أولي
+loadEventAndPhotos();
+</script>
+</body>
+</html>

@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script src="/assets/session.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أبيلا — بناء خطة العمل</title>
+<style>
+:root {
+  --primary: #8B6F47; --primary-dark: #5C4528; --primary-deeper: #3E2C1C;
+  --accent: #C9A560; --gold: #D4B97A; --gold-light: #F0E5C8;
+  --cream: #FBF7EF; --paper: #FFFFFF;
+  --text: #2D1F14; --text-mute: #8B7E6E;
+  --line: #E8DFD0;
+  --success: #7A8A5F; --warning: #D4A04C; --danger: #A04545;
+  --shadow: 0 4px 16px rgba(139,111,71,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: linear-gradient(135deg, #f5ede0 0%, #e8dfd0 100%);
+  color: var(--text); min-height: 100vh; font-size: 14px;
+}
+
+/* ============ Header ============ */
+.app-header {
+  background: linear-gradient(135deg, var(--primary-deeper), var(--primary));
+  color: #fff; padding: 16px 24px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.app-title { display: flex; align-items: center; gap: 10px; font-size: 16px; }
+.btn { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: inherit; border: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+.btn-primary { background: var(--gold); color: var(--primary-deeper); }
+.btn-primary:hover { background: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+.btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-sm { padding: 6px 12px; font-size: 11px; }
+.btn:active { transform: scale(0.98); }
+
+/* ============ Layout ============ */
+.container { max-width: 1280px; margin: 24px auto; padding: 0 20px; }
+
+.builder-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ============ Sidebar الخطوات ============ */
+.step-sidebar {
+  background: #fff; border-radius: 16px; padding: 20px;
+  box-shadow: var(--shadow); position: sticky; top: 90px;
+}
+.step-sidebar h3 {
+  font-size: 13px; color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+.step-item {
+  display: flex; gap: 12px; align-items: center;
+  padding: 12px; border-radius: 10px;
+  cursor: pointer; margin-bottom: 4px;
+  transition: all 0.15s;
+}
+.step-item:hover { background: var(--cream); }
+.step-item.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+}
+.step-item.done { background: #F0F5E8; color: var(--success); }
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--line); color: var(--text); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 12px;
+}
+.step-item.active .step-num { background: var(--gold); color: var(--primary-deeper); }
+.step-item.done .step-num { background: var(--success); color: #fff; }
+.step-info .label { font-size: 12px; font-weight: 700; }
+.step-info .desc { font-size: 10px; opacity: 0.8; margin-top: 2px; }
+
+/* ============ Main Builder ============ */
+.builder-main {
+  background: #fff; border-radius: 16px; padding: 24px;
+  box-shadow: var(--shadow); min-height: 600px;
+}
+.section-title {
+  font-size: 18px; font-weight: 700; color: var(--primary-deeper);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+}
+.section-desc { font-size: 12px; color: var(--text-mute); margin-bottom: 20px; }
+
+/* ============ Cards Selection ============ */
+.choice-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+.choice-card {
+  background: var(--cream); border: 2px solid transparent;
+  border-radius: 12px; padding: 20px 16px; cursor: pointer;
+  text-align: center; transition: all 0.2s;
+}
+.choice-card:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139,111,71,0.15);
+}
+.choice-card.selected {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff; border-color: var(--gold);
+}
+.choice-icon { margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; }
+.choice-icon svg {
+  width: 44px; height: 44px;
+  stroke: var(--primary, #8B6F47);
+  stroke-width: 1.6;
+  fill: none;
+  transition: all 0.2s;
+}
+.choice-card:hover .choice-icon svg {
+  stroke: var(--primary-dark, #6B5436);
+  transform: scale(1.08);
+}
+.choice-card.selected .choice-icon svg {
+  stroke: #fff;
+}
+.choice-label { font-weight: 700; font-size: 13px; }
+.choice-desc { font-size: 10px; opacity: 0.75; margin-top: 4px; }
+
+/* ============ Form ============ */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.form-label .required { color: var(--danger); }
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--line); border-radius: 10px;
+  font-size: 14px; font-family: inherit; background: #fff;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(201,165,96,0.2);
+}
+.form-textarea { min-height: 80px; resize: vertical; }
+.form-textarea.notes-red {
+  background: #FFF5F5; border-color: #FCA5A5; color: #C00000; font-weight: 600;
+}
+
+/* ============ Image Upload ============ */
+/* ============ معرض المخزون البصري ============ */
+.inv-gallery-controls {
+  display: flex; gap: 12px; margin-bottom: 16px; align-items: center;
+}
+.inv-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.inv-card {
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  flex-direction: column;
+}
+.inv-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(139,111,71,0.18);
+}
+.inv-card-image {
+  width: 100%;
+  height: 160px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--cream);
+  border-bottom: 1px solid var(--line);
+}
+.inv-card-no-image {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px; color: var(--text-mute);
+}
+.inv-card-body { padding: 10px; }
+.inv-card-code {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--text-mute);
+  font-weight: 700;
+}
+.inv-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 4px 0;
+  color: var(--text);
+  line-height: 1.3;
+  min-height: 34px;
+}
+.inv-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 6px;
+}
+.inv-card-meta .cond-excellent { color: var(--success); font-weight: 700; }
+.inv-card-meta .cond-good { color: #1E40AF; font-weight: 600; }
+.inv-card-meta .cond-fair { color: var(--warning); }
+.inv-card-meta .cond-damaged { color: var(--danger); font-weight: 700; }
+
+/* العنصر المختار */
+.inv-card-picked {
+  border-color: var(--success) !important;
+  border-width: 3px !important;
+  box-shadow: 0 4px 16px rgba(122,138,95,0.3) !important;
+}
+.inv-card-check {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--success);
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+.inv-card { position: relative; }
+
+/* محدد الكمية في البطاقة */
+.inv-card-qty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.inv-card-qty button {
+  background: var(--gold-light);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--primary-dark);
+}
+.inv-card-qty button:hover { background: var(--gold); }
+.inv-card-qty input {
+  width: 50px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* شريط المختارات */
+.picked-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #FFF8E0, #FFFFFF);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 75px;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+.picked-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.picked-chip button {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.image-upload-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+}
+.image-upload {
+  background: var(--cream); border: 2px dashed var(--line);
+  border-radius: 10px; padding: 14px; text-align: center;
+  cursor: pointer; min-height: 120px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.image-upload:hover { border-color: var(--accent); background: var(--gold-light); }
+.image-upload.has-image { padding: 4px; background: #fff; }
+.image-upload .preview { max-width: 100%; max-height: 100px; border-radius: 6px; }
+.image-upload .icon { font-size: 28px; opacity: 0.5; }
+.image-upload .label { font-size: 11px; color: var(--text-mute); margin-top: 6px; }
+
+/* ============ Items List (right sidebar) ============ */
+.items-panel {
+  background: #fff; border-radius: 16px; padding: 20px;
+  box-shadow: var(--shadow); position: sticky; top: 90px;
+  max-height: calc(100vh - 110px); overflow-y: auto;
+}
+.items-panel h3 {
+  font-size: 13px; color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.items-counter {
+  background: var(--gold); color: var(--primary-deeper);
+  padding: 2px 10px; border-radius: 10px; font-size: 11px;
+}
+.added-item {
+  background: var(--cream); border-right: 3px solid var(--primary);
+  padding: 10px 12px; border-radius: 8px; margin-bottom: 8px;
+  font-size: 12px; position: relative;
+}
+.added-item .item-cat { font-weight: 700; color: var(--primary-deeper); }
+.added-item .item-meta { color: var(--text-mute); font-size: 10px; margin-top: 2px; }
+.added-item .remove-btn {
+  position: absolute; top: 8px; left: 8px;
+  background: var(--danger); color: #fff; border: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.empty-list {
+  text-align: center; padding: 30px 10px; color: var(--text-mute); font-size: 12px;
+}
+
+/* ============ Actions Bar ============ */
+.actions-bar {
+  background: linear-gradient(135deg, var(--cream), #fff);
+  border-radius: 12px; padding: 14px;
+  margin-top: 16px;
+  display: flex; gap: 10px; justify-content: space-between; align-items: center;
+}
+
+/* ============ Toast ============ */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: #fff; padding: 12px 24px;
+  border-radius: 8px; opacity: 0; transition: opacity 0.3s; z-index: 500;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+/* ============ Responsive ============ */
+@media (max-width: 1024px) {
+  .builder-grid { grid-template-columns: 1fr; }
+  .step-sidebar, .items-panel { position: static; }
+}
+</style>
+<script src="svg_icons.js"></script>
+</head>
+<body>
+
+<header class="app-header">
+  <h1 class="app-title">🎨 بناء خطة عمل احترافية</h1>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-success" onclick="submitPlan()">✓ حفظ وإرسال للاعتماد</button>
+    <button class="btn btn-ghost" onclick="history.back()">← رجوع</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="builder-grid">
+
+    <!-- Step Sidebar -->
+    <aside class="step-sidebar">
+      <h3>📋 خطوات بناء الخطة</h3>
+      <div class="step-item active" id="step-event" onclick="goToStep('event')">
+        <div class="step-num">1</div>
+        <div class="step-info">
+          <div class="label">اختيار المناسبة</div>
+          <div class="desc">المناسبة الأساسية</div>
+        </div>
+      </div>
+      <div class="step-item" id="step-category" onclick="goToStep('category')">
+        <div class="step-num">2</div>
+        <div class="step-info">
+          <div class="label">المستودع والتصنيف</div>
+          <div class="desc">أين هذا البند؟</div>
+        </div>
+      </div>
+      <div class="step-item" id="step-details" onclick="goToStep('details')">
+        <div class="step-num">3</div>
+        <div class="step-info">
+          <div class="label">تفاصيل البند</div>
+          <div class="desc">صور وألوان وأقمشة</div>
+        </div>
+      </div>
+      <div class="step-item" id="step-review" onclick="goToStep('review')">
+        <div class="step-num">4</div>
+        <div class="step-info">
+          <div class="label">المراجعة والإرسال</div>
+          <div class="desc">تأكيد الخطة كاملة</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;padding:14px;background:var(--cream);border-radius:10px;font-size:11px;color:var(--text-mute);text-align:center">
+        💡 سيتم توليد ٦ خطط فرعية تلقائيًا (مستودع/مصنع/مشتريات/مخاطر/ضيافة/اكسسوارات) عند الاعتماد
+      </div>
+    </aside>
+
+    <!-- Main Builder -->
+    <main class="builder-main" id="main-content">
+      <!-- محتوى ديناميكي -->
+    </main>
+
+    <!-- Items Panel -->
+    <aside class="items-panel">
+      <h3>📦 البنود المضافة <span class="items-counter" id="items-counter">0</span></h3>
+      <div id="items-list">
+        <div class="empty-list">
+          <div style="font-size:32px;margin-bottom:8px">📋</div>
+          ابدأ بإضافة البنود من القائمة
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:14px">
+        <div style="font-size:11px;color:var(--text-mute);margin-bottom:6px">📝 ملاحظات معد الخطة</div>
+        <textarea class="form-textarea" id="planner-notes" placeholder="اكتب أي ملاحظات عامة على الخطة..." rows="3" style="font-size:12px"></textarea>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('abela_token');
+let currentStep = 'event';
+let currentEvent = null;
+let currentItem = {
+  warehouse: null,
+  category_id: null,
+  category_name: '',
+  category_icon: '',
+  custom_name: '',
+  quantity: '',
+  sample_image: null,
+  sticker_image: null,
+  name_image: null,
+  color_code: '',
+  fabric_code: '',
+  dimensions: '',
+  notes: '',
+  notes_red: '',
+  needs_refurb: false,
+};
+let planItems = [];
+let allEvents = [];
+let allCategories = [];
+
+const WAREHOUSES = [
+  { key: 'decorations', label: 'الديكورات', desc: 'مدخل، خلفيات، طاولات...' },
+  { key: 'accessories', label: 'الاكسسوارات', desc: 'علب فاين، فازات، دفيوزر' },
+  { key: 'factory', label: 'المصنع', desc: 'تصنيع جديد أو إعادة تدوير' },
+  { key: 'hospitality', label: 'الضيافة', desc: 'مأكولات وطاقم' },
+  { key: 'purchasing', label: 'مشتريات', desc: 'مواد للشراء' },
+];
+
+async function api(path, opts={}) {
+  const headers = { 'Content-Type':'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { headers, ...opts });
+  if (!res.ok) throw new Error((await res.json().catch(()=>({error:'خطأ'}))).error);
+  return res.json();
+}
+
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 2500);
+}
+
+// ============ Step Navigation ============
+function goToStep(step) {
+  // التحقق من الخطوة السابقة
+  if (step === 'category' && !currentEvent) return toast('اختر المناسبة أولاً', 'error');
+  if (step === 'details' && !currentItem.category_id) return toast('اختر المستودع والتصنيف أولاً', 'error');
+
+  currentStep = step;
+  document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('step-' + step).classList.add('active');
+  renderStep();
+}
+
+function markStepDone(step) {
+  document.getElementById('step-' + step).classList.add('done');
+}
+
+// ============ Renderers ============
+async function renderStep() {
+  const main = document.getElementById('main-content');
+  if (currentStep === 'event') return await renderStepEvent();
+  if (currentStep === 'category') return renderStepCategory();
+  if (currentStep === 'details') return await renderStepDetails();
+  if (currentStep === 'review') return renderStepReview();
+}
+
+async function renderStepEvent() {
+  if (allEvents.length === 0) {
+    allEvents = await api('/events');
+  }
+  const html = `
+    <div class="section-title">🎉 الخطوة 1: اختر المناسبة</div>
+    <div class="section-desc">حدد المناسبة التي تريد بناء خطة عمل لها</div>
+    <div class="form-group">
+      <label class="form-label">المناسبة <span class="required">*</span></label>
+      <select class="form-select" id="event-select" onchange="selectEvent(this.value)">
+        <option value="">-- اختر مناسبة --</option>
+        ${allEvents.map(e => `<option value="${e.id}" ${currentEvent && currentEvent.id === e.id ? 'selected' : ''}>
+          ${e.event_code} | ${e.title} | ${e.customer_name}
+        </option>`).join('')}
+      </select>
+    </div>
+
+    ${currentEvent ? `
+      <div style="background:linear-gradient(135deg,var(--cream),#fff);padding:20px;border-radius:12px;border:1px solid var(--gold)">
+        <div style="font-size:18px;font-weight:700;color:var(--primary-deeper);margin-bottom:8px">${currentEvent.title}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+          <div>📅 <strong>${currentEvent.event_date}</strong></div>
+          <div>📍 <strong>${currentEvent.venue_name || '-'}</strong></div>
+          <div>👤 <strong>${currentEvent.customer_name}</strong></div>
+          <div>🔢 <strong>${currentEvent.contract_code || '-'}</strong></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="goToStep('category')">
+          التالي: المستودع والتصنيف ←
+        </button>
+      </div>
+    ` : ''}
+  `;
+  document.getElementById('main-content').innerHTML = html;
+}
+
+async function selectEvent(id) {
+  if (!id) return;
+  currentEvent = allEvents.find(e => e.id == id);
+  markStepDone('event');
+  renderStep();
+}
+
+function renderStepCategory() {
+  const html = `
+    <div class="section-title">📦 الخطوة 2: اختر المستودع والتصنيف</div>
+    <div class="section-desc">حدد إلى أي مستودع/تصنيف ينتمي البند الذي تريد إضافته</div>
+
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px">١. المستودع</div>
+    <div class="choice-grid" style="margin-bottom:24px">
+      ${WAREHOUSES.map(w => `
+        <div class="choice-card ${currentItem.warehouse === w.key ? 'selected' : ''}" onclick="selectWarehouse('${w.key}')">
+          <div class="choice-icon">${warehouseIcon(w.key)}</div>
+          <div class="choice-label">${w.label}</div>
+          <div class="choice-desc">${w.desc}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${currentItem.warehouse ? `
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">٢. التصنيف</div>
+      <div id="categories-list">
+        <div style="text-align:center;padding:30px;color:var(--text-mute)">جارِ تحميل التصنيفات...</div>
+      </div>
+    ` : ''}
+
+    ${currentItem.category_id ? `
+      <button class="btn btn-primary" style="margin-top:20px;width:100%" onclick="goToStep('details')">
+        التالي: تفاصيل البند ←
+      </button>
+    ` : ''}
+  `;
+  document.getElementById('main-content').innerHTML = html;
+  if (currentItem.warehouse) loadCategories();
+}
+
+async function selectWarehouse(w) {
+  currentItem.warehouse = w;
+  currentItem.category_id = null;
+  renderStepCategory();
+}
+
+async function loadCategories() {
+  // نحول factory إلى factory_raw للمصنع
+  const wh = currentItem.warehouse;
+  let cats;
+  if (wh === 'factory') {
+    cats = await api('/categories?warehouse=factory');
+    const raw = await api('/categories?warehouse=factory_raw');
+    cats = [...cats, ...raw];
+  } else if (wh === 'hospitality' || wh === 'purchasing') {
+    cats = []; // ينشأ كـ custom_name
+  } else {
+    cats = await api('/categories?warehouse=' + wh);
+  }
+  allCategories = cats;
+  const list = document.getElementById('categories-list');
+  if (!list) return;
+  if (!cats.length) {
+    list.innerHTML = `
+      <div style="background:var(--cream);padding:16px;border-radius:10px;text-align:center;font-size:12px;color:var(--text-mute)">
+        لا توجد تصنيفات محددة، أدخل اسمًا مخصصًا للبند في الخطوة التالية.
+      </div>
+      <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="useCustomCategory()">المتابعة بدون تصنيف ←</button>
+    `;
+    return;
+  }
+  list.innerHTML = `<div class="choice-grid">
+    ${cats.map(c => `
+      <div class="choice-card ${currentItem.category_id === c.id ? 'selected' : ''}" onclick="selectCategory(${c.id}, '${c.name.replace(/'/g, '')}', '${c.icon || ''}')">
+        <div class="choice-icon">${categoryIcon(c.name)}</div>
+        <div class="choice-label">${c.name}</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function selectCategory(id, name, icon) {
+  currentItem.category_id = id;
+  currentItem.category_name = name;
+  currentItem.category_icon = icon;
+  // بدلاً من renderStepCategory الفوري، نعرض معرض المخزون البصري
+  showInventoryGallery();
+}
+
+function useCustomCategory() {
+  currentItem.category_id = null;
+  currentItem.category_name = currentItem.warehouse;
+  goToStep('details');
+}
+
+// ============ معرض المخزون البصري - اختر بالصورة (محسّن) ============
+async function showInventoryGallery() {
+  try {
+    const wh = currentItem.warehouse;
+    const cat = currentItem.category_id;
+    let url = '/inventory?warehouse=' + wh;
+    if (cat) url += '&category_id=' + cat;
+    const [items, allCats] = await Promise.all([
+      api(url),
+      api('/categories?warehouse=' + wh)
+    ]);
+    window.__invGalleryItems = items;
+    window.__invGalleryAllCats = allCats;
+    window.__pickedItems = window.__pickedItems || [];
+
+    const catOptions = allCats.map(c =>
+      `<option value="${c.id}" ${c.id===cat?'selected':''}>${c.name}</option>`
+    ).join('');
+
+    const html = `
+      <div class="section-title">🖼 الخطوة 3: اختر من المخزون بالصور</div>
+      <div class="section-desc">${currentItem.category_icon} ${currentItem.category_name} — اضغط على صورة العنصر لإضافته. تقدر تختار أكثر من بند ثم تكمل.</div>
+
+      <div class="inv-gallery-controls" style="flex-wrap:wrap;gap:8px">
+        <input class="form-input" id="invSearch" placeholder="🔍 ابحث بالاسم أو الكود..." oninput="filterInvGallery()" style="flex:2;min-width:200px">
+        <select class="form-select" id="invCatFilter" onchange="changeGalleryCategory(this.value)" style="flex:1;min-width:160px">
+          <option value="">— كل التصنيفات —</option>
+          ${catOptions}
+        </select>
+        <button class="btn btn-outline" onclick="goToStep('details')" style="white-space:nowrap">+ بند مخصص</button>
+      </div>
+
+      <div id="pickedBar" class="picked-bar" style="display:${window.__pickedItems.length?'flex':'none'}">
+        <div style="font-weight:700;color:var(--primary-dark)">📌 المختارات (<span id="pickedCount">${window.__pickedItems.length}</span>):</div>
+        <div id="pickedList" style="display:flex;gap:6px;flex:1;flex-wrap:wrap">
+          ${renderPickedChips()}
+        </div>
+        <button class="btn btn-success btn-sm" onclick="addAllPicked()">✓ أضِف الكل وتابع</button>
+      </div>
+
+      <div class="inv-gallery" id="invGallery">
+        ${items.length === 0
+          ? '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-mute)">لا توجد عناصر في هذا التصنيف. اضغط "بند مخصص" لإضافة بند جديد.</div>'
+          : items.map(it => renderInvCard(it)).join('')
+        }
+      </div>
+
+      <div class="actions-bar">
+        <button class="btn btn-outline" onclick="goToStep('category')">← السابق (التصنيف)</button>
+      </div>
+    `;
+    document.getElementById('main-content').innerHTML = html;
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function changeGalleryCategory(catId) {
+  currentItem.category_id = catId ? Number(catId) : null;
+  if (catId) {
+    const c = (window.__invGalleryAllCats || []).find(x => x.id === Number(catId));
+    if (c) {
+      currentItem.category_name = c.name;
+      currentItem.category_icon = c.icon || '';
+    }
+  } else {
+    currentItem.category_name = currentItem.warehouse;
+    currentItem.category_icon = '📦';
+  }
+  showInventoryGallery();
+}
+
+function renderInvCard(it) {
+  const img = it.main_image || '';
+  const imgUrl = img ? (img.startsWith('http') ? img : '/' + img.replace(/^\/+/,'')) : '';
+  const isPicked = (window.__pickedItems||[]).find(p => p.id === it.id);
+  return `
+    <div class="inv-card ${isPicked?'inv-card-picked':''}" data-item-id="${it.id}" onclick="togglePickItem(${it.id})">
+      ${imgUrl
+        ? `<div class="inv-card-image" style="background-image:url('${imgUrl}')"></div>`
+        : `<div class="inv-card-image inv-card-no-image">📦</div>`}
+      ${isPicked ? '<div class="inv-card-check">✓</div>' : ''}
+      <div class="inv-card-body">
+        <div class="inv-card-code">${it.item_code}</div>
+        <div class="inv-card-name">${it.name}</div>
+        <div class="inv-card-meta">
+          <span>متاح: <strong>${it.quantity_available}</strong>/${it.quantity_total}</span>
+          ${it.condition ? `<span class="cond-${it.condition}">${it.condition}</span>` : ''}
+        </div>
+        ${isPicked ? `
+          <div class="inv-card-qty" onclick="event.stopPropagation()">
+            <button onclick="changePickedQty(${it.id},-1)">−</button>
+            <input type="number" min="1" value="${isPicked.qty}" onchange="setPickedQty(${it.id}, this.value)">
+            <button onclick="changePickedQty(${it.id},1)">+</button>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function filterInvGallery() {
+  const q = (document.getElementById('invSearch')?.value || '').toLowerCase();
+  const items = (window.__invGalleryItems || []).filter(i =>
+    !q || i.name.toLowerCase().includes(q) || (i.item_code||'').toLowerCase().includes(q)
+  );
+  document.getElementById('invGallery').innerHTML = items.length
+    ? items.map(it => renderInvCard(it)).join('')
+    : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-mute)">لا نتائج</div>';
+}
+
+function togglePickItem(itemId) {
+  const items = window.__invGalleryItems || [];
+  const it = items.find(x => x.id === itemId);
+  if (!it) return;
+  window.__pickedItems = window.__pickedItems || [];
+  const idx = window.__pickedItems.findIndex(p => p.id === itemId);
+  if (idx >= 0) {
+    window.__pickedItems.splice(idx, 1);
+  } else {
+    window.__pickedItems.push({ id: it.id, item: it, qty: 1 });
+  }
+  refreshGalleryView();
+}
+
+function changePickedQty(itemId, delta) {
+  const p = (window.__pickedItems||[]).find(x => x.id === itemId);
+  if (!p) return;
+  p.qty = Math.max(1, p.qty + delta);
+  refreshGalleryView();
+}
+
+function setPickedQty(itemId, val) {
+  const p = (window.__pickedItems||[]).find(x => x.id === itemId);
+  if (!p) return;
+  p.qty = Math.max(1, parseInt(val) || 1);
+  refreshGalleryView();
+}
+
+function refreshGalleryView() {
+  filterInvGallery();
+  const bar = document.getElementById('pickedBar');
+  const list = document.getElementById('pickedList');
+  const cnt = document.getElementById('pickedCount');
+  const picked = window.__pickedItems || [];
+  if (bar) bar.style.display = picked.length ? 'flex' : 'none';
+  if (list) list.innerHTML = renderPickedChips();
+  if (cnt) cnt.textContent = picked.length;
+}
+
+function renderPickedChips() {
+  const picked = window.__pickedItems || [];
+  return picked.map(p => `
+    <span class="picked-chip" title="${p.item.name}">
+      <strong>${p.item.item_code}</strong>
+      <span style="color:var(--accent);font-weight:700"> ×${p.qty}</span>
+      <button onclick="event.stopPropagation();togglePickItem(${p.id})">✕</button>
+    </span>
+  `).join('');
+}
+
+async function addAllPicked() {
+  const picked = window.__pickedItems || [];
+  if (!picked.length) return toast('لم تختر أي بند', 'error');
+  const targetMap = {decorations:'decorations', accessories:'accessories', factory:'factory'};
+  // أضف كل العناصر المختارة دفعة واحدة لخطة العمل
+  for (const p of picked) {
+    planItems.push({
+      target_warehouse: targetMap[currentItem.warehouse] || 'decorations',
+      category_id: currentItem.category_id,
+      category_name: currentItem.category_name,
+      category_icon: currentItem.category_icon,
+      warehouse: currentItem.warehouse,
+      item_id: p.item.id,
+      custom_name: p.item.name,
+      custom_name_en: p.item.name_en || '',
+      custom_name_ur: p.item.name_ur || '',
+      sample_image: p.item.main_image ? '/' + p.item.main_image.replace(/^\/+/,'') : '',
+      color_code: p.item.color_code || '',
+      fabric_code: p.item.fabric_code || '',
+      quantity: String(p.qty),
+      notes: p.item.notes || ''
+    });
+  }
+  renderItemsPanel();
+  toast(`تمت إضافة ${picked.length} بند ✓`, 'success');
+  window.__pickedItems = [];
+  goToStep('review');
+}
+
+async function pickInventoryItem(itemId) {
+  try {
+    const it = await api('/inventory/' + itemId);
+    // املأ بيانات currentItem من العنصر المختار
+    currentItem.item_id = it.id;
+    currentItem.custom_name = it.name;
+    currentItem.custom_name_en = it.name_en || '';
+    currentItem.custom_name_ur = it.name_ur || '';
+    currentItem.color_code = it.color_code || '';
+    currentItem.fabric_code = it.fabric_code || '';
+    currentItem.sample_image = it.main_image ? ('/' + it.main_image.replace(/^\/+/,'')) : '';
+    currentItem.notes = it.notes || '';
+    currentItem.quantity = currentItem.quantity || '1';
+    goToStep('details');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function renderStepDetails() {
+  markStepDone('category');
+  const cat = allCategories.find(c => c.id === currentItem.category_id);
+  const needsColor = cat?.needs_color || ['decorations','factory'].includes(currentItem.warehouse);
+  const needsFabric = cat?.needs_fabric || ['decorations','factory'].includes(currentItem.warehouse);
+
+  const html = `
+    <div class="section-title">📝 الخطوة 3: تفاصيل البند</div>
+    <div class="section-desc">${currentItem.category_icon} ${currentItem.category_name} — أكمل التفاصيل</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">اسم البند المخصص</label>
+        <input class="form-input" id="custom_name" placeholder="مثل: مدخل ذهبي مع قفص" value="${currentItem.custom_name || ''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">الكمية <span class="required">*</span></label>
+        <input class="form-input" id="quantity" placeholder="مثل: 1 أو ALL أو VIP" value="${currentItem.quantity || ''}">
+      </div>
+    </div>
+
+    ${needsColor || needsFabric ? `
+      <div class="form-row">
+        ${needsColor ? `
+          <div class="form-group">
+            <label class="form-label">🎨 كود اللون</label>
+            <input class="form-input" id="color_code" placeholder="8109 أو #D4AF37" value="${currentItem.color_code || ''}">
+          </div>
+        ` : ''}
+        ${needsFabric ? `
+          <div class="form-group">
+            <label class="form-label">🧵 كود القماش</label>
+            <input class="form-input" id="fabric_code" placeholder="1320-73 أو وصف" value="${currentItem.fabric_code || ''}">
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
+
+    <div class="form-group">
+      <label class="form-label">📐 المقاسات / الأبعاد</label>
+      <input class="form-input" id="dimensions" placeholder="ارتفاع 1.30م، عمق 60سم..." value="${currentItem.dimensions || ''}">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">🖼 الصور</label>
+      <div class="image-upload-grid">
+        <div class="image-upload ${currentItem.sample_image ? 'has-image' : ''}" onclick="uploadImage('sample_image')">
+          ${currentItem.sample_image ? `<img class="preview" src="${currentItem.sample_image}">` :
+            `<div class="icon">🖼</div><div class="label">صورة العينة</div>`}
+        </div>
+        <div class="image-upload ${currentItem.sticker_image ? 'has-image' : ''}" onclick="uploadImage('sticker_image')">
+          ${currentItem.sticker_image ? `<img class="preview" src="${currentItem.sticker_image}">` :
+            `<div class="icon">🏷</div><div class="label">صورة الستيكر</div>`}
+        </div>
+        <div class="image-upload ${currentItem.name_image ? 'has-image' : ''}" onclick="uploadImage('name_image')">
+          ${currentItem.name_image ? `<img class="preview" src="${currentItem.name_image}">` :
+            `<div class="icon">✍</div><div class="label">صورة الاسم</div>`}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">📝 ملاحظات</label>
+      <textarea class="form-textarea" id="notes" placeholder="ملاحظات عادية...">${currentItem.notes || ''}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" style="color:var(--danger)">⚠️ تنبيه أحمر (تعليمات حساسة)</label>
+      <textarea class="form-textarea notes-red" id="notes_red" placeholder="مثل: اسم المولود محمد، يكتب بخط ذهبي...">${currentItem.notes_red || ''}</textarea>
+    </div>
+
+    <!-- ترجمات للمصنع/أكسسوارات -->
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">🇬🇧 الاسم بالإنجليزي (لـ Daryl/Rose)</label>
+        <input class="form-input" id="custom_name_en" dir="ltr" placeholder="English name for accessories team" value="${currentItem.custom_name_en || ''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🇵🇰 الاسم بالأوردو (لعمران/فهيم)</label>
+        <input class="form-input" id="custom_name_ur" dir="rtl" placeholder="نام اردو میں" value="${currentItem.custom_name_ur || ''}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">📝 ملاحظات بالإنجليزي</label>
+        <textarea class="form-textarea" id="notes_en" rows="2" dir="ltr">${currentItem.notes_en || ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📝 ملاحظات بالأوردو</label>
+        <textarea class="form-textarea" id="notes_ur" rows="2" dir="rtl">${currentItem.notes_ur || ''}</textarea>
+      </div>
+    </div>
+
+    <!-- خيارات إضافية: CNC / ستيكر / أولوية -->
+    <div class="form-group">
+      <label class="form-label">⚙️ خيارات تنفيذية</label>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;padding:10px;background:var(--cream);border-radius:8px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="cnc_required" ${currentItem.cnc_required ? 'checked' : ''} style="width:18px;height:18px">
+          <span style="font-weight:600">🛠 يحتاج CNC</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="sticker_required" ${currentItem.sticker_required ? 'checked' : ''} style="width:18px;height:18px">
+          <span style="font-weight:600">🏷 يحتاج ستيكر</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="needs_refurb" ${currentItem.needs_refurb ? 'checked' : ''} style="width:18px;height:18px">
+          <span style="font-weight:600">♻️ يحتاج إعادة تدوير</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">🎯 الأولوية</label>
+        <select class="form-select" id="priority">
+          <option value="low" ${currentItem.priority==='low'?'selected':''}>منخفضة</option>
+          <option value="normal" ${(currentItem.priority||'normal')==='normal'?'selected':''}>عادية</option>
+          <option value="high" ${currentItem.priority==='high'?'selected':''}>عالية</option>
+          <option value="urgent" ${currentItem.priority==='urgent'?'selected':''}>عاجلة</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📐 ملاحظات إعادة التدوير</label>
+        <input class="form-input" id="refurb_notes" placeholder="ما الذي يحتاج إعادة دهان؟" value="${currentItem.refurb_notes || ''}" ${!currentItem.needs_refurb?'':''}>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <button class="btn btn-outline" onclick="goToStep('category')">← السابق</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-success" onclick="addItemAndContinue()">➕ إضافة وإكمال</button>
+        <button class="btn btn-primary" onclick="addItemAndReview()">✓ إضافة والمراجعة</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('main-content').innerHTML = html;
+}
+
+function uploadImage(field) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const r = await api('/upload-image', {
+          method: 'POST',
+          body: JSON.stringify({ image: evt.target.result, subfolder: 'plan_items' })
+        });
+        currentItem[field] = r.url;
+        renderStepDetails();
+        toast('✓ تم رفع الصورة', 'success');
+      } catch(err) { toast(err.message, 'error'); }
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function gatherCurrentItem() {
+  // فقط نقرأ الحقول الموجودة في الفورم (لا نمسح القيم الموجودة مسبقاً مثل sample_image)
+  const f = (id) => document.getElementById(id)?.value;
+  if (document.getElementById('custom_name')) currentItem.custom_name = f('custom_name') || currentItem.custom_name || '';
+  if (document.getElementById('custom_name_en')) currentItem.custom_name_en = f('custom_name_en') || '';
+  if (document.getElementById('custom_name_ur')) currentItem.custom_name_ur = f('custom_name_ur') || '';
+  if (document.getElementById('quantity')) currentItem.quantity = f('quantity') || '1';
+  if (document.getElementById('color_code')) currentItem.color_code = f('color_code') || '';
+  if (document.getElementById('fabric_code')) currentItem.fabric_code = f('fabric_code') || '';
+  if (document.getElementById('dimensions')) currentItem.dimensions = f('dimensions') || '';
+  if (document.getElementById('notes')) currentItem.notes = f('notes') || '';
+  if (document.getElementById('notes_en')) currentItem.notes_en = f('notes_en') || '';
+  if (document.getElementById('notes_ur')) currentItem.notes_ur = f('notes_ur') || '';
+  if (document.getElementById('notes_red')) currentItem.notes_red = f('notes_red') || '';
+  if (document.getElementById('needs_refurb')) currentItem.needs_refurb = document.getElementById('needs_refurb')?.checked || false;
+  if (document.getElementById('refurb_notes')) currentItem.refurb_notes = f('refurb_notes') || '';
+  if (document.getElementById('cnc_required')) currentItem.cnc_required = document.getElementById('cnc_required')?.checked || false;
+  if (document.getElementById('sticker_required')) currentItem.sticker_required = document.getElementById('sticker_required')?.checked || false;
+  if (document.getElementById('priority')) currentItem.priority = f('priority') || 'normal';
+}
+
+function addItemToList() {
+  gatherCurrentItem();
+  if (!currentItem.quantity) { toast('الكمية مطلوبة', 'error'); return false; }
+  if (!currentItem.custom_name) { toast('اسم البند مطلوب', 'error'); return false; }
+  const targetMap = {
+    decorations: 'decorations', accessories: 'accessories',
+    factory: 'factory', hospitality: 'hospitality', purchasing: 'purchasing'
+  };
+  const item = {
+    ...currentItem,
+    target_warehouse: currentItem.target_warehouse || targetMap[currentItem.warehouse] || 'decorations'
+  };
+  planItems.push(item);
+  if (typeof renderItemsPanel === 'function') renderItemsPanel();
+  return true;
+}
+
+function addItemAndContinue() {
+  if (!addItemToList()) return;
+  toast('تمت الإضافة، يمكنك إضافة بند آخر ✓', 'success');
+  resetCurrentItem();
+  goToStep('category');
+}
+
+function addItemAndReview() {
+  if (!addItemToList()) return;
+  toast('تمت الإضافة، انتقل للمراجعة ✓', 'success');
+  resetCurrentItem();
+  goToStep('review');
+}
+
+function resetCurrentItem() {
+  currentItem = {
+    warehouse: null, category_id: null, category_name: '', category_icon: '',
+    custom_name: '', custom_name_en: '', custom_name_ur: '',
+    quantity: '', sample_image: null, sticker_image: null, name_image: null,
+    color_code: '', fabric_code: '', dimensions: '',
+    notes: '', notes_en: '', notes_ur: '', notes_red: '',
+    needs_refurb: false, refurb_notes: '',
+    cnc_required: false, sticker_required: false,
+    priority: 'normal', item_id: null,
+  };
+}
+
+function renderItemsPanel() {
+  const list = document.getElementById('items-list');
+  document.getElementById('items-counter').textContent = planItems.length;
+  if (!planItems.length) {
+    list.innerHTML = '<div class="empty-list"><div style="font-size:32px;margin-bottom:8px">📋</div>ابدأ بإضافة البنود من القائمة</div>';
+    return;
+  }
+  list.innerHTML = planItems.map((it, i) => `
+    <div class="added-item">
+      <button class="remove-btn" onclick="removeItem(${i})">×</button>
+      <div class="item-cat">${it.category_icon || '📦'} ${it.custom_name || it.category_name}</div>
+      <div class="item-meta">
+        ${it.target_warehouse} • كمية: ${it.quantity}
+        ${it.color_code ? '• 🎨' + it.color_code : ''}
+        ${it.needs_refurb ? '• ♻️' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function removeItem(idx) {
+  planItems.splice(idx, 1);
+  renderItemsPanel();
+}
+
+function renderStepReview() {
+  markStepDone('details');
+  const grouped = {};
+  planItems.forEach(it => {
+    const w = it.target_warehouse;
+    if (!grouped[w]) grouped[w] = [];
+    grouped[w].push(it);
+  });
+  const labels = {
+    decorations: '📦 الديكورات', accessories: '✨ الاكسسوارات',
+    factory: '🛠 المصنع', hospitality: '🍽 الضيافة', purchasing: '🛒 المشتريات'
+  };
+  const html = `
+    <div class="section-title">✓ الخطوة 4: المراجعة النهائية</div>
+    <div class="section-desc">راجع البنود والتأكيد على الإرسال للاعتماد</div>
+
+    <div style="background:linear-gradient(135deg,var(--cream),#fff);padding:16px;border-radius:12px;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:var(--primary-deeper)">🎉 ${currentEvent?.title}</div>
+      <div style="font-size:12px;color:var(--text-mute);margin-top:4px">${currentEvent?.event_date} • ${currentEvent?.customer_name} • ${currentEvent?.venue_name || ''}</div>
+    </div>
+
+    ${planItems.length === 0 ?
+      '<div style="text-align:center;padding:60px;color:var(--text-mute)">لم تضف أي بنود بعد. ارجع للخطوة 2.</div>'
+      :
+      Object.entries(grouped).map(([w, items]) => `
+        <div style="margin-bottom:20px">
+          <div style="font-weight:700;font-size:14px;color:var(--primary-deeper);margin-bottom:8px;padding:8px 12px;background:var(--cream);border-radius:8px">
+            ${labels[w] || w} (${items.length} بند)
+          </div>
+          ${items.map(it => `
+            <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <strong>${it.category_icon || '📦'} ${it.custom_name || it.category_name}</strong>
+                <div style="font-size:11px;color:var(--text-mute);margin-top:2px">
+                  كمية: ${it.quantity}
+                  ${it.color_code ? '• 🎨 ' + it.color_code : ''}
+                  ${it.fabric_code ? '• 🧵 ' + it.fabric_code : ''}
+                  ${it.dimensions ? '• 📐 ' + it.dimensions : ''}
+                </div>
+                ${it.notes_red ? `<div style="color:var(--danger);font-size:11px;font-weight:700;margin-top:4px">⚠️ ${it.notes_red}</div>` : ''}
+              </div>
+              ${(it.sample_image || it.sticker_image) ? `<img src="${it.sample_image || it.sticker_image}" style="width:60px;height:60px;object-fit:cover;border-radius:6px">` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `).join('')
+    }
+
+    <div class="actions-bar">
+      <button class="btn btn-outline" onclick="goToStep('category')">+ إضافة بنود إضافية</button>
+      <button class="btn btn-success" onclick="submitPlan()">✓ حفظ وإرسال للاعتماد</button>
+    </div>
+  `;
+  document.getElementById('main-content').innerHTML = html;
+}
+
+async function submitPlan() {
+  if (!currentEvent) return toast('اختر المناسبة أولاً', 'error');
+  if (planItems.length === 0) return toast('أضف بندًا واحدًا على الأقل', 'error');
+  const notes = document.getElementById('planner-notes')?.value || '';
+  try {
+    const r = await api('/workplans', {
+      method: 'POST',
+      body: JSON.stringify({
+        event_id: currentEvent.id,
+        title: 'خطة عمل: ' + currentEvent.title,
+        description: notes,
+        planner_notes: notes,
+        items: planItems,
+      })
+    });
+    toast(`✓ تم حفظ الخطة: ${r.plan_code}`, 'success');
+    setTimeout(() => location.href = '/dashboard/', 1500);
+  } catch(e) { toast('فشل الحفظ: ' + e.message, 'error'); }
+}
+
+// تشغيل أولي
+renderStep();
+renderItemsPanel();
+</script>
+</body>
+</html>

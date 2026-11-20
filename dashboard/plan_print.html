@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script src="/assets/session.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أبيلا — خطة عمل احترافية</title>
+<style>
+:root {
+  --primary: #8B6F47;
+  --primary-dark: #5C4528;
+  --primary-deeper: #3E2C1C;
+  --accent: #C9A560;
+  --gold: #D4B97A;
+  --gold-light: #F0E5C8;
+  --cream: #FBF7EF;
+  --paper: #FFFFFF;
+  --text: #2D1F14;
+  --text-mute: #8B7E6E;
+  --line: #E8DFD0;
+  --success: #7A8A5F;
+  --warning: #D4A04C;
+  --danger: #A04545;
+  --info: #6B8AA4;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+  background: #f0ece5;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ============ شريط التحكم ============ */
+.toolbar {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-deeper));
+  color: #fff; padding: 14px 24px;
+  position: sticky; top: 0; z-index: 1000;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.toolbar h1 { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.toolbar .actions { display: flex; gap: 8px; }
+.btn-tool {
+  background: var(--gold); color: var(--primary-deeper);
+  border: none; padding: 10px 20px; border-radius: 8px;
+  font-weight: 700; cursor: pointer; font-size: 13px;
+  font-family: inherit; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-tool:hover { background: #fff; transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent; color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.1); transform: none; color: #fff; }
+
+/* ============ الصفحة A4 ============ */
+.page {
+  background: var(--paper);
+  width: 210mm;
+  min-height: 297mm;
+  margin: 24px auto;
+  padding: 0;
+  box-shadow: 0 8px 40px rgba(62,44,28,0.12);
+  page-break-after: always;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============ صفحة الغلاف ============ */
+.cover {
+  background: linear-gradient(135deg, var(--cream) 0%, var(--paper) 100%);
+  padding: 25mm 20mm;
+  height: 297mm;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.cover::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; width: 60%; height: 8mm;
+  background: linear-gradient(90deg, var(--gold), var(--accent), var(--primary));
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; width: 60%; height: 8mm;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--gold));
+}
+
+.cover-brand {
+  text-align: center; margin-bottom: 20px;
+}
+.cover-logo { width: 130px; height: auto; margin: 0 auto; display: block; }
+.cover-brand-name {
+  font-size: 14px; color: var(--text-mute); margin-top: 8px;
+  letter-spacing: 4px; text-transform: uppercase;
+}
+
+.cover-title-block {
+  text-align: center; margin: 40px 0;
+  padding: 30px 20px;
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+}
+.cover-plan-type {
+  display: inline-block;
+  background: var(--primary-dark); color: var(--gold);
+  padding: 6px 18px; border-radius: 20px;
+  font-size: 12px; letter-spacing: 2px; margin-bottom: 16px;
+}
+.cover-title {
+  font-size: 36px; font-weight: 700; color: var(--primary-deeper);
+  margin-bottom: 12px; line-height: 1.2;
+}
+.cover-subtitle {
+  font-size: 18px; color: var(--text-mute);
+}
+
+.cover-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 30px 0;
+}
+.cover-info-card {
+  background: #fff;
+  padding: 16px; border-radius: 12px;
+  border-right: 4px solid var(--gold);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.cover-info-card .label {
+  font-size: 10px; color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.cover-info-card .value {
+  font-size: 15px; font-weight: 700; color: var(--primary-deeper);
+}
+
+.cover-summary {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-deeper));
+  color: #fff;
+  padding: 20px; border-radius: 12px;
+  margin: 20px 0;
+}
+.cover-summary h3 { font-size: 14px; margin-bottom: 12px; opacity: 0.85; }
+.cover-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.cover-stat {
+  text-align: center; padding: 10px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+.cover-stat .num {
+  font-size: 24px; font-weight: 700; color: var(--gold);
+}
+.cover-stat .lbl { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+
+.cover-footer {
+  margin-top: auto;
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 20px; border-top: 1px dashed var(--line);
+  font-size: 10px; color: var(--text-mute);
+}
+
+/* ============ الصفحات الداخلية ============ */
+.inner-page {
+  padding: 18mm;
+  position: relative;
+}
+
+/* ترويسة الصفحة الداخلية */
+.inner-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(90deg, var(--primary-deeper), var(--primary));
+  color: #fff;
+  margin: -18mm -18mm 18px;
+  border-bottom: 4px solid var(--gold);
+}
+.inner-header .left { display: flex; align-items: center; gap: 12px; }
+.inner-header .plan-icon {
+  width: 36px; height: 36px;
+  background: var(--gold);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--primary-deeper);
+}
+.inner-header .title-info h2 { font-size: 14px; }
+.inner-header .title-info .sub { font-size: 10px; opacity: 0.8; }
+.inner-header .meta {
+  font-size: 10px; opacity: 0.85; text-align: left;
+}
+
+/* ============ بنود الخطة (تصميم بطاقات) ============ */
+.items-container {
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.item-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  page-break-inside: avoid;
+}
+
+.item-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--line);
+}
+.item-num {
+  background: var(--primary-dark); color: #fff;
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+  flex-shrink: 0;
+}
+.item-cat-info { display: flex; align-items: center; gap: 8px; flex: 1; }
+.item-cat-icon {
+  font-size: 22px;
+}
+.item-cat-name {
+  font-weight: 700; color: var(--primary-deeper);
+  font-size: 13px;
+}
+.item-qty-pill {
+  background: var(--gold-light); color: var(--primary-deeper);
+  padding: 4px 12px; border-radius: 14px;
+  font-weight: 700; font-size: 12px;
+  border: 1px solid var(--gold);
+}
+
+.item-body {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  min-height: 120px;
+}
+.item-desc {
+  padding: 14px;
+  border-left: 1px solid var(--line);
+}
+.item-name {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  margin-bottom: 8px;
+}
+
+.spec-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 8px;
+}
+.spec-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--paper); border: 1px solid var(--line);
+  padding: 4px 8px; border-radius: 6px;
+  font-size: 11px;
+}
+.spec-tag .spec-label { color: var(--text-mute); font-weight: 600; }
+.spec-tag .spec-value { color: var(--primary-deeper); font-weight: 700; }
+.spec-color-swatch {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid var(--line); flex-shrink: 0;
+}
+
+.item-notes {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #FAFAF5;
+  border-right: 3px solid var(--info);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text);
+}
+.item-notes-red {
+  margin-top: 6px; padding: 8px 10px;
+  background: #FFF5F5;
+  border-right: 3px solid var(--danger);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.item-images {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  background: #FAFAF5;
+  align-items: center;
+}
+.item-images.has-multiple {
+  grid-template-columns: 1fr 1fr;
+}
+.item-images img {
+  width: 100%;
+  height: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.item-images .placeholder {
+  background: var(--cream);
+  height: 120px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-mute);
+  font-size: 11px;
+  border-radius: 6px;
+  border: 2px dashed var(--line);
+}
+
+/* ============ شارة الأولوية ============ */
+.priority-badge {
+  display: inline-block;
+  padding: 3px 8px; border-radius: 12px;
+  font-size: 10px; font-weight: 700;
+}
+.priority-high { background: #FEE2E2; color: var(--danger); }
+.priority-medium { background: #FEF3C7; color: #92400E; }
+.priority-low { background: #D1FAE5; color: #065F46; }
+
+/* ============ تنبيهات ذكية ============ */
+.smart-alert {
+  background: linear-gradient(135deg, #FFF8E7, #FCEEC8);
+  border-right: 4px solid var(--gold);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-size: 12px;
+}
+.smart-alert.danger {
+  background: linear-gradient(135deg, #FEF5F5, #FEE5E5);
+  border-color: var(--danger);
+}
+.smart-alert .title {
+  font-weight: 700; color: var(--primary-deeper); margin-bottom: 4px;
+}
+
+/* ============ ختم الإكمال (signature) ============ */
+.signature-block {
+  margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--cream), #fff);
+  border-radius: 12px;
+  border: 1px dashed var(--gold);
+}
+.signature-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  margin-top: 12px;
+}
+.sig-box {
+  text-align: center;
+  padding: 16px 12px 8px;
+  border-bottom: 1px solid var(--text);
+}
+.sig-box .name { font-weight: 700; color: var(--primary-deeper); font-size: 12px; }
+.sig-box .role { color: var(--text-mute); font-size: 10px; margin-top: 2px; }
+
+/* ============ ذيل الصفحة ============ */
+.footer-strip {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 8px 18mm;
+  background: var(--cream);
+  border-top: 2px solid var(--gold);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 9px; color: var(--text-mute);
+}
+.footer-strip .qr {
+  width: 28px; height: 28px; background: var(--text); position: relative;
+}
+
+@media print {
+  .toolbar { display: none; }
+  body { background: #fff; }
+  .page { margin: 0; box-shadow: none; }
+}
+
+@media (max-width: 768px) {
+  .page { width: 100%; min-height: auto; }
+  .cover-info-grid { grid-template-columns: 1fr; }
+  .item-body { grid-template-columns: 1fr; }
+  .item-images { border-top: 1px solid var(--line); }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1 id="toolbar-title">📄 خطة عمل أبيلا</h1>
+  <div class="actions">
+    <button class="btn-tool" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:6px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      طباعة / حفظ PDF
+    </button>
+    <button class="btn-tool btn-ghost" onclick="goBackOrDashboard()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:6px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      رجوع
+    </button>
+  </div>
+</div>
+
+<div id="content">
+  <div class="page" style="padding: 100px 20px; text-align:center">
+    <div style="font-size:48px;margin-bottom:20px">⏳</div>
+    <p style="color:var(--text-mute)">جارِ تحضير الخطة...</p>
+  </div>
+</div>
+
+<script>
+function goBackOrDashboard() {
+  // إذا فُتحت في تبويب جديد (referrer فاضي)، روح للداشبورد
+  if (window.history.length > 1 && document.referrer) {
+    window.history.back();
+  } else {
+    window.location.href = '/dashboard/';
+  }
+}
+
+const PLAN_META = {
+  warehouse_decor: { icon: '📦', label: 'خطة المستودع — الديكورات', accent: '#8B6F47', desc: 'القطع المطلوبة من مستودع الديكورات' },
+  warehouse_acc:   { icon: '✨', label: 'خطة المستودع — الاكسسوارات', accent: '#C9A560', desc: 'القطع المطلوبة من مستودع الاكسسوارات' },
+  factory:         { icon: '🛠', label: 'خطة المصنع', accent: '#5C4528', desc: 'القطع المطلوب تصنيعها أو تعديلها' },
+  hospitality:     { icon: '🍽', label: 'خطة الضيافة', accent: '#7A8A5F', desc: 'متطلبات الضيافة والمأكولات والطاقم' },
+  purchases:       { icon: '🛒', label: 'خطة المشتريات', accent: '#D4A04C', desc: 'المواد المطلوب شراؤها لتنفيذ المناسبة' },
+  risk:            { icon: '⚠️', label: 'خطة إدارة المخاطر', accent: '#A04545', desc: 'الديكورات المتشابهة وخطة المعالجة' },
+  main:            { icon: '📋', label: 'خطة العمل الأساسية', accent: '#8B6F47', desc: 'الخطة المتكاملة لكامل المناسبة' },
+};
+
+const EVENT_TYPE_LABELS = {
+  newborn: 'استقبال مولود',
+  special: 'مناسبة خاصة',
+  exhibition: 'معرض'
+};
+
+async function loadPlan() {
+  const params = new URLSearchParams(location.search);
+  const subPlanId = params.get('sub_plan_id');
+  const planId = params.get('plan_id');
+
+  if (!subPlanId && !planId) {
+    document.getElementById('content').innerHTML = errorPage('لم يتم تحديد الخطة.<br>الرابط الصحيح: ?sub_plan_id=X أو ?plan_id=X');
+    return;
+  }
+
+  try {
+    let plan, planType;
+    if (subPlanId) {
+      plan = await (await fetch('/api/sub-plans/' + subPlanId)).json();
+      planType = plan.plan_type;
+    } else {
+      plan = await (await fetch('/api/workplans/' + planId)).json();
+      planType = 'main';
+    }
+    renderPlan(plan, planType);
+  } catch(e) {
+    document.getElementById('content').innerHTML = errorPage('خطأ في التحميل: ' + e.message);
+  }
+}
+
+function errorPage(msg) {
+  return `<div class="page" style="padding: 100px 30px; text-align:center">
+    <div style="font-size:64px;margin-bottom:20px">⚠️</div>
+    <p style="font-size:14px;color:var(--danger)">${msg}</p>
+  </div>`;
+}
+
+function renderPlan(plan, planType) {
+  const meta = PLAN_META[planType] || PLAN_META.main;
+  document.getElementById('toolbar-title').innerHTML = `${meta.icon} ${meta.label}`;
+
+  const items = plan.items || [];
+  const today = new Date().toLocaleDateString('ar-SA', { year:'numeric', month:'long', day:'numeric' });
+
+  // إحصائيات سريعة
+  const totalItems = items.length;
+  const totalQty = items.reduce((s, it) => {
+    const q = parseInt(it.quantity || it.required_quantity || 0);
+    return s + (isNaN(q) ? 0 : q);
+  }, 0);
+  const refurbCount = items.filter(it => it.needs_refurb).length;
+  const withImages = items.filter(it => it.sample_image || it.sticker_image).length;
+
+  const html = `
+    <!-- صفحة الغلاف -->
+    <div class="page cover">
+      <div class="cover-brand">
+        ${logoSvg()}
+        <div class="cover-brand-name">شركة أبيلا للأفراح والمناسبات</div>
+      </div>
+
+      <div class="cover-title-block">
+        <div class="cover-plan-type">${meta.label}</div>
+        <h1 class="cover-title">${plan.event_title || plan.title || 'مناسبة'}</h1>
+        <div class="cover-subtitle">${plan.customer_name || ''}</div>
+      </div>
+
+      <div class="cover-info-grid">
+        <div class="cover-info-card">
+          <div class="label">📅 تاريخ المناسبة</div>
+          <div class="value">${plan.event_date || '-'}</div>
+        </div>
+        <div class="cover-info-card">
+          <div class="label">📍 الموقع</div>
+          <div class="value">${plan.venue_name || '-'}</div>
+        </div>
+        <div class="cover-info-card">
+          <div class="label">🔢 رقم العقد</div>
+          <div class="value">${plan.contract_code || plan.event_code || '-'}</div>
+        </div>
+        <div class="cover-info-card">
+          <div class="label">⚙ أمر التشغيل</div>
+          <div class="value">${plan.operation_order || '-'}</div>
+        </div>
+        <div class="cover-info-card">
+          <div class="label">👤 المسؤول</div>
+          <div class="value">${plan.assigned_name || plan.designer_name || plan.planner_name || '-'}</div>
+        </div>
+        <div class="cover-info-card">
+          <div class="label">📋 رمز الخطة</div>
+          <div class="value">${plan.plan_code || '-'}</div>
+        </div>
+      </div>
+
+      <div class="cover-summary">
+        <h3>📊 ملخص الخطة</h3>
+        <div class="cover-stats">
+          <div class="cover-stat">
+            <div class="num">${totalItems}</div>
+            <div class="lbl">بند</div>
+          </div>
+          <div class="cover-stat">
+            <div class="num">${totalQty || '—'}</div>
+            <div class="lbl">قطعة</div>
+          </div>
+          <div class="cover-stat">
+            <div class="num">${withImages}</div>
+            <div class="lbl">عينة بصرية</div>
+          </div>
+          <div class="cover-stat">
+            <div class="num">${refurbCount}</div>
+            <div class="lbl">إعادة تدوير</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#FFF8E7;padding:14px;border-radius:10px;font-size:11px;color:var(--text-mute);text-align:center;border:1px dashed var(--gold)">
+        <strong style="color:var(--primary-deeper)">💡 ${meta.desc}</strong><br>
+        تم توليد هذه الخطة آليًا من نظام أبيلا الذكي • ${today}
+      </div>
+
+      <div class="cover-footer">
+        <div>شركة أبيلا للأفراح والمناسبات</div>
+        <div>الإصدار: 3.0 • صفحة 1 من 2</div>
+      </div>
+    </div>
+
+    <!-- صفحة البنود -->
+    <div class="page">
+      <div class="inner-page">
+        <div class="inner-header">
+          <div class="left">
+            <div class="plan-icon">${meta.icon}</div>
+            <div class="title-info">
+              <h2>${meta.label}</h2>
+              <div class="sub">${plan.event_title || ''} — ${plan.customer_name || ''}</div>
+            </div>
+          </div>
+          <div class="meta">
+            ${plan.event_date || ''}<br>
+            ${plan.plan_code || ''}
+          </div>
+        </div>
+
+        ${items.length ? `
+          <div class="items-container">
+            ${items.map((it, i) => renderItemCard(it, i + 1)).join('')}
+          </div>
+        ` : `
+          <div style="text-align:center;padding:60px 20px;color:var(--text-mute)">
+            <div style="font-size:48px;margin-bottom:12px">📭</div>
+            لا توجد بنود في هذه الخطة بعد
+          </div>
+        `}
+
+        ${renderSpecialNotes(planType)}
+
+        <div class="signature-block">
+          <div style="font-weight:700;color:var(--primary-deeper);margin-bottom:8px">✍️ التوقيعات</div>
+          <div class="signature-grid">
+            <div class="sig-box">
+              <div class="name">معد الخطة</div>
+              <div class="role">المصمم</div>
+            </div>
+            <div class="sig-box">
+              <div class="name">المعتمد</div>
+              <div class="role">الإدارة</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-strip">
+          <div>أبيلا • طُبعت في ${today}</div>
+          <div>صفحة 2 من 2 • Abella System v3.0</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderItemCard(it, num) {
+  const qty = it.quantity || it.required_quantity || '—';
+  const hasMultipleImages = (it.sample_image && it.sticker_image);
+  const hasAnyImage = it.sample_image || it.sticker_image;
+
+  return `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-cat-info">
+          <div class="item-num">${num}</div>
+          <div class="item-cat-icon">${it.category_icon || '📦'}</div>
+          <div class="item-cat-name">${it.category_name || it.custom_name || 'بند'}</div>
+        </div>
+        <div class="item-qty-pill">${qty}</div>
+      </div>
+      <div class="item-body">
+        <div class="item-desc">
+          <div class="item-name">${it.custom_name || it.category_name || ''}</div>
+          ${it.dimensions ? `<div style="font-size:11px;color:var(--text-mute);margin-bottom:6px">📐 ${it.dimensions}</div>` : ''}
+
+          <div class="spec-grid">
+            ${it.color_code ? `
+              <div class="spec-tag">
+                ${isHexColor(it.color_code) ? `<span class="spec-color-swatch" style="background:${it.color_code}"></span>` : ''}
+                <span class="spec-label">لون:</span>
+                <span class="spec-value">${it.color_code}</span>
+              </div>
+            ` : ''}
+            ${it.fabric_code ? `
+              <div class="spec-tag">
+                <span class="spec-label">🧵 قماش:</span>
+                <span class="spec-value">${it.fabric_code}</span>
+              </div>
+            ` : ''}
+            ${it.needs_refurb ? `
+              <div class="spec-tag" style="background:#FEF3C7;border-color:#FBBF24">
+                <span class="spec-label" style="color:#78350F">♻️ إعادة تدوير</span>
+              </div>
+            ` : ''}
+          </div>
+
+          ${it.item_notes ? `<div class="item-notes">📝 ${it.item_notes}</div>` : ''}
+          ${it.notes_red ? `<div class="item-notes-red">⚠️ ${it.notes_red}</div>` : ''}
+        </div>
+        <div class="item-images ${hasMultipleImages ? 'has-multiple' : ''}">
+          ${it.sample_image ? `<img src="${it.sample_image}" alt="عينة">` : ''}
+          ${it.sticker_image ? `<img src="${it.sticker_image}" alt="ستيكر">` : ''}
+          ${!hasAnyImage ? '<div class="placeholder">📷 لا توجد صورة</div>' : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSpecialNotes(planType) {
+  if (planType === 'risk') {
+    return `
+      <div class="smart-alert danger">
+        <div class="title">🛡️ مبادئ إدارة المخاطر</div>
+        <ul style="margin:6px 18px;line-height:1.8">
+          <li>رصد كافة الأخطار المحتملة قبل وقوعها</li>
+          <li>ترتيب المخاطر حسب الأولوية: <strong>عالية / متوسطة / منخفضة</strong></li>
+          <li>إعداد خطة بديلة لكل مخاطرة عالية الأثر</li>
+          <li><strong>إدارة المخاطر ليست خياراً، بل جزء من العمل الذكي</strong></li>
+        </ul>
+      </div>
+    `;
+  }
+  if (planType === 'purchases') {
+    return `
+      <div class="smart-alert">
+        <div class="title">🛒 ضوابط المشتريات</div>
+        <ul style="margin:6px 18px;line-height:1.8">
+          <li>التأكد من توفر البويات والأقمشة قبل الشراء (لتجنب التكرار)</li>
+          <li>ترتيب المشتريات حسب الأولوية: متوفرة / غير متوفرة / بديل</li>
+          <li>الشراء المبكر هو الدرع الواقي للنجاح</li>
+          <li>الأساسيات الإلزامية: <em>قلو قن • سلم • دريل • مسامير • أسلاك LED • تمديدات سلك</em></li>
+        </ul>
+      </div>
+    `;
+  }
+  if (planType === 'factory') {
+    return `
+      <div class="smart-alert">
+        <div class="title">🛠 ضوابط التصنيع</div>
+        <ul style="margin:6px 18px;line-height:1.8">
+          <li>الالتزام التام بالمقاسات والأكواد المحددة</li>
+          <li>مراجعة العينة مع المصمم قبل البدء بالإنتاج</li>
+          <li>التوثيق بالصور لكل مرحلة (قبل/أثناء/بعد)</li>
+          <li>تسليم القطعة في الوقت المحدد للتركيب</li>
+        </ul>
+      </div>
+    `;
+  }
+  if (planType === 'warehouse_decor' || planType === 'warehouse_acc') {
+    return `
+      <div class="smart-alert">
+        <div class="title">📦 ضوابط المستودع</div>
+        <ul style="margin:6px 18px;line-height:1.8">
+          <li>فحص كل قطعة قبل التحميل وبعد الإرجاع</li>
+          <li>توثيق بالصور: وصول السيارة / التحميل / الإرجاع / التفريغ</li>
+          <li>تسجيل أي ضرر فوراً في النظام</li>
+          <li>الالتزام بأماكن التخزين المحددة لسهولة الاسترجاع</li>
+        </ul>
+      </div>
+    `;
+  }
+  if (planType === 'hospitality') {
+    return `
+      <div class="smart-alert">
+        <div class="title">🍽 ضوابط الضيافة</div>
+        <ul style="margin:6px 18px;line-height:1.8">
+          <li>التحقق من جودة المأكولات قبل التقديم</li>
+          <li>الانتباه للحساسيات الغذائية المسجلة عند العميل</li>
+          <li>التزام طاقم الضيافة بالزي والأناقة</li>
+          <li>تنظيف فوري لأي انسكابات</li>
+        </ul>
+      </div>
+    `;
+  }
+  return '';
+}
+
+function isHexColor(s) {
+  return s && /^#[0-9A-Fa-f]{3,8}$/.test(s.trim());
+}
+
+function logoSvg() {
+  return `<img src="/assets/logo-abella.png" alt="أبيلا" class="cover-logo">`;
+}
+
+loadPlan();
+</script>
+</body>
+</html>

@@ -1,0 +1,3404 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أبيلا للأفراح والمناسبات — لوحة التحكم</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/dashboard/modules.js" defer></script>
+<style>
+:root {
+  /* هوية أبيلا الراقية - بيج وذهبي وبُني دافئ */
+  --primary: #8B6F47;          /* بُني كاراميل دافئ */
+  --primary-light: #B8975D;    /* ذهبي متوسط */
+  --primary-dark: #5C4528;     /* إسبريسو عميق */
+  --accent: #C9A560;           /* ذهبي عتيق */
+  --accent-2: #D4B97A;         /* ذهبي فاتح */
+  --success: #7A8A5F;          /* أخضر سيج هادئ */
+  --warning: #D4A04C;          /* عنبري دافئ */
+  --danger: #A04545;           /* عنابي عميق */
+  --bg: #F8F4ED;               /* كريمي ناعم */
+  --surface: #FFFFFF;
+  --border: #E8DFD0;           /* بيج فاتح للحواف */
+  --text: #2D1F14;             /* إسبريسو داكن */
+  --text-light: #8B7E6E;       /* رمادي دافئ */
+  --shadow: 0 2px 12px rgba(139,111,71,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100%;
+  font-size: 14px;
+}
+body { display: flex; min-height: 100vh; }
+
+/* ============ الشريط الجانبي ============ */
+.sidebar {
+  width: 240px;
+  background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 100%);
+  color: #fff;
+  padding: 0;
+  position: fixed;
+  height: 100vh;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.05);
+}
+.sidebar-header {
+  padding: 24px 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  text-align: center;
+}
+.sidebar-header img.logo {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+.sidebar-header p {
+  font-size: 10px;
+  opacity: 0.65;
+  margin-top: 6px;
+  letter-spacing: 2px;
+}
+.sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+.nav-item {
+  display: block;
+  padding: 12px 24px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  border-right: 4px solid transparent;
+  transition: all 0.15s;
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); }
+.nav-item.active {
+  background: rgba(255,255,255,0.15);
+  border-right-color: #fff;
+  font-weight: 600;
+}
+.nav-icon { margin-left: 8px; font-size: 16px; }
+.nav-svg {
+  width: 24px;
+  height: 24px;
+  margin-left: 12px;
+  fill: none;
+  stroke: var(--accent-2, #D4B97A);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  transition: stroke 0.18s, transform 0.18s;
+  color: var(--accent-2, #D4B97A);
+}
+.nav-svg [fill="currentColor"] { fill: var(--accent-2, #D4B97A); }
+.nav-item { display: flex; align-items: center; }
+.nav-item:hover .nav-svg { stroke: #fff; transform: scale(1.06); color: #fff; }
+.nav-item:hover .nav-svg [fill="currentColor"] { fill: #fff; }
+.nav-item.active .nav-svg { stroke: #fff; color: #fff; }
+.nav-item.active .nav-svg [fill="currentColor"] { fill: #fff; }
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 12px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* ============ المحتوى الرئيسي ============ */
+.main {
+  flex: 1;
+  margin-right: 240px;
+  padding: 24px 32px;
+  overflow-y: auto;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.page-title { font-size: 24px; font-weight: 700; color: var(--primary); }
+.btn {
+  padding: 10px 20px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.btn:hover { background: var(--primary-light); transform: translateY(-1px); }
+.btn-success { background: var(--success); }
+.btn-danger { background: var(--accent); }
+.btn-warning { background: var(--accent-2); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+/* ============ بطاقات الإحصائيات ============ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border-right: 4px solid var(--primary);
+}
+.stat-card.success { border-color: var(--success); }
+.stat-card.warning { border-color: var(--warning); }
+.stat-card.danger { border-color: var(--accent); }
+.stat-card.accent { border-color: var(--accent-2); }
+.stat-label { font-size: 12px; color: var(--text-light); margin-bottom: 8px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
+.stat-sub { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+/* ============ البطاقات والجداول ============ */
+.card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 16px; font-weight: 700; color: var(--primary); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th, td {
+  padding: 12px 14px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: #F8FAFD;
+  font-weight: 700;
+  color: var(--text-light);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+tbody tr:hover { background: #F8FAFD; cursor: pointer; }
+
+/* ============ الشارات (Badges) ============ */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-lead { background: #E5E7EB; color: #4B5563; }
+.badge-quoted { background: #DBEAFE; color: #1E40AF; }
+.badge-contracted { background: #FEF3C7; color: #92400E; }
+.badge-planning { background: #FED7AA; color: #9A3412; }
+.badge-ready { background: #DDD6FE; color: #5B21B6; }
+.badge-in_progress { background: #FCE7F3; color: #9F1239; }
+.badge-completed { background: #D1FAE5; color: #065F46; }
+.badge-closed { background: #E5E7EB; color: #1F2937; }
+.badge-cancelled { background: #FEE2E2; color: #991B1B; }
+
+.badge-excellent { background: #D1FAE5; color: #065F46; }
+.badge-good { background: #DBEAFE; color: #1E40AF; }
+.badge-fair { background: #FEF3C7; color: #92400E; }
+.badge-damaged { background: #FEE2E2; color: #991B1B; }
+.badge-lost { background: #1F2937; color: #fff; }
+
+.badge-in_warehouse { background: #D1FAE5; color: #065F46; }
+.badge-reserved { background: #FEF3C7; color: #92400E; }
+.badge-in_event { background: #FED7AA; color: #9A3412; }
+.badge-in_repair { background: #FEE2E2; color: #991B1B; }
+
+.badge-vip { background: #FBBF24; color: #78350F; }
+.badge-individual { background: #DBEAFE; color: #1E40AF; }
+.badge-company { background: #DDD6FE; color: #5B21B6; }
+
+/* ============ أزرار الإجراءات في الجداول (تعديل/حذف) ============ */
+.actions-col { width: 110px; text-align: center; }
+.actions-cell {
+  text-align: center;
+  white-space: nowrap;
+  padding: 6px 4px !important;
+}
+.action-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  cursor: pointer;
+  margin: 0 2px;
+  transition: all 0.15s;
+  vertical-align: middle;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+.action-btn svg { display: block; }
+.action-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.action-edit { color: var(--primary); }
+.action-edit:hover { background: #DBEAFE; border-color: #1E40AF; color: #1E40AF; }
+.action-delete { color: var(--danger); }
+.action-delete:hover { background: #FEE2E2; border-color: #991B1B; color: #991B1B; }
+
+/* ============ مستكشف المالية ============ */
+.finance-explorer {
+  margin-bottom: 24px;
+  padding: 0;
+}
+.fin-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-end;
+  background: var(--bg);
+}
+.fin-ctrl { display: flex; flex-direction: column; min-width: 130px; }
+.fin-ctrl label {
+  font-size: 11px; color: var(--text-light);
+  margin-bottom: 4px; font-weight: 600;
+}
+.fin-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+.fin-big-stat {
+  background: var(--surface);
+  padding: 18px 16px;
+  text-align: center;
+}
+.fin-big-stat .fin-stat-label {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.fin-big-stat .fin-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.fin-big-stat .fin-stat-sub {
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+.fin-revenue { background: linear-gradient(135deg, #F0F4E8 0%, #FFFFFF 100%); }
+.fin-expenses { background: linear-gradient(135deg, #FCE7E7 0%, #FFFFFF 100%); }
+.fin-profit { background: linear-gradient(135deg, #FFF8E0 0%, #FFFFFF 100%); }
+.fin-margin { background: linear-gradient(135deg, #E8F0FE 0%, #FFFFFF 100%); }
+.finance-explorer .chart-container { padding: 16px; }
+#finBreakdown { padding: 0 16px 16px; max-height: 320px; overflow-y: auto; }
+#finBreakdown table { width: 100%; }
+#finBreakdown th, #finBreakdown td { padding: 8px 10px; }
+
+/* ============ تبويبات المستودعات الفرعية ============ */
+.warehouse-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 12px 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.wh-tab {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.wh-tab:hover { background: #fff; color: var(--text); }
+.wh-tab.active {
+  background: var(--surface);
+  color: var(--primary-dark);
+  border-color: var(--border);
+  border-bottom: 1px solid var(--surface);
+}
+
+/* ============ بطاقات الخطط (خطط العمل والفرعية) ============ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.plan-card {
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+}
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139,111,71,0.18);
+}
+.plan-card-header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.plan-card-icon { font-size: 26px; }
+.plan-card-body {
+  padding: 16px;
+  flex: 1;
+}
+.plan-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: var(--text-light);
+}
+.plan-stat strong { color: var(--text); }
+.progress-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.progress-bar {
+  height: 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--success));
+  transition: width 0.4s;
+}
+.plan-card-actions {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  background: var(--bg);
+}
+
+/* صورة مصغّرة في صف المخزون */
+.row-thumb {
+  width: 72px; height: 72px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.row-thumb:hover {
+  transform: scale(1.05);
+}
+.thumb-empty {
+  width: 72px; height: 72px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 28px;
+  background: var(--bg);
+}
+
+/* ============ النوافذ المنبثقة ============ */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); display: none;
+  align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 12px; width: 90%; max-width: 600px;
+  max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-header {
+  padding: 20px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-title { font-size: 18px; font-weight: 700; color: var(--primary); }
+.modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light); }
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 16px 20px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-start; gap: 8px;
+}
+
+/* ============ الحقول ============ */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 14px; font-family: inherit; background: #fff;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ============ تفاصيل المناسبة ============ */
+.detail-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  background: #F8FAFD; padding: 16px; border-radius: 8px; margin-bottom: 20px;
+}
+.detail-item { font-size: 13px; }
+.detail-item strong { color: var(--text-light); display: block; margin-bottom: 2px; font-size: 11px; text-transform: uppercase; }
+.tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+.tab {
+  padding: 10px 16px; cursor: pointer; font-size: 13px; font-weight: 600;
+  color: var(--text-light); border-bottom: 2px solid transparent; margin-bottom: -2px;
+}
+.tab.active { color: var(--primary); border-color: var(--primary); }
+
+/* ============ الحالات والمساعدات ============ */
+.empty {
+  text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 14px;
+}
+.loading { text-align: center; padding: 40px; color: var(--text-light); }
+.toast {
+  position: fixed; bottom: 24px; right: 50%; transform: translateX(50%);
+  background: var(--text); color: #fff; padding: 12px 24px; border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 2000;
+  opacity: 0; transition: opacity 0.3s;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--accent); }
+
+.search-bar {
+  display: flex; gap: 12px; margin-bottom: 16px;
+}
+
+/* ============ شريط علوي ============ */
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(135deg, var(--bg) 0%, #FFFFFF 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  margin: -24px -32px 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(139,111,71,0.05);
+}
+.top-search-wrap { flex: 1; position: relative; max-width: 500px; }
+.top-search-wrap input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+}
+.top-search-wrap input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(201,165,96,0.15);
+}
+.global-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  max-height: 70vh;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+.global-search-results.show { display: block; }
+.gsr-section {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-light);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.gsr-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  border-bottom: 1px solid #f0ebe2;
+}
+.gsr-item:hover { background: var(--bg); }
+.gsr-icon { font-size: 18px; flex-shrink: 0; }
+.gsr-text { flex: 1; }
+.gsr-text strong { display: block; }
+.gsr-text small { color: var(--text-light); font-size: 11px; }
+
+.top-actions { display: flex; align-items: center; gap: 10px; }
+.top-stat {
+  font-size: 13px;
+  color: var(--text-light);
+  padding: 6px 12px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.top-icon-btn {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+}
+.top-icon-btn:hover { background: var(--bg); }
+.badge-dot {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+/* ============ الرسوم البيانية ============ */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.charts-grid .card { margin-bottom: 0; }
+.chart-container {
+  position: relative;
+  height: 280px;
+  width: 100%;
+}
+.chart-container.small { height: 240px; }
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.charts-row .card { margin-bottom: 0; }
+@media (max-width: 1024px) {
+  .charts-grid, .charts-row { grid-template-columns: 1fr; }
+}
+.search-input {
+  flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 14px; background: #fff;
+}
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar-header h1, .sidebar-header p, .nav-item span:not(.nav-icon), .sidebar-footer { display: none; }
+  .nav-item { text-align: center; padding: 14px 10px; }
+  .nav-icon { margin: 0; font-size: 20px; }
+  .main { margin-right: 60px; padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+/* ============ الإصدار 4: الدخول والصلاحيات والأقسام الجديدة ============ */
+body.locked .sidebar, body.locked .main { filter: blur(3px); pointer-events: none; user-select: none; }
+#login-overlay { position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, rgba(92,69,40,.92), rgba(139,111,71,.88)); padding: 16px; }
+.login-card { background: #fff; border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,.35); display: flex; flex-direction: column; gap: 10px; }
+.login-card h2 { color: var(--primary-dark); font-size: 20px; text-align: center; }
+.login-logo { width: 150px; margin: 0 auto 4px; display: block; }
+.login-sub { color: var(--text-light); font-size: 13px; text-align: center; line-height: 1.7; margin-bottom: 6px; }
+.login-card label { font-size: 13px; font-weight: 600; display: flex; flex-direction: column; gap: 6px; }
+.login-card input { padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
+.login-card .btn { width: 100%; padding: 12px; font-size: 15px; }
+.login-err { color: var(--danger); font-size: 13px; min-height: 18px; }
+.nav-group { font-size: 10.5px; letter-spacing: .5px; color: rgba(255,255,255,.55); padding: 14px 18px 4px; font-weight: 700; }
+.sidebar-nav { overflow-y: auto; flex: 1; }
+#me-chip { background: rgba(255,255,255,.1); border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: center; }
+#me-chip .me-name { font-weight: 700; font-size: 13px; }
+#me-chip .me-role { font-size: 11px; opacity: .75; margin-top: 2px; }
+#me-chip .me-actions { font-size: 11px; margin-top: 6px; }
+#me-chip a { color: #fff; cursor: pointer; text-decoration: underline; opacity: .9; }
+.ph-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #EFEAE1; color: var(--text); white-space: nowrap; }
+.pill.ok, .pill.st-won, .pill.q-contracted { background: #DCEBD5; color: #3F5A2B; }
+.pill.warn, .pill.st-quoted, .pill.q-sent { background: #FBEFD5; color: #8A5A12; }
+.pill.bad, .pill.st-lost, .pill.q-rejected { background: #F6DADA; color: #8A2E2E; }
+.pill.gold, .pill.q-accepted { background: #F3E6C4; color: #6B4E12; }
+.pill.st-meeting { background: #E3E0F3; color: #4A3C8A; }
+.pill.st-contacted { background: #DCE8F3; color: #234E77; }
+.muted { color: var(--text-light); }
+.small { font-size: 12px; }
+.nowrap { white-space: nowrap; }
+.link { color: var(--primary); cursor: pointer; text-decoration: underline; }
+.mini-link { text-decoration: none; font-size: 13px; }
+.danger-t { color: var(--danger) !important; border-color: var(--danger) !important; }
+.hint { background: #FBF7EF; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: var(--text-light); margin-bottom: 14px; line-height: 1.7; }
+.warn-box { background: #FBEFD5; color: #6B4510; border-radius: 8px; padding: 10px 12px; font-size: 13px; margin: 8px 0; line-height: 1.7; }
+.note-box { background: #FBF7EF; border-radius: 8px; padding: 10px 12px; font-size: 13px; margin: 8px 0; line-height: 1.7; }
+.note-box.int { background: #EEF0F3; }
+.card.tight { padding: 0; overflow: hidden; }
+.card.tight .card-header { padding: 14px 18px 10px; margin: 0; }
+.tbl-wrap { overflow-x: auto; }
+.tabs .cnt { background: #EFEAE1; border-radius: 10px; padding: 1px 7px; font-size: 11px; margin-right: 4px; }
+.tabs { flex-wrap: wrap; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.two-col .card { margin-bottom: 0; }
+.stat-card[onclick] { cursor: pointer; }
+.stat-value.sm { font-size: 20px; }
+.modal.wide { max-width: 900px; }
+.sub-h { margin: 18px 0 8px; color: var(--primary); font-size: 14px; }
+.sub-h.first { margin-top: 0; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.four { grid-template-columns: repeat(4, 1fr); }
+.form-select.inline { width: auto; padding: 8px 10px; }
+.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.item-row { display: grid; grid-template-columns: 24px 2fr 80px 2fr 30px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.item-row .item-n { color: var(--text-light); font-size: 12px; text-align: center; }
+.icon-x { background: none; border: 1px solid var(--border); border-radius: 6px; height: 34px; cursor: pointer; color: var(--danger); font-size: 18px; }
+.totals-box { background: #FBF7EF; border-radius: 10px; padding: 12px 16px; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+.totals-box div { display: flex; justify-content: space-between; font-size: 13px; }
+.totals-box .big { grid-column: 1 / -1; font-size: 16px; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 6px 0; color: var(--primary-dark); }
+.q-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.q-head .code { font-size: 16px; margin: 0 6px; }
+.q-total { font-size: 22px; font-weight: 800; color: var(--primary-dark); }
+.roles-layout { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
+.roles-list .role-item { padding: 11px 14px; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); font-size: 13px; }
+.roles-list .role-item:hover { background: #FBF7EF; }
+.roles-list .role-item.sel { background: var(--primary); color: #fff; }
+.perm-table td.c, .perm-table th.c { text-align: center; width: 80px; }
+.perm-table input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+.perm-table tr.grp td { background: #FBF7EF; font-weight: 700; color: var(--primary); font-size: 12px; padding: 8px 14px; }
+.perm-table tbody tr:hover { cursor: default; }
+.perm-actions { padding: 14px 18px; display: flex; gap: 12px; align-items: center; }
+.card.tight > p.muted { padding: 0 18px; }
+tr.off td { opacity: .5; }
+pre.cred { background: #FBF7EF; border-radius: 8px; padding: 14px; white-space: pre-wrap; font-family: inherit; font-size: 14px; line-height: 1.8; direction: rtl; }
+.pr-table th, .pr-table td { padding: 8px 6px; font-size: 12px; white-space: nowrap; }
+.pr-in { width: 78px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; text-align: center; }
+@media (max-width: 1024px) { .two-col, .roles-layout { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+  .nav-group { display: none; }
+  .form-row.three, .form-row.four { grid-template-columns: 1fr 1fr; }
+  .item-row { grid-template-columns: 1fr 70px 30px; }
+  .item-row .item-n, .item-row input:nth-of-type(3) { display: none; }
+  .page-header { flex-wrap: wrap; gap: 10px; }
+  .page-title { font-size: 19px; }
+  .main { overflow-x: hidden; }
+  .top-bar { flex-wrap: wrap; gap: 8px; }
+  .top-stat { display: none; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .two-col table td { padding: 8px 6px; }
+}
+</style>
+<script src="svg_icons.js"></script>
+<script src="/assets/session.js"></script>
+<script src="/dashboard/crm.js"></script>
+<script src="/dashboard/hr.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <img src="/assets/logo-abella-light.png" alt="أبيلا" class="logo" style="width:100%;max-width:170px;height:auto;display:block;margin:0 auto">
+    <p>للأفراح والمناسبات</p>
+    <p style="font-size:9px;letter-spacing:1px;opacity:0.7;margin-top:2px">WEDDINGS &amp; EVENTS</p>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-page="dashboard" title="لوحة المعلومات">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <rect x="4" y="4" width="9" height="9" rx="2"/>
+        <rect x="15" y="4" width="9" height="9" rx="2"/>
+        <rect x="4" y="15" width="9" height="9" rx="2"/>
+        <rect x="15" y="15" width="9" height="9" rx="2"/>
+      </svg>
+      <span>لوحة المعلومات</span></a>
+    <a class="nav-item" data-page="customers" title="العملاء">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <circle cx="11" cy="10" r="4"/>
+        <path d="M3 24c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+        <circle cx="20" cy="8" r="3"/>
+        <path d="M16 17c1-2 3-3 5-3s4 1 4 3"/>
+      </svg>
+      <span>العملاء</span></a>
+    <a class="nav-item" data-page="appointments" title="المواعيد">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <rect x="4" y="6" width="20" height="18" rx="2.5"/>
+        <path d="M4 11h20M9 3v5M19 3v5"/>
+        <circle cx="14" cy="17" r="2.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>المواعيد</span></a>
+    <a class="nav-item" data-page="events" title="المناسبات">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <rect x="4" y="6" width="20" height="18" rx="2.5"/>
+        <path d="M4 11h20M9 3v5M19 3v5"/>
+        <path d="M14 14l1.4 2.9 3.2.5-2.3 2.3.6 3.1-2.9-1.5-2.9 1.5.6-3.1L9.4 17.4l3.2-.5z" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>المناسبات</span></a>
+    <a class="nav-item" data-page="work_plans" title="خطط العمل">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <rect x="6" y="4" width="16" height="20" rx="2.5"/>
+        <path d="M9 2.5h10c1 0 2 1 2 2.5h-14c0-1.5 1-2.5 2-2.5z" fill="currentColor" stroke="none" opacity="0.85"/>
+        <path d="M10 12h8M10 16h8M10 20h5"/>
+      </svg>
+      <span>خطط العمل</span></a>
+    <a class="nav-item" data-page="sub_plans" title="الخطط الفرعية">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <rect x="3" y="5" width="14" height="16" rx="2"/>
+        <path d="M6 10h8M6 14h6M6 18h4"/>
+        <rect x="11" y="11" width="14" height="14" rx="2" fill="#fff" stroke="currentColor"/>
+        <path d="M14 16h8M14 19h6M14 22h5"/>
+      </svg>
+      <span>الخطط الفرعية</span></a>
+    <a class="nav-item" href="/dashboard/plan_builder.html" style="text-decoration:none" title="بناء خطة جديدة">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="10"/>
+        <path d="M14 9v10M9 14h10"/>
+      </svg>
+      <span>بناء خطة جديدة</span></a>
+    <a class="nav-item" data-page="inventory" title="المخزون">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <path d="M14 3l10 5v12l-10 5L4 20V8z"/>
+        <path d="M4 8l10 5 10-5M14 13v15"/>
+        <path d="M9 5.5l10 5" opacity="0.6"/>
+      </svg>
+      <span>المخزون</span></a>
+    <a class="nav-item" data-page="raw_materials" title="المواد الخام">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <path d="M14 4c-5 5-5 9 0 14 5-5 5-9 0-14z"/>
+        <path d="M5 18c0 4.4 4 7 9 7s9-2.6 9-7"/>
+        <path d="M14 18v7" opacity="0.5"/>
+      </svg>
+      <span>المواد الخام</span></a>
+    <a class="nav-item" data-page="teams" title="الفرق">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="8" r="3.5"/>
+        <circle cx="6" cy="11" r="2.8"/>
+        <circle cx="22" cy="11" r="2.8"/>
+        <path d="M6 24c0-4 3.6-7 8-7s8 3 8 7"/>
+        <path d="M2 23c0-2.5 2-4.5 4-4.5M26 23c0-2.5-2-4.5-4-4.5"/>
+      </svg>
+      <span>الفرق</span></a>
+    <a class="nav-item" data-page="finance" title="المالية">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <path d="M9 6c0-1.5 1.5-3 5-3s5 1.5 5 3v3H9z"/>
+        <path d="M5 9h18l-1.5 14c-.2 1-1 2-2.2 2H8.7c-1.2 0-2-1-2.2-2z"/>
+        <path d="M14 14v6M11 17h6"/>
+      </svg>
+      <span>المالية</span></a>
+    <a class="nav-item" data-page="calendar" title="التقويم">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <rect x="4" y="6" width="20" height="18" rx="2.5"/>
+        <path d="M4 11h20M9 3v5M19 3v5"/>
+        <rect x="7" y="14" width="3.5" height="3.5" rx="0.6" fill="currentColor" stroke="none"/>
+        <rect x="12.5" y="14" width="3.5" height="3.5" rx="0.6"/>
+        <rect x="18" y="14" width="3.5" height="3.5" rx="0.6"/>
+        <rect x="7" y="19" width="3.5" height="3.5" rx="0.6"/>
+        <rect x="12.5" y="19" width="3.5" height="3.5" rx="0.6"/>
+      </svg>
+      <span>التقويم</span></a>
+    <a class="nav-item" data-page="reports" title="التقارير">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <path d="M3 24h22"/>
+        <rect x="5" y="14" width="3.5" height="10" rx="0.5"/>
+        <rect x="11" y="6" width="3.5" height="18" rx="0.5"/>
+        <rect x="17" y="10" width="3.5" height="14" rx="0.5"/>
+        <path d="M7 12l3-4 4 2 5-5" opacity="0.5"/>
+      </svg>
+      <span>التقارير</span></a>
+    <a class="nav-item" data-page="sync" title="مزامنة Excel">
+      <svg class="nav-svg" viewBox="0 0 28 28" fill="none">
+        <path d="M24 14a10 10 0 0 1-17 7L4 18M4 14a10 10 0 0 1 17-7l3 3"/>
+        <path d="M24 4v6h-6M4 24v-6h6"/>
+      </svg>
+      <span>مزامنة Excel</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="margin-bottom:8px">
+      <a href="/mobile/" title="تطبيق الفرق - بوابة الجوال" style="display:inline-block;padding:6px 12px;background:rgba(255,255,255,0.15);color:#fff;border-radius:8px;text-decoration:none;font-size:12px">
+        📱 بوابة الجوال
+      </a>
+    </div>
+    <div style="font-size:11px;opacity:0.75;line-height:1.6">
+      © 2026 أبيلا للأفراح والمناسبات<br>
+      <small style="opacity:0.7">جميع الحقوق محفوظة - الإصدار 4.0</small>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <!-- شريط علوي ثابت: بحث عام + ملخّص اليوم -->
+  <div class="top-bar">
+    <div class="top-search-wrap">
+      <input type="search" id="globalSearch" placeholder="🔍 ابحث عن عميل، مناسبة، صنف، أو موعد..."
+             oninput="globalSearchHandler(this.value)" onfocus="globalSearchHandler(this.value)" autocomplete="off">
+      <div id="globalSearchResults" class="global-search-results"></div>
+    </div>
+    <div class="top-actions">
+      <span class="top-stat" id="todayStat">⏳</span>
+      <button class="top-icon-btn" onclick="showAlerts()" title="التنبيهات">🔔<span id="alertBadge" class="badge-dot" style="display:none"></span></button>
+      <button class="top-icon-btn" onclick="window.print()" title="طباعة الصفحة">🖨</button>
+      <button class="top-icon-btn" onclick="accountMenu()" title="حسابي">👤</button>
+    </div>
+  </div>
+
+  <div id="page-content"><div class="loading">جارِ التحميل...</div></div>
+</main>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">عنوان</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ الإعدادات والمساعدات ============
+const API = '/api';
+let currentPage = 'dashboard';
+let cache = {};
+let charts = [];
+
+// ألوان أبيلا للرسوم البيانية
+const ABELA_COLORS = {
+  primary: '#8B6F47',
+  primaryLight: '#B8975D',
+  primaryDark: '#5C4528',
+  accent: '#C9A560',
+  accentLight: '#D4B97A',
+  success: '#7A8A5F',
+  warning: '#D4A04C',
+  danger: '#A04545',
+  text: '#2D1F14',
+  textLight: '#8B7E6E',
+  bg: '#F8F4ED',
+  border: '#E8DFD0'
+};
+const PALETTE = ['#8B6F47','#C9A560','#7A8A5F','#A04545','#D4A04C','#5C4528','#B8975D','#D4B97A'];
+
+function destroyCharts() {
+  charts.forEach(c => { try { c.destroy(); } catch(e){} });
+  charts = [];
+}
+
+const STATUS_LABELS = {
+  lead: 'استفسار', quoted: 'عرض سعر', contracted: 'متعاقد عليه',
+  planning: 'قيد التخطيط', ready: 'جاهز', in_progress: 'قيد التنفيذ',
+  completed: 'منفذ', closed: 'مقفل', cancelled: 'ملغي'
+};
+
+const EVENT_TYPES = {
+  newborn: 'استقبال مولود', queen: 'ملكة', wedding: 'زفاف',
+  engagement: 'خطوبة', birthday: 'عيد ميلاد', exhibition: 'معرض',
+  corporate: 'مؤسسي', other: 'أخرى'
+};
+
+const CONDITION_LABELS = {
+  excellent: 'ممتازة', good: 'جيدة', fair: 'متوسطة', damaged: 'متضررة', lost: 'مفقودة'
+};
+
+const ITEM_STATUS_LABELS = {
+  in_warehouse: 'في المستودع', reserved: 'محجوز', in_event: 'في مناسبة',
+  in_repair: 'قيد الإصلاح', retired: 'متقاعد', lost: 'مفقود'
+};
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'خطأ' }));
+    throw new Error(err.error || 'حدث خطأ');
+  }
+  return res.json();
+}
+
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 3000);
+}
+
+function fmtMoney(v) {
+  return (Number(v) || 0).toLocaleString('ar-SA', { minimumFractionDigits: 0 }) + ' ر.س';
+}
+function fmtDate(s) {
+  if (!s) return '-';
+  const d = new Date(s);
+  return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+function fmtDateTime(s) {
+  if (!s) return '-';
+  return new Date(s).toLocaleString('ar-SA');
+}
+
+function badge(value, labels) {
+  return `<span class="badge badge-${value}">${labels[value] || value}</span>`;
+}
+
+// ============ أزرار الإجراءات (تعديل/حذف) - أيقونات SVG أنيقة ============
+const ICON_EDIT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const ICON_DELETE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+const ICON_VIEW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const ICON_PRINT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
+const ICON_SYNC = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
+const ICON_EXCEL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="19"/><line x1="15" y1="13" x2="9" y2="19"/></svg>';
+
+function rowActions(entity, id, label) {
+  const safeLabel = (label || '').toString().replace(/'/g, "\\'");
+  return `
+    <button class="action-btn action-edit" title="تعديل"
+            onclick="event.stopPropagation(); openEditModal('${entity}', ${id})">${ICON_EDIT}</button>
+    <button class="action-btn action-delete" title="حذف"
+            onclick="event.stopPropagation(); confirmDelete('${entity}', ${id}, '${safeLabel}')">${ICON_DELETE}</button>
+  `;
+}
+
+function itemThumb(path) {
+  if (!path) return '<div class="thumb-empty">📦</div>';
+  const url = path.startsWith('http') ? path : '/' + path.replace(/^\/+/, '');
+  return `<img src="${url}" class="row-thumb" onclick="event.stopPropagation();showImageZoom('${url}')" onerror="this.outerHTML='<div class=&quot;thumb-empty&quot;>❌</div>'">`;
+}
+function showImageZoom(url) {
+  openModal('عرض الصورة', `<img src="${url}" style="max-width:100%;max-height:70vh;display:block;margin:0 auto">`,
+    '<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
+}
+
+// تصدير المخزون كـ CSV (يفتح بـ Excel)
+function exportInventoryCSV() {
+  const items = cache.inventory || [];
+  if (!items.length) return toast('لا يوجد مخزون للتصدير', 'error');
+  const headers = ['الكود','الاسم','الاسم بالإنجليزي','المستودع','الفرع','التصنيف','الكمية المتاحة','الإجمالي','سعر الإيجار','الحالة المادية','الحالة','الموقع','ملاحظات'];
+  const rows = items.map(i => [
+    i.item_code, i.name, i.name_en || '', i.warehouse, i.branch || 'riyadh',
+    i.category_name || '', i.quantity_available, i.quantity_total, i.rental_price || 0,
+    i.condition || '', i.status || '', i.location_in_warehouse || '', (i.notes || '').replace(/[\r\n]/g, ' ')
+  ]);
+  // BOM عشان Excel يقرأ العربية صح
+  const csv = '﻿' + [headers, ...rows].map(r =>
+    r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `inventory_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('تم تصدير المخزون ✓', 'success');
+}
+
+// ============ نموذج التعديل العام ============
+const EDIT_FIELDS = {
+  customer: [
+    {n:'full_name', l:'الاسم الكامل *', t:'text', req:true},
+    {n:'full_name_en', l:'الاسم بالإنجليزي', t:'text', dir:'ltr',
+      hint:'يستخدم لـ Daryl/Rose في مستودع الأكسسوارات'},
+    {n:'full_name_ur', l:'الاسم بالأوردو', t:'text', dir:'rtl',
+      hint:'يستخدم لعمران/فهيم في المصنع/الديكورات'},
+    {n:'id_number', l:'🆔 رقم الهوية / الإقامة', t:'text', dir:'ltr',
+      hint:'10 أرقام'},
+    {n:'phone', l:'📱 الجوال *', t:'tel', req:true, dir:'ltr'},
+    {n:'alt_phone', l:'📞 جوال إضافي', t:'tel', dir:'ltr'},
+    {n:'emergency_phone', l:'🚨 جوال الطوارئ', t:'tel', dir:'ltr',
+      hint:'رقم شخص يُتصل به في حالة عدم الرد على العميل'},
+    {n:'email', l:'📧 البريد الإلكتروني', t:'email', dir:'ltr'},
+    {n:'customer_type', l:'التصنيف', t:'select',
+      opts:[['individual','فرد'],['vip','VIP'],['company','شركة']]},
+    {n:'city', l:'المدينة', t:'text'},
+    {n:'address', l:'العنوان', t:'text'},
+    {n:'notes', l:'ملاحظات', t:'textarea'},
+  ],
+  inventory: [
+    {n:'name', l:'اسم الصنف *', t:'text', req:true},
+    {n:'name_en', l:'الاسم بالإنجليزي', t:'text', dir:'ltr'},
+    {n:'item_code', l:'الكود (للقراءة فقط)', t:'text', readonly:true},
+    {n:'category_id', l:'التصنيف', t:'select-categories'},
+    {n:'warehouse', l:'المستودع الرئيسي', t:'select',
+      opts:[['decorations','🎨 ديكورات'],['accessories','✨ اكسسوارات'],['factory','🏭 مصنع'],['factory_raw','🧶 مواد خام']]},
+    {n:'branch', l:'الفرع', t:'select',
+      opts:[['riyadh','📍 الرياض'],['zulfi','📍 الزلفي']]},
+    {n:'main_image', l:'مسار الصورة', t:'text', dir:'ltr',
+      hint:'مثال: assets/inventory/accessories/page001_img1.png'},
+    {n:'quantity_total', l:'الكمية الإجمالية', t:'number'},
+    {n:'quantity_available', l:'الكمية المتاحة', t:'number'},
+    {n:'rental_price', l:'سعر الإيجار', t:'number'},
+    {n:'unit_cost', l:'تكلفة الوحدة', t:'number'},
+    {n:'condition', l:'الحالة المادية', t:'select',
+      opts:[['excellent','ممتاز'],['good','جيد'],['fair','مقبول'],['damaged','تالف'],['lost','مفقود'],['needs_refurb','يحتاج صيانة']]},
+    {n:'status', l:'حالة المخزون', t:'select',
+      opts:[['in_warehouse','بالمستودع'],['reserved','محجوز'],['in_event','بالمناسبة'],['in_repair','بالصيانة'],['retired','مستبعد'],['lost','مفقود']]},
+    {n:'location_in_warehouse', l:'الموقع في المستودع', t:'text'},
+    {n:'notes', l:'ملاحظات', t:'textarea'},
+  ],
+  event: [
+    {n:'title', l:'عنوان المناسبة *', t:'text', req:true},
+    {n:'event_code', l:'الكود (للقراءة فقط)', t:'text', readonly:true},
+    {n:'operation_order', l:'رقم أمر التشغيل', t:'text'},
+    {n:'event_date', l:'التاريخ المتوقع *', t:'date', req:true},
+    {n:'actual_date', l:'التاريخ الفعلي', t:'date',
+      hint:'يُستخدم في التقويم والتقارير عند توفّره، وإلا يستخدم التاريخ المتوقع.'},
+    {n:'event_start_time', l:'وقت البداية', t:'time'},
+    {n:'event_end_time', l:'وقت النهاية', t:'time'},
+    {n:'venue_name', l:'اسم المكان', t:'text'},
+    {n:'venue_name_en', l:'اسم المكان (إنجليزي)', t:'text', dir:'ltr',
+      hint:'لـ Daryl/Rose'},
+    {n:'venue_name_ur', l:'اسم المكان (أوردو)', t:'text', dir:'rtl',
+      hint:'لعمران/فهيم'},
+    {n:'venue_address', l:'العنوان', t:'text'},
+    {n:'venue_map_url', l:'📍 رابط جوجل ماب', t:'url', dir:'ltr',
+      hint:'الصق رابط الموقع من Google Maps - مثال: https://maps.app.goo.gl/...'},
+    {n:'title_en', l:'عنوان المناسبة (إنجليزي)', t:'text', dir:'ltr'},
+    {n:'title_ur', l:'عنوان المناسبة (أوردو)', t:'text', dir:'rtl'},
+    {n:'guests_count', l:'عدد الضيوف', t:'number'},
+    {n:'theme', l:'الثيم', t:'text'},
+    {n:'color_palette', l:'لوحة الألوان', t:'text'},
+    {n:'total_price', l:'السعر الإجمالي', t:'number'},
+    {n:'paid_amount', l:'المدفوع', t:'number'},
+    {n:'status', l:'الحالة', t:'select',
+      opts:[['lead','عميل محتمل'],['confirmed','مؤكدة'],['in_design','قيد التصميم'],['in_execution','قيد التنفيذ'],['done','منتهية'],['cancelled','ملغاة']]},
+    {n:'description', l:'الوصف', t:'textarea'},
+  ],
+  appointment: [
+    {n:'title', l:'العنوان *', t:'text', req:true},
+    {n:'customer_name', l:'اسم العميل', t:'text'},
+    {n:'customer_phone', l:'جوال العميل', t:'tel', dir:'ltr'},
+    {n:'appointment_type', l:'نوع الموعد', t:'select',
+      opts:[['consultation','استشارة'],['design_review','مراجعة تصميم'],['contract_signing','توقيع عقد'],
+            ['site_visit','معاينة موقع'],['event_day','يوم المناسبة'],['meeting_internal','اجتماع داخلي'],['other','أخرى']]},
+    {n:'appointment_date', l:'التاريخ *', t:'date', req:true},
+    {n:'start_time', l:'وقت البداية *', t:'time', req:true},
+    {n:'end_time', l:'وقت النهاية', t:'time'},
+    {n:'location', l:'المكان', t:'text'},
+    {n:'status', l:'الحالة', t:'select',
+      opts:[['scheduled','مجدول'],['confirmed','مؤكد'],['done','منتهي'],['cancelled','ملغي'],['no_show','لم يحضر']]},
+    {n:'notes', l:'ملاحظات', t:'textarea'},
+  ],
+  raw_materials: [
+    {n:'name', l:'اسم المادة *', t:'text', req:true},
+    {n:'branch', l:'الفرع', t:'select',
+      opts:[['riyadh','📍 الرياض'],['zulfi','📍 الزلفي']]},
+    {n:'brand', l:'العلامة التجارية', t:'text'},
+    {n:'color_code', l:'كود اللون', t:'text', dir:'ltr'},
+    {n:'size_or_dimensions', l:'الحجم/الأبعاد', t:'text'},
+    {n:'unit', l:'الوحدة', t:'select',
+      opts:[['piece','قطعة'],['meter','متر'],['kg','كجم'],['liter','لتر'],['box','صندوق'],['roll','لفة'],['pack','عبوة']]},
+    {n:'quantity', l:'الكمية', t:'number'},
+    {n:'min_quantity', l:'حد التنبيه', t:'number'},
+    {n:'unit_cost', l:'تكلفة الوحدة', t:'number'},
+    {n:'image_path', l:'مسار الصورة', t:'text', dir:'ltr'},
+    {n:'location', l:'الموقع', t:'text'},
+    {n:'supplier', l:'المورد', t:'text'},
+    {n:'notes', l:'ملاحظات', t:'textarea'},
+  ],
+};
+
+const ENTITY_API = {
+  customer: 'customers',
+  inventory: 'inventory',
+  event: 'events',
+  appointment: 'appointments',
+  raw_materials: 'raw-materials',
+  workplan: 'workplans',
+};
+
+const ENTITY_LABEL = {
+  customer: 'العميل',
+  inventory: 'الصنف',
+  event: 'المناسبة',
+  appointment: 'الموعد',
+  raw_materials: 'المادة',
+  workplan: 'خطة العمل',
+};
+
+async function openEditModal(entity, id) {
+  const apiPath = ENTITY_API[entity];
+  if (!apiPath) return toast('نوع غير معروف', 'error');
+  try {
+    const item = await api(`/${apiPath}/${id}`);
+    const fields = EDIT_FIELDS[entity] || [];
+    let categoryOptions = '';
+    if (fields.some(f => f.t === 'select-categories')) {
+      const cats = await api('/categories?warehouse=' + (item.warehouse || 'accessories'));
+      categoryOptions = cats.map(c => `<option value="${c.id}" ${c.id===item.category_id?'selected':''}>${c.name}</option>`).join('');
+    }
+    const formHtml = `<form id="edit-form" data-entity="${entity}" data-id="${id}">` +
+      fields.map(f => {
+        const val = item[f.n] != null ? String(item[f.n]).replace(/"/g,'&quot;') : '';
+        const dirAttr = f.dir ? `dir="${f.dir}"` : '';
+        const ro = f.readonly ? 'readonly' : '';
+        const req = f.req ? 'required' : '';
+        const hint = f.hint ? `<small style="color:var(--text-light);display:block;margin-top:2px">${f.hint}</small>` : '';
+        if (f.t === 'textarea') {
+          return `<div class="form-group"><label class="form-label">${f.l}</label>
+            <textarea class="form-textarea" name="${f.n}" rows="2" ${dirAttr} ${ro}>${val}</textarea>${hint}</div>`;
+        }
+        if (f.t === 'select') {
+          const opts = (f.opts||[]).map(([k,v]) => `<option value="${k}" ${k===item[f.n]?'selected':''}>${v}</option>`).join('');
+          return `<div class="form-group"><label class="form-label">${f.l}</label>
+            <select class="form-select" name="${f.n}" ${ro}>${opts}</select>${hint}</div>`;
+        }
+        if (f.t === 'select-categories') {
+          return `<div class="form-group"><label class="form-label">${f.l}</label>
+            <select class="form-select" name="${f.n}">${categoryOptions}</select></div>`;
+        }
+        return `<div class="form-group"><label class="form-label">${f.l}</label>
+          <input class="form-input" type="${f.t}" name="${f.n}" value="${val}" ${dirAttr} ${ro} ${req}>${hint}</div>`;
+      }).join('') + `</form>`;
+    openModal(`تعديل ${ENTITY_LABEL[entity]||''}`, formHtml, `
+      <button class="btn btn-success" onclick="saveEdit()">💾 حفظ التعديلات</button>
+      <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+    `);
+  } catch (e) {
+    toast('فشل تحميل البيانات: ' + e.message, 'error');
+  }
+}
+
+async function saveEdit() {
+  const form = document.getElementById('edit-form');
+  const entity = form.dataset.entity;
+  const id = form.dataset.id;
+  const apiPath = ENTITY_API[entity];
+  const data = Object.fromEntries(new FormData(form));
+  // remove readonly fields
+  for (const f of (EDIT_FIELDS[entity]||[])) {
+    if (f.readonly) delete data[f.n];
+  }
+  try {
+    await api(`/${apiPath}/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    toast('تم الحفظ ✓', 'success');
+    closeModal();
+    refreshCurrentPage();
+  } catch (e) {
+    toast('خطأ في الحفظ: ' + e.message, 'error');
+  }
+}
+
+async function confirmDelete(entity, id, label) {
+  const apiPath = ENTITY_API[entity];
+  const entityLabel = ENTITY_LABEL[entity] || entity;
+  const action = entity === 'event' ? 'إلغاء' : 'حذف';
+  if (!confirm(`هل أنت متأكد من ${action} ${entityLabel}: "${label}"؟${entity==='event'?'\nسيتم تغيير الحالة إلى ملغاة.':'\nهذا الإجراء لا يمكن التراجع عنه.'}`)) return;
+  try {
+    await api(`/${apiPath}/${id}`, { method: 'DELETE' });
+    toast(entity === 'event' ? 'تم إلغاء المناسبة' : 'تم الحذف', 'success');
+    refreshCurrentPage();
+  } catch (e) {
+    toast('فشل الحذف: ' + e.message, 'error');
+  }
+}
+
+function refreshCurrentPage() {
+  // إعادة تحميل الصفحة الحالية بعد أي تعديل
+  if (typeof renderPage === 'function') renderPage();
+}
+
+function openModal(title, body, footer = '') {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-footer').innerHTML = footer;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+// ============ التنقل ============
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    currentPage = item.dataset.page;
+    renderPage();
+  });
+});
+
+function renderPage() {
+  destroyCharts();
+  const c = document.getElementById('page-content');
+  c.innerHTML = '<div class="loading">جارِ التحميل...</div>';
+  switch (currentPage) {
+    case 'dashboard': return renderDashboard();
+    case 'events': return renderEvents();
+    case 'customers': return renderCustomers();
+    case 'inventory': return renderInventory();
+    case 'teams': return renderTeams();
+    case 'finance': return renderFinance();
+    case 'reports': return renderReports();
+    case 'sync': return renderSync();
+    case 'raw_materials': return (typeof renderRawMaterials === 'function' ? renderRawMaterials() : null);
+    case 'appointments': return (typeof renderAppointments === 'function' ? renderAppointments() : null);
+    case 'calendar': return (typeof renderCalendar === 'function' ? renderCalendar() : null);
+    case 'sub_plans': return (typeof renderSubPlans === 'function' ? renderSubPlans() : null);
+    case 'work_plans': return renderWorkPlansList();
+  }
+}
+
+// ============ المزامنة ============
+async function renderSync() {
+  try {
+    const status = await api('/sync/status');
+    const last = status.last;
+    const history = status.history || [];
+    const html = `
+      <div class="page-header">
+        <h2 class="page-title">${ICON_SYNC || ''} مزامنة Google Sheets ↔ Excel</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="excel-export-btn" onclick="runExcelExport()" title="تصدير الحالة الراهنة من النظام إلى ملفات Excel محلية">
+            ${ICON_EXCEL} تصدير إلى Excel الآن
+          </button>
+          <button class="btn" id="sync-btn" onclick="runSync()">▶ مزامنة الآن</button>
+        </div>
+      </div>
+
+      <div class="card" style="background:#F0F9F0;border-right:4px solid var(--success)">
+        <div style="font-size:14px">
+          <strong>✓ المزامنة الثنائية مفعّلة:</strong>
+          أي تعديل في النظام (مناسبات، عملاء، مخزون) يُصدَّر تلقائيًا إلى ملفات Excel محلية في
+          <code style="background:#fff;padding:2px 6px;border-radius:4px">D:\\Abela\\abela_system\\exports\\</code>
+          خلال ثوانٍ من الحفظ. اضغط <strong>"تصدير إلى Excel الآن"</strong> لتحديث فوري.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">📊 الجداول المرتبطة (5)</h3></div>
+        <table>
+          <thead><tr><th>الجدول</th><th>الوصف</th><th>الرابط</th></tr></thead>
+          <tbody>
+            <tr><td><strong>📋 العقود</strong></td><td>العقود الأساسية مع العملاء</td><td><a href="https://docs.google.com/spreadsheets/d/1yd4YQwjV-kDkqqu4iwFmGAlQmwhGWOYrP-x2w5r4_kg/edit" target="_blank">فتح</a></td></tr>
+            <tr><td><strong>👁 مصاريف الإشراف</strong></td><td>مصاريف فريق الإشراف</td><td><a href="https://docs.google.com/spreadsheets/d/110xUWBb4FdnYwIOg47RiFyqoyKKEW7bX40PlIKWGs90/edit" target="_blank">فتح</a></td></tr>
+            <tr><td><strong>⚙ مصاريف التنفيذ</strong></td><td>مصاريف فريق التنفيذ الميداني</td><td><a href="https://docs.google.com/spreadsheets/d/1jMWAK4sdkwwXJGArZQ3D8E3POM_82Nxzct5jrrRR-T4/edit" target="_blank">فتح</a></td></tr>
+            <tr><td><strong>🍽 مصاريف الضيافة</strong></td><td>مصاريف فريق الضيافة</td><td><a href="https://docs.google.com/spreadsheets/d/1s9n9Y7PVArzLOrKlDQChMPd-anfApTaqmunj8EptsIY/edit" target="_blank">فتح</a></td></tr>
+            <tr><td><strong>🛒 المشتريات</strong></td><td>مشتريات الموردين</td><td><a href="https://docs.google.com/spreadsheets/d/1xvG_sfIddU7Poo5J54yVb4FjSckDX1pCrrE7Rd3Dd9g/edit" target="_blank">فتح</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      ${last ? `
+        <div class="stats-grid">
+          <div class="stat-card ${last.status==='success'?'success':'danger'}">
+            <div class="stat-label">آخر مزامنة</div>
+            <div class="stat-value" style="font-size:16px">${last.status==='success'?'✓ نجاح':'✗ فشل'}</div>
+            <div class="stat-sub">${fmtDateTime(last.sync_date)}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">الصفوف المستوردة</div>
+            <div class="stat-value">${last.rows_imported||0}</div>
+            <div class="stat-sub">من جميع الجداول</div>
+          </div>
+          <div class="stat-card accent">
+            <div class="stat-label">المدة</div>
+            <div class="stat-value" style="font-size:18px">${((last.duration_ms||0)/1000).toFixed(2)} ث</div>
+            <div class="stat-sub">${last.error||'بدون أخطاء'}</div>
+          </div>
+        </div>
+      ` : '<div class="card"><div class="empty">لم تتم مزامنة بعد. اضغط "مزامنة الآن"</div></div>'}
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">📜 سجل المزامنات (${history.length})</h3></div>
+        ${history.length ? `<table>
+          <thead><tr><th>التاريخ</th><th>الحالة</th><th>الصفوف</th><th>المدة</th><th>ملاحظات</th></tr></thead>
+          <tbody>
+            ${history.map(h => `<tr>
+              <td>${fmtDateTime(h.sync_date)}</td>
+              <td>${h.status==='success'?'✓ نجاح':'✗ فشل'}</td>
+              <td>${h.rows_imported||0}</td>
+              <td>${((h.duration_ms||0)/1000).toFixed(2)} ث</td>
+              <td>${h.error_message||'-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : '<div class="empty">لا يوجد سجل</div>'}
+      </div>
+
+      <div class="card" style="background:#FFF8E7;border-right:4px solid var(--warning)">
+        <div style="font-size:14px">
+          <strong>📌 كيف تعمل المزامنة:</strong>
+          <ol style="margin:8px 24px 0">
+            <li>يجلب البيانات من الجداول الخمسة عبر CSV (يحتاج صلاحية: "أي شخص لديه الرابط = عارض")</li>
+            <li>يخزّن البيانات الخام في جداول داخلية (sheet_contracts, sheet_expenses, sheet_purchases)</li>
+            <li>يربط كل عقد بمناسبة في النظام عبر <strong>رقم أمر التشغيل (O1001..)</strong></li>
+            <li>ينشئ عملاء جدد إن لم يكونوا موجودين</li>
+            <li>يجمع كل المصاريف لكل مناسبة ويحسب: <strong>التكلفة الإجمالية + صافي الربح</strong></li>
+          </ol>
+        </div>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+async function runSync() {
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جارِ المزامنة...';
+  toast('جارِ المزامنة من Google Sheets...');
+  try {
+    const r = await api('/sync/run', { method: 'POST' });
+    if (r.success) {
+      const total = Object.values(r.sheets || {}).reduce((s,v) => s+v, 0);
+      toast(`✓ تمت المزامنة: ${total} صف، ${r.merged?.events_added||0} مناسبة جديدة، ${r.merged?.events_updated||0} محدثة`, 'success');
+      setTimeout(() => renderSync(), 1500);
+    } else {
+      toast('✗ فشلت المزامنة: ' + (r.error||'خطأ'), 'error');
+      btn.disabled = false;
+      btn.textContent = '▶ مزامنة الآن';
+    }
+  } catch (e) {
+    toast(e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '▶ مزامنة الآن';
+  }
+}
+
+async function runExcelExport() {
+  const btn = document.getElementById('excel-export-btn');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = '⏳ جارِ التصدير...';
+  toast('جارِ تصدير البيانات إلى ملفات Excel محلية...');
+  try {
+    const r = await api('/sync/export-excel', { method: 'POST' });
+    if (r.success) {
+      const total = Object.values(r.files || {}).reduce((s,f) => s + (f.rows||0), 0);
+      const fileCount = Object.keys(r.files || {}).length;
+      toast(`✓ تم تصدير ${fileCount} ملف Excel (${total} صف) إلى ${r.exports_dir}`, 'success');
+    } else {
+      toast('✗ فشل التصدير: ' + (r.error || 'تأكد من تثبيت openpyxl: pip install openpyxl'), 'error');
+    }
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+// ============ لوحة المعلومات ============
+async function renderDashboard() {
+  try {
+    const [stats, events, items] = await Promise.all([
+      api('/dashboard/stats'), api('/events'), api('/inventory')
+    ]);
+
+    const html = `
+      <div class="page-header">
+        <h2 class="page-title">لوحة المعلومات</h2>
+        <span style="color:var(--text-light); font-size:13px;">${new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card success">
+          <div class="stat-label">المناسبات النشطة</div>
+          <div class="stat-value">${stats.active_events}</div>
+          <div class="stat-sub">من إجمالي ${stats.total_events} مناسبة</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">إجمالي العملاء</div>
+          <div class="stat-value">${stats.total_customers}</div>
+          <div class="stat-sub">عميل في قاعدة البيانات</div>
+        </div>
+        <div class="stat-card accent">
+          <div class="stat-label">قطع المخزون</div>
+          <div class="stat-value">${stats.total_inventory}</div>
+          <div class="stat-sub">${stats.inventory_in_use} منها قيد الاستخدام</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-label">قيمة المخزون</div>
+          <div class="stat-value" style="font-size:20px;">${fmtMoney(stats.inventory_value)}</div>
+          <div class="stat-sub">قيمة دفترية تقديرية</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-label">إجمالي الإيرادات</div>
+          <div class="stat-value" style="font-size:20px;">${fmtMoney(stats.total_revenue)}</div>
+          <div class="stat-sub">من المناسبات المتعاقد عليها</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-label">المتحصل ماليًا</div>
+          <div class="stat-value" style="font-size:20px;">${fmtMoney(stats.total_collected)}</div>
+          <div class="stat-sub">دفعات مستلمة</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-label">المتبقي للتحصيل</div>
+          <div class="stat-value" style="font-size:20px;">${fmtMoney(stats.pending_payments)}</div>
+          <div class="stat-sub">دفعات مستحقة</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-label">قطع متضررة/مفقودة</div>
+          <div class="stat-value">${stats.damaged_items}</div>
+          <div class="stat-sub">تحتاج معالجة</div>
+        </div>
+      </div>
+
+      <!-- ===== الرسوم البيانية ===== -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">📈 الإيرادات الشهرية (آخر 6 أشهر)</h3></div>
+          <div class="chart-container"><canvas id="chart-revenue"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">🎯 توزيع المناسبات حسب النوع</h3></div>
+          <div class="chart-container"><canvas id="chart-events-type"></canvas></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">📋 حالات المناسبات</h3></div>
+          <div class="chart-container small"><canvas id="chart-events-status"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">📦 توزيع المخزون</h3></div>
+          <div class="chart-container small"><canvas id="chart-inventory"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">💎 حالة قطع المخزون</h3></div>
+          <div class="chart-container small"><canvas id="chart-condition"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ===== مستكشف المصروفات التفاعلي ===== -->
+      <div class="card finance-explorer">
+        <div class="card-header">
+          <h3 class="card-title">💰 مستكشف المصروفات والربحية</h3>
+        </div>
+        <div class="fin-controls">
+          <div class="fin-ctrl">
+            <label>العرض حسب</label>
+            <select id="finView" class="form-select" onchange="updateFinExplorer()">
+              <option value="month">📅 الشهر</option>
+              <option value="vendor">🛒 المورد</option>
+              <option value="category">📊 التصنيف</option>
+              <option value="user">👤 الموظف</option>
+            </select>
+          </div>
+          <div class="fin-ctrl">
+            <label>من تاريخ</label>
+            <input type="date" id="finFrom" class="form-input" onchange="updateFinExplorer()">
+          </div>
+          <div class="fin-ctrl">
+            <label>إلى تاريخ</label>
+            <input type="date" id="finTo" class="form-input" onchange="updateFinExplorer()">
+          </div>
+          <div class="fin-ctrl" id="finFilterCtrl">
+            <label>تصفية</label>
+            <select id="finFilter" class="form-select" onchange="updateFinExplorer()">
+              <option value="">— الكل —</option>
+            </select>
+          </div>
+          <button class="btn btn-outline" onclick="resetFinFilter()">🔄 إعادة تعيين</button>
+        </div>
+
+        <div class="fin-summary">
+          <div class="fin-big-stat fin-revenue">
+            <div class="fin-stat-label">الإيرادات</div>
+            <div class="fin-stat-value" id="finStatRev">—</div>
+          </div>
+          <div class="fin-big-stat fin-expenses">
+            <div class="fin-stat-label">المصروفات</div>
+            <div class="fin-stat-value" id="finStatExp">—</div>
+          </div>
+          <div class="fin-big-stat fin-profit">
+            <div class="fin-stat-label">صافي الربح</div>
+            <div class="fin-stat-value" id="finStatProfit">—</div>
+          </div>
+          <div class="fin-big-stat fin-margin">
+            <div class="fin-stat-label">هامش الربح</div>
+            <div class="fin-stat-value" id="finStatMargin">—</div>
+            <div class="fin-stat-sub" id="finStatHealth"></div>
+          </div>
+        </div>
+
+        <div class="chart-container" style="height:280px">
+          <canvas id="chart-fin-explorer"></canvas>
+        </div>
+
+        <div id="finBreakdown" style="margin-top:16px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">📅 المناسبات القادمة</h3>
+          <button class="btn btn-sm btn-outline" onclick="currentPage='events';renderPage();document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.page==='events'))">عرض الكل</button>
+        </div>
+        <table>
+          <thead><tr><th>الكود</th><th>المناسبة</th><th>العميل</th><th>التاريخ</th><th>المكان</th><th>الحالة</th></tr></thead>
+          <tbody>
+            ${stats.upcoming_events.length ? stats.upcoming_events.map(e => `
+              <tr onclick="showEventDetails(${e.id})">
+                <td><strong>${e.event_code}</strong></td>
+                <td>${e.title}</td>
+                <td>${e.customer_name}</td>
+                <td>${fmtDate(e.event_date)} ${e.event_start_time ? '<br><small>'+e.event_start_time+'</small>' : ''}</td>
+                <td>${e.venue_name || '-'}</td>
+                <td>${badge(e.status, STATUS_LABELS)}</td>
+              </tr>
+            `).join('') : '<tr><td colspan="6" class="empty">لا توجد مناسبات قادمة</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+    window.__dashStats = stats;
+    setTimeout(() => { renderDashboardCharts(events, items); renderFinanceCharts(stats); }, 50);
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+// ============ مستكشف المصروفات التفاعلي ============
+const FIN_CAT_LABELS = {materials:'خامات',transport:'نقل/مواصلات',food:'ضيافة',rental:'إيجارات',
+                       salaries:'أجور',utilities:'خدمات',maintenance:'صيانة',office:'مكتبية',misc:'متنوعة'};
+
+function renderFinanceCharts(stats) {
+  if (typeof Chart === 'undefined') return;
+  // ضع البيانات المتاحة في cache للوصول من updateFinExplorer
+  window.__finData = {
+    monthly_expenses: stats.monthly_expenses || [],
+    monthly_revenue: stats.monthly_revenue || [],
+    by_vendor: stats.expenses_by_vendor || [],
+    by_category: stats.expenses_by_category || [],
+    by_user: stats.expenses_by_user || [],
+    total_revenue: stats.total_revenue || 0,
+    total_collected: stats.total_collected || 0,
+    total_expenses: stats.total_expenses || 0,
+  };
+  // قيم افتراضية للفترة (آخر 6 أشهر)
+  const today = new Date();
+  const sixAgo = new Date(); sixAgo.setMonth(sixAgo.getMonth()-5); sixAgo.setDate(1);
+  const fEl = document.getElementById('finFrom');
+  const tEl = document.getElementById('finTo');
+  if (fEl && !fEl.value) fEl.value = sixAgo.toISOString().split('T')[0];
+  if (tEl && !tEl.value) tEl.value = today.toISOString().split('T')[0];
+  populateFinFilter();
+  updateFinExplorer();
+}
+
+function populateFinFilter() {
+  const view = document.getElementById('finView')?.value || 'month';
+  const sel = document.getElementById('finFilter');
+  const ctrl = document.getElementById('finFilterCtrl');
+  if (!sel || !ctrl) return;
+  const data = window.__finData || {};
+  let opts = '<option value="">— الكل —</option>';
+  let hidden = false;
+  if (view === 'vendor') {
+    (data.by_vendor || []).forEach(v => { opts += `<option value="${v.vendor}">${v.vendor}</option>`; });
+  } else if (view === 'category') {
+    (data.by_category || []).forEach(c => { opts += `<option value="${c.cat}">${FIN_CAT_LABELS[c.cat]||c.cat}</option>`; });
+  } else if (view === 'user') {
+    (data.by_user || []).forEach(u => { opts += `<option value="${u.user_name}">${u.user_name}</option>`; });
+  } else {
+    // month: أخفي الفلتر لأن الفترة تحدد كل شيء
+    hidden = true;
+  }
+  sel.innerHTML = opts;
+  ctrl.style.visibility = hidden ? 'hidden' : 'visible';
+}
+
+function resetFinFilter() {
+  const today = new Date();
+  const sixAgo = new Date(); sixAgo.setMonth(sixAgo.getMonth()-5); sixAgo.setDate(1);
+  document.getElementById('finFrom').value = sixAgo.toISOString().split('T')[0];
+  document.getElementById('finTo').value = today.toISOString().split('T')[0];
+  document.getElementById('finView').value = 'month';
+  document.getElementById('finFilter').value = '';
+  populateFinFilter();
+  updateFinExplorer();
+}
+
+function updateFinExplorer() {
+  const data = window.__finData || {};
+  const view = document.getElementById('finView')?.value || 'month';
+  const fromS = document.getElementById('finFrom')?.value;
+  const toS = document.getElementById('finTo')?.value;
+  const filter = document.getElementById('finFilter')?.value || '';
+  populateFinFilter();
+  // أعد ضبط قيمة الفلتر بعد تحديث الخيارات
+  document.getElementById('finFilter').value = filter;
+
+  // فلترة الشهور حسب الفترة
+  const inRange = m => {
+    if (!fromS && !toS) return true;
+    return (!fromS || m >= fromS.slice(0,7)) && (!toS || m <= toS.slice(0,7));
+  };
+
+  // إيرادات/مصروفات حسب الشهر داخل الفترة
+  const monRevs = (data.monthly_revenue || []).filter(r => inRange(r.month));
+  const monExps = (data.monthly_expenses || []).filter(r => inRange(r.month));
+  let totalRev = monRevs.reduce((s,r) => s + (r.revenue||0), 0);
+  let totalExp = monExps.reduce((s,r) => s + (r.total||0), 0);
+
+  // عند الفلترة بمورد/تصنيف/موظف، نعدّل الإجماليات
+  let breakdown = '';
+  let chartData = null;
+  let chartType = 'bar';
+  let chartLabels = [];
+  let chartDatasets = [];
+
+  if (view === 'month') {
+    // محور x = الشهر، أعمدة الإيرادات والمصروفات
+    const allMonths = Array.from(new Set([
+      ...monRevs.map(r => r.month),
+      ...monExps.map(r => r.month)
+    ])).sort();
+    const revByM = Object.fromEntries(monRevs.map(r => [r.month, r.revenue]));
+    const colByM = Object.fromEntries(monRevs.map(r => [r.month, r.collected]));
+    const expByM = Object.fromEntries(monExps.map(r => [r.month, r.total]));
+    chartLabels = allMonths;
+    chartDatasets = [
+      { label: 'الإيرادات', data: allMonths.map(m => revByM[m]||0), backgroundColor: ABELA_COLORS.success || '#7A8A5F' },
+      { label: 'المتحصّل', data: allMonths.map(m => colByM[m]||0), backgroundColor: ABELA_COLORS.accent || '#C9A560' },
+      { label: 'المصروفات', data: allMonths.map(m => expByM[m]||0), backgroundColor: ABELA_COLORS.danger || '#A04545' },
+    ];
+    // ربحية شهرية
+    breakdown = `<table><thead><tr><th>الشهر</th><th>إيرادات</th><th>مصروفات</th><th>الربح</th><th>الهامش</th></tr></thead><tbody>` +
+      allMonths.map(m => {
+        const r = revByM[m]||0, e = expByM[m]||0, p = r-e;
+        const margin = r ? Math.round((p/r)*100) : 0;
+        return `<tr><td><strong>${m}</strong></td><td>${fmtMoney(r)}</td><td>${fmtMoney(e)}</td>
+                <td style="color:${p>=0?'var(--success)':'var(--danger)'};font-weight:700">${fmtMoney(p)}</td>
+                <td>${margin}%</td></tr>`;
+      }).join('') + `</tbody></table>`;
+  } else if (view === 'vendor') {
+    let rows = data.by_vendor || [];
+    if (filter) rows = rows.filter(v => v.vendor === filter);
+    chartLabels = rows.map(v => v.vendor);
+    chartDatasets = [{
+      label: 'إجمالي الصرف', data: rows.map(v => v.total),
+      backgroundColor: PALETTE,
+    }];
+    chartType = filter ? 'doughnut' : 'bar';
+    if (filter) {
+      totalExp = rows.reduce((s,r) => s + (r.total||0), 0);
+    }
+    breakdown = `<table><thead><tr><th>المورد</th><th>الإجمالي</th><th>عدد الفواتير</th></tr></thead><tbody>` +
+      rows.map(v => `<tr><td><strong>${v.vendor}</strong></td><td>${fmtMoney(v.total)}</td><td>${v.n}</td></tr>`).join('') +
+      `</tbody></table>`;
+  } else if (view === 'category') {
+    let rows = data.by_category || [];
+    if (filter) rows = rows.filter(c => c.cat === filter);
+    chartLabels = rows.map(c => FIN_CAT_LABELS[c.cat]||c.cat);
+    chartDatasets = [{ data: rows.map(c => c.total), backgroundColor: PALETTE, borderWidth:2, borderColor:'#fff' }];
+    chartType = 'doughnut';
+    if (filter) {
+      totalExp = rows.reduce((s,r) => s + (r.total||0), 0);
+    }
+    breakdown = `<table><thead><tr><th>التصنيف</th><th>الإجمالي</th><th>عدد العمليات</th></tr></thead><tbody>` +
+      rows.map(c => `<tr><td><strong>${FIN_CAT_LABELS[c.cat]||c.cat}</strong></td><td>${fmtMoney(c.total)}</td><td>${c.n}</td></tr>`).join('') +
+      `</tbody></table>`;
+  } else if (view === 'user') {
+    let rows = data.by_user || [];
+    if (filter) rows = rows.filter(u => u.user_name === filter);
+    chartLabels = rows.map(u => u.user_name);
+    chartDatasets = [{ label: 'إجمالي الصرف', data: rows.map(u => u.total), backgroundColor: PALETTE }];
+    if (filter) {
+      totalExp = rows.reduce((s,r) => s + (r.total||0), 0);
+    }
+    breakdown = `<table><thead><tr><th>الموظف</th><th>الدور</th><th>عدد العمليات</th><th>الإجمالي</th></tr></thead><tbody>` +
+      rows.map(u => `<tr><td><strong>${u.user_name}</strong></td><td>${u.role||'-'}</td><td>${u.n||0}</td><td>${fmtMoney(u.total||0)}</td></tr>`).join('') +
+      `</tbody></table>`;
+  }
+
+  // البطاقات الكبيرة
+  const profit = totalRev - totalExp;
+  const margin = totalRev > 0 ? (profit/totalRev)*100 : 0;
+  document.getElementById('finStatRev').textContent = fmtMoney(totalRev);
+  document.getElementById('finStatExp').textContent = fmtMoney(totalExp);
+  const profitEl = document.getElementById('finStatProfit');
+  profitEl.textContent = fmtMoney(profit);
+  profitEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+  document.getElementById('finStatMargin').textContent = margin.toFixed(1) + '%';
+  // مؤشر صحة
+  const ratio = totalRev > 0 ? totalExp/totalRev : 0;
+  const health = ratio < 0.6 ? '🟢 آمن'
+                : ratio < 0.85 ? '🟡 متوسط'
+                : '🔴 مرتفع';
+  document.getElementById('finStatHealth').textContent = health;
+
+  // ارسم المخطط
+  const ctx = document.getElementById('chart-fin-explorer');
+  if (window.__finChart) { window.__finChart.destroy(); }
+  if (ctx && chartLabels.length) {
+    window.__finChart = new Chart(ctx, {
+      type: chartType,
+      data: { labels: chartLabels, datasets: chartDatasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: chartType === 'doughnut' || chartDatasets.length > 1, position: 'bottom' },
+          tooltip: { callbacks: { label: c => {
+            const v = c.parsed.y ?? c.parsed.x ?? c.parsed;
+            return `${c.dataset.label || c.label}: ${fmtMoney(v)}`;
+          }}}
+        },
+        scales: chartType === 'bar' ? {
+          y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('ar-SA') } }
+        } : {}
+      }
+    });
+  } else if (ctx) {
+    const c = ctx.getContext('2d');
+    c.clearRect(0,0,ctx.width,ctx.height);
+    c.fillStyle = '#999'; c.font = '14px sans-serif'; c.textAlign='center';
+    c.fillText('لا توجد بيانات للفترة المحددة', ctx.width/2, ctx.height/2);
+  }
+
+  // الجدول التفصيلي
+  document.getElementById('finBreakdown').innerHTML = breakdown;
+}
+
+function renderDashboardCharts(events, items) {
+  // إعدادات عامة لكل الرسوم
+  Chart.defaults.font.family = "'Segoe UI', Tahoma, Arial, sans-serif";
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = ABELA_COLORS.text;
+
+  // 1. رسم الإيرادات الشهرية (Line)
+  const months = [];
+  const revByMonth = {};
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('ar-SA', { month: 'long' });
+    months.push({ key, label });
+    revByMonth[key] = 0;
+  }
+  events.forEach(e => {
+    if (!e.event_date) return;
+    const k = e.event_date.slice(0, 7);
+    if (k in revByMonth && e.status !== 'cancelled') {
+      revByMonth[k] += (e.total_price || 0);
+    }
+  });
+  const ctx1 = document.getElementById('chart-revenue');
+  if (ctx1) {
+    charts.push(new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: months.map(m => m.label),
+        datasets: [{
+          label: 'الإيرادات (ر.س)',
+          data: months.map(m => revByMonth[m.key]),
+          borderColor: ABELA_COLORS.primary,
+          backgroundColor: ABELA_COLORS.primary + '22',
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: ABELA_COLORS.accent,
+          pointBorderColor: '#fff',
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: ABELA_COLORS.primaryDark,
+            padding: 12, titleFont: { size: 13 }, bodyFont: { size: 12 },
+            callbacks: { label: (c) => fmtMoney(c.parsed.y) }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: ABELA_COLORS.border }, ticks: { callback: (v) => v.toLocaleString('ar-SA') + ' ر.س', font: { size: 10 } } },
+          x: { grid: { display: false } }
+        }
+      }
+    }));
+  }
+
+  // 2. توزيع المناسبات حسب النوع (Doughnut)
+  const byType = {};
+  events.forEach(e => { byType[e.event_type] = (byType[e.event_type] || 0) + 1; });
+  const ctx2 = document.getElementById('chart-events-type');
+  if (ctx2 && Object.keys(byType).length) {
+    charts.push(new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(byType).map(k => EVENT_TYPES[k] || k),
+        datasets: [{
+          data: Object.values(byType),
+          backgroundColor: PALETTE,
+          borderColor: '#fff',
+          borderWidth: 3,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, usePointStyle: true } },
+          tooltip: { backgroundColor: ABELA_COLORS.primaryDark, padding: 12 }
+        },
+        cutout: '60%'
+      }
+    }));
+  }
+
+  // 3. حالات المناسبات (Bar)
+  const byStatus = {};
+  events.forEach(e => { byStatus[e.status] = (byStatus[e.status] || 0) + 1; });
+  const ctx3 = document.getElementById('chart-events-status');
+  if (ctx3 && Object.keys(byStatus).length) {
+    charts.push(new Chart(ctx3, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(byStatus).map(k => STATUS_LABELS[k] || k),
+        datasets: [{
+          data: Object.values(byStatus),
+          backgroundColor: PALETTE,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: ABELA_COLORS.primaryDark, padding: 10 }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: ABELA_COLORS.border }, ticks: { stepSize: 1, font: { size: 10 } } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    }));
+  }
+
+  // 4. توزيع المخزون (Pie)
+  const byWarehouse = { decorations: 0, accessories: 0 };
+  items.forEach(i => { byWarehouse[i.warehouse] = (byWarehouse[i.warehouse] || 0) + 1; });
+  const ctx4 = document.getElementById('chart-inventory');
+  if (ctx4) {
+    charts.push(new Chart(ctx4, {
+      type: 'pie',
+      data: {
+        labels: ['🎨 ديكورات', '✨ اكسسوارات'],
+        datasets: [{
+          data: [byWarehouse.decorations || 0, byWarehouse.accessories || 0],
+          backgroundColor: [ABELA_COLORS.primary, ABELA_COLORS.accent],
+          borderColor: '#fff',
+          borderWidth: 3,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, usePointStyle: true } },
+          tooltip: { backgroundColor: ABELA_COLORS.primaryDark, padding: 10 }
+        }
+      }
+    }));
+  }
+
+  // 5. حالة القطع (Polar Area)
+  const byCondition = {};
+  items.forEach(i => { byCondition[i.condition] = (byCondition[i.condition] || 0) + 1; });
+  const ctx5 = document.getElementById('chart-condition');
+  if (ctx5 && Object.keys(byCondition).length) {
+    const condColors = { excellent: ABELA_COLORS.success, good: ABELA_COLORS.primary, fair: ABELA_COLORS.warning, damaged: ABELA_COLORS.danger, lost: ABELA_COLORS.primaryDark };
+    charts.push(new Chart(ctx5, {
+      type: 'polarArea',
+      data: {
+        labels: Object.keys(byCondition).map(k => CONDITION_LABELS[k] || k),
+        datasets: [{
+          data: Object.values(byCondition),
+          backgroundColor: Object.keys(byCondition).map(k => (condColors[k] || ABELA_COLORS.primary) + 'cc'),
+          borderColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, usePointStyle: true } },
+          tooltip: { backgroundColor: ABELA_COLORS.primaryDark, padding: 10 }
+        },
+        scales: { r: { ticks: { display: false }, grid: { color: ABELA_COLORS.border } } }
+      }
+    }));
+  }
+}
+
+// ============ المناسبات ============
+async function renderEvents() {
+  try {
+    const events = await api('/events');
+    const html = `
+      <div class="page-header">
+        <h2 class="page-title">المناسبات (${events.length})</h2>
+        <button class="btn" onclick="showNewEventForm()">+ مناسبة جديدة</button>
+      </div>
+      <div class="card">
+        <div class="search-bar">
+          <input class="search-input" placeholder="بحث..." oninput="filterTable(this, 'events-table')">
+          <select class="form-select" style="width:200px" onchange="filterStatus(this.value)">
+            <option value="">كل الحالات</option>
+            ${Object.entries(STATUS_LABELS).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+          </select>
+        </div>
+        <table id="events-table">
+          <thead><tr>
+            <th>كود العقد</th><th>أمر التشغيل</th><th>الكود الداخلي</th><th>العنوان</th><th>العميل</th><th>النوع</th>
+            <th>التاريخ</th><th>الضيوف</th><th>السعر</th><th>الحالة</th>
+            <th class="actions-col">الإجراءات</th>
+          </tr></thead>
+          <tbody>
+            ${events.map(e => `
+              <tr onclick="showEventDetails(${e.id})">
+                <td><strong style="color:var(--gold);font-family:monospace;font-size:14px">${e.contract_code || '-'}</strong></td>
+                <td><strong style="color:var(--primary);font-family:monospace">${e.operation_order || '-'}</strong></td>
+                <td><small style="color:var(--text-light)">${e.event_code}</small></td>
+                <td>${e.title}</td>
+                <td>${e.customer_name}<br><small style="color:var(--text-light)">${e.customer_phone || ''}</small></td>
+                <td>${EVENT_TYPES[e.event_type] || e.event_type}</td>
+                <td>${fmtDate(e.event_date)}${e.actual_date && e.actual_date !== e.event_date ? `<br><small style="color:var(--accent)">فعلي: ${fmtDate(e.actual_date)}</small>` : ''}</td>
+                <td>${e.guests_count || '-'}</td>
+                <td>${fmtMoney(e.total_price)}</td>
+                <td>${badge(e.status, STATUS_LABELS)}</td>
+                <td class="actions-cell">${rowActions('event', e.id, e.title)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+    cache.events = events;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function filterStatus(status) {
+  if (!cache.events) return;
+  const filtered = status ? cache.events.filter(e => e.status === status) : cache.events;
+  const tbody = document.querySelector('#events-table tbody');
+  tbody.innerHTML = filtered.map(e => `
+    <tr onclick="showEventDetails(${e.id})">
+      <td><strong>${e.event_code}</strong></td>
+      <td>${e.title}</td>
+      <td>${e.customer_name}</td>
+      <td>${EVENT_TYPES[e.event_type] || e.event_type}</td>
+      <td>${fmtDate(e.event_date)}</td>
+      <td>${e.guests_count || '-'}</td>
+      <td>${fmtMoney(e.total_price)}</td>
+      <td>${badge(e.status, STATUS_LABELS)}</td>
+      <td class="actions-cell">${rowActions('event', e.id, e.title)}</td>
+    </tr>
+  `).join('');
+}
+
+async function showEventDetails(id) {
+  try {
+    const e = await api('/events/' + id);
+    const body = `
+      <div class="detail-grid">
+        <div class="detail-item"><strong>الكود</strong>${e.event_code}</div>
+        <div class="detail-item"><strong>الحالة</strong>${badge(e.status, STATUS_LABELS)}</div>
+        <div class="detail-item"><strong>العميل</strong>${e.customer_name}<br><small>${e.customer_phone || ''}</small></div>
+        <div class="detail-item"><strong>النوع</strong>${EVENT_TYPES[e.event_type]}</div>
+        <div class="detail-item"><strong>التاريخ والوقت</strong>${fmtDate(e.event_date)}<br><small>${e.event_start_time || ''} - ${e.event_end_time || ''}</small></div>
+        <div class="detail-item"><strong>المكان</strong>${e.venue_name || '-'}<br><small>${e.venue_address || ''}</small>${e.venue_map_url ? `<br><a href="${e.venue_map_url}" target="_blank" style="color:var(--primary);font-weight:600;display:inline-block;margin-top:4px">📍 افتح في الخرائط</a>` : ''}</div>
+        <div class="detail-item"><strong>عدد الضيوف</strong>${e.guests_count || '-'}</div>
+        <div class="detail-item"><strong>الثيم/الألوان</strong>${e.theme || '-'}<br><small>${e.color_palette || ''}</small></div>
+        <div class="detail-item"><strong>السعر الإجمالي</strong>${fmtMoney(e.total_price)}</div>
+        <div class="detail-item"><strong>المدفوع</strong>${fmtMoney(e.paid_amount)} <small style="color:var(--accent)">(متبقي: ${fmtMoney(e.total_price - e.paid_amount)})</small></div>
+        <div class="detail-item"><strong>التكلفة التقديرية</strong>${fmtMoney(e.cost_estimate)}</div>
+        <div class="detail-item"><strong>الربح التقديري</strong><span style="color:var(--success);font-weight:700">${fmtMoney(e.profit_estimate)}</span></div>
+      </div>
+
+      ${e.description ? `<p style="margin-bottom:16px;color:var(--text-light)">${e.description}</p>` : ''}
+
+      <h4 style="margin:16px 0 8px;color:var(--primary)">👷 الفريق المكلف (${e.assignments.length})</h4>
+      ${e.assignments.length ? `<table>
+        <thead><tr><th>الموظف</th><th>الدور</th><th>وقت الوصول</th><th>الحالة</th></tr></thead>
+        <tbody>${e.assignments.map(a => `
+          <tr><td>${a.user_name}</td><td>${a.role}</td><td>${a.arrival_time || '-'}</td><td>${a.status}</td></tr>
+        `).join('')}</tbody>
+      </table>` : '<p class="empty">لا توجد تكليفات</p>'}
+
+      <h4 style="margin:16px 0 8px;color:var(--primary)">📦 المخزون المحجوز (${e.inventory.length})</h4>
+      ${e.inventory.length ? `<table>
+        <thead><tr><th>الكود</th><th>الصنف</th><th>المستودع</th><th>الكمية</th><th>الحالة</th></tr></thead>
+        <tbody>${e.inventory.map(i => `
+          <tr><td><strong>${i.item_code}</strong></td><td>${i.item_name}</td><td>${i.warehouse}</td><td>${i.quantity}</td><td>${i.status}</td></tr>
+        `).join('')}</tbody>
+      </table>` : '<p class="empty">لا يوجد مخزون محجوز</p>'}
+
+      <h4 style="margin:16px 0 8px;color:var(--primary)">✅ المهام (${e.tasks.length})</h4>
+      ${e.tasks.length ? `<table>
+        <thead><tr><th>المهمة</th><th>المسؤول</th><th>الأولوية</th><th>الحالة</th></tr></thead>
+        <tbody>${e.tasks.map(t => `
+          <tr><td>${t.title}</td><td>${t.assignee_name || '-'}</td><td>${t.priority}</td><td>${t.status}</td></tr>
+        `).join('')}</tbody>
+      </table>` : '<p class="empty">لا توجد مهام</p>'}
+
+      <h4 style="margin:16px 0 8px;color:var(--primary)">💰 الدفعات (${e.payments.length})</h4>
+      ${e.payments.length ? `<table>
+        <thead><tr><th>التاريخ</th><th>المبلغ</th><th>الطريقة</th><th>النوع</th><th>المرجع</th></tr></thead>
+        <tbody>${e.payments.map(p => `
+          <tr><td>${fmtDateTime(p.payment_date)}</td><td><strong>${fmtMoney(p.amount)}</strong></td><td>${p.payment_method}</td><td>${p.payment_type}</td><td>${p.reference || '-'}</td></tr>
+        `).join('')}</tbody>
+      </table>` : '<p class="empty">لا توجد دفعات</p>'}
+    `;
+    openModal(`${e.title} — ${e.event_code}`, body, '<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function showNewEventForm() {
+  const customers = await api('/customers');
+  const body = `
+    <form id="event-form">
+      <div class="form-group">
+        <label class="form-label">العميل *</label>
+        <select class="form-select" name="customer_id" required>
+          <option value="">اختر العميل...</option>
+          ${customers.map(c => `<option value="${c.id}">${c.full_name} - ${c.phone}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">نوع المناسبة *</label>
+          <select class="form-select" name="event_type" required>
+            ${Object.entries(EVENT_TYPES).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">عنوان المناسبة *</label>
+          <input class="form-input" name="title" required placeholder="مثل: زفاف الأستاذ خالد">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">تاريخ المناسبة *</label>
+          <input class="form-input" type="date" name="event_date" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">عدد الضيوف</label>
+          <input class="form-input" type="number" name="guests_count" placeholder="مثل: 200">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">وقت البداية</label>
+          <input class="form-input" type="time" name="event_start_time">
+        </div>
+        <div class="form-group">
+          <label class="form-label">وقت النهاية</label>
+          <input class="form-input" type="time" name="event_end_time">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">المكان</label>
+        <input class="form-input" name="venue_name" placeholder="اسم القاعة أو المكان">
+      </div>
+      <div class="form-group">
+        <label class="form-label">العنوان</label>
+        <input class="form-input" name="venue_address" placeholder="عنوان تفصيلي">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">الثيم/الطابع</label>
+          <input class="form-input" name="theme" placeholder="مثل: ذهبي وأبيض">
+        </div>
+        <div class="form-group">
+          <label class="form-label">السعر الإجمالي (ر.س)</label>
+          <input class="form-input" type="number" name="total_price" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الوصف والملاحظات</label>
+        <textarea class="form-textarea" name="description" rows="3"></textarea>
+      </div>
+    </form>
+  `;
+  openModal('إضافة مناسبة جديدة', body, `
+    <button class="btn btn-success" onclick="saveEvent()">حفظ</button>
+    <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+  `);
+}
+
+async function saveEvent() {
+  const form = document.getElementById('event-form');
+  const data = Object.fromEntries(new FormData(form));
+  if (!data.customer_id || !data.title || !data.event_date) {
+    return toast('املأ الحقول المطلوبة', 'error');
+  }
+  data.customer_id = Number(data.customer_id);
+  data.guests_count = Number(data.guests_count) || null;
+  data.total_price = Number(data.total_price) || 0;
+  data.status = 'lead';
+  try {
+    const r = await api('/events', { method: 'POST', body: JSON.stringify(data) });
+    closeModal();
+    toast(`تمت إضافة المناسبة: ${r.event_code}`, 'success');
+    renderEvents();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ============ العملاء ============
+async function renderCustomers() {
+  try {
+    const customers = await api('/customers');
+    const html = `
+      <div class="page-header">
+        <h2 class="page-title">العملاء (${customers.length})</h2>
+        <button class="btn" onclick="showNewCustomerForm()">+ عميل جديد</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr>
+            <th>الاسم</th><th>🆔 الهوية</th><th>📱 الجوال</th><th>🚨 الطوارئ</th>
+            <th>التصنيف</th><th>المدينة</th><th>المناسبات</th><th>الإنفاق</th>
+            <th class="actions-col">الإجراءات</th>
+          </tr></thead>
+          <tbody>
+            ${customers.map(c => `
+              <tr onclick="showCustomerDetails(${c.id})">
+                <td>
+                  <strong>${c.full_name}</strong>
+                  ${c.full_name_en ? `<br><small dir="ltr" style="color:var(--text-light)">${c.full_name_en}</small>` : ''}
+                  ${c.notes ? '<br><small style="color:var(--text-light)">📝 '+c.notes+'</small>' : ''}
+                </td>
+                <td dir="ltr" style="text-align:right;font-family:monospace">${c.id_number || '-'}</td>
+                <td dir="ltr" style="text-align:right">${c.phone}</td>
+                <td dir="ltr" style="text-align:right;color:var(--danger)">${c.emergency_phone || '-'}</td>
+                <td>${badge(c.customer_type, {individual:'فرد', company:'شركة', vip:'VIP'})}</td>
+                <td>${c.city || '-'}</td>
+                <td>${c.total_events}</td>
+                <td>${fmtMoney(c.total_spent)}</td>
+                <td class="actions-cell">${rowActions('customer', c.id, c.full_name)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+async function showCustomerDetails(id) {
+  try {
+    const c = await api('/customers/' + id);
+    const body = `
+      <div class="detail-grid">
+        <div class="detail-item"><strong>الاسم الكامل</strong>${c.full_name}</div>
+        <div class="detail-item"><strong>التصنيف</strong>${badge(c.customer_type, {individual:'فرد', company:'شركة', vip:'VIP'})}</div>
+        <div class="detail-item"><strong>🆔 رقم الهوية</strong><span dir="ltr">${c.id_number || '-'}</span></div>
+        <div class="detail-item"><strong>📱 الجوال</strong><span dir="ltr">${c.phone}</span></div>
+        <div class="detail-item"><strong>📞 جوال إضافي</strong><span dir="ltr">${c.alt_phone || '-'}</span></div>
+        <div class="detail-item"><strong>🚨 جوال الطوارئ</strong><span dir="ltr" style="color:var(--danger);font-weight:700">${c.emergency_phone || '-'}</span></div>
+        <div class="detail-item"><strong>📧 البريد</strong>${c.email || '-'}</div>
+        <div class="detail-item"><strong>المدينة</strong>${c.city || '-'}</div>
+        ${c.full_name_en ? `<div class="detail-item"><strong>English Name</strong><span dir="ltr">${c.full_name_en}</span></div>` : ''}
+        ${c.full_name_ur ? `<div class="detail-item"><strong>Urdu Name</strong>${c.full_name_ur}</div>` : ''}
+        <div class="detail-item"><strong>إجمالي المناسبات</strong>${c.total_events}</div>
+      </div>
+      ${c.notes ? `<div style="background:#FEF3C7;padding:12px;border-radius:8px;margin-bottom:16px"><strong>📝 ملاحظات:</strong> ${c.notes}</div>` : ''}
+      <h4 style="margin:16px 0 8px;color:var(--primary)">🎉 مناسبات العميل (${c.events.length})</h4>
+      ${c.events.length ? `<table>
+        <thead><tr><th>الكود</th><th>المناسبة</th><th>التاريخ</th><th>السعر</th><th>الحالة</th></tr></thead>
+        <tbody>${c.events.map(e => `
+          <tr><td><strong>${e.event_code}</strong></td><td>${e.title}</td><td>${fmtDate(e.event_date)}</td><td>${fmtMoney(e.total_price)}</td><td>${badge(e.status, STATUS_LABELS)}</td></tr>
+        `).join('')}</tbody>
+      </table>` : '<p class="empty">لا توجد مناسبات</p>'}
+    `;
+    openModal(c.full_name, body, '<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function showNewCustomerForm() {
+  const body = `
+    <form id="customer-form">
+      <div class="form-group">
+        <label class="form-label">الاسم الكامل *</label>
+        <input class="form-input" name="full_name" required placeholder="اسم العميل بالعربي">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">الاسم بالإنجليزي</label>
+          <input class="form-input" name="full_name_en" dir="ltr" placeholder="English name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الاسم بالأوردو</label>
+          <input class="form-input" name="full_name_ur" dir="rtl" placeholder="نام اردو میں">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">🆔 رقم الهوية / الإقامة</label>
+          <input class="form-input" name="id_number" dir="ltr" placeholder="10 أرقام">
+        </div>
+        <div class="form-group">
+          <label class="form-label">📱 الجوال *</label>
+          <input class="form-input" name="phone" required dir="ltr" placeholder="05xxxxxxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">📞 جوال إضافي</label>
+          <input class="form-input" name="alt_phone" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🚨 جوال الطوارئ</label>
+          <input class="form-input" name="emergency_phone" dir="ltr" placeholder="رقم في حالة عدم الرد">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">📧 البريد الإلكتروني</label>
+          <input class="form-input" type="email" name="email" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">التصنيف</label>
+          <select class="form-select" name="customer_type">
+            <option value="individual">فرد</option>
+            <option value="vip">VIP</option>
+            <option value="company">شركة</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">المدينة</label>
+          <input class="form-input" name="city">
+        </div>
+        <div class="form-group">
+          <label class="form-label">العنوان</label>
+          <input class="form-input" name="address">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات (تفضيلات، حساسيات...)</label>
+        <textarea class="form-textarea" name="notes" rows="2" placeholder="مثل: تحب الورد الأبيض، حساسية من الفول السوداني"></textarea>
+      </div>
+    </form>
+  `;
+  openModal('إضافة عميل جديد', body, `
+    <button class="btn btn-success" onclick="saveCustomer()">حفظ</button>
+    <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+  `);
+}
+
+async function saveCustomer() {
+  const data = Object.fromEntries(new FormData(document.getElementById('customer-form')));
+  if (!data.full_name || !data.phone) return toast('املأ الحقول المطلوبة', 'error');
+  try {
+    await api('/customers', { method: 'POST', body: JSON.stringify(data) });
+    closeModal();
+    toast('تمت إضافة العميل بنجاح', 'success');
+    renderCustomers();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ============ المخزون ============
+async function renderInventory() {
+  try {
+    const items = await api('/inventory');
+    const html = `
+      <div class="page-header">
+        <h2 class="page-title">المخزون (${items.length} قطعة)</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="exportInventoryCSV()">📊 تصدير Excel</button>
+          <button class="btn" onclick="showNewItemForm()">+ صنف جديد</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="warehouse-tabs">
+          <button class="wh-tab active" data-wh="" onclick="switchInvTab(this,'')">📦 الكل</button>
+          <button class="wh-tab" data-wh="decorations" onclick="switchInvTab(this,'decorations')">🎨 الديكورات</button>
+          <button class="wh-tab" data-wh="accessories" onclick="switchInvTab(this,'accessories')">✨ الأكسسوارات</button>
+          <button class="wh-tab" data-wh="zulfi" onclick="switchInvTab(this,'zulfi')">📍 فرع الزلفي</button>
+          <button class="wh-tab" data-wh="raw_riyadh" onclick="switchInvTab(this,'raw_riyadh')">🧶 خام الرياض</button>
+          <button class="wh-tab" data-wh="raw_zulfi" onclick="switchInvTab(this,'raw_zulfi')">🧶 خام الزلفي</button>
+        </div>
+        <div class="search-bar">
+          <input class="search-input" id="inv-search" placeholder="بحث بالاسم أو الكود..." oninput="filterInventory()">
+          <input type="hidden" id="inv-warehouse" value="">
+          <select class="form-select" style="width:200px" id="inv-status" onchange="filterInventory()">
+            <option value="">كل الحالات</option>
+            ${Object.entries(ITEM_STATUS_LABELS).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+          </select>
+        </div>
+        <table id="inventory-table">
+          <thead><tr>
+            <th>الصورة</th>
+            <th>الكود</th><th>الصنف</th><th>المستودع</th>
+            <th>المتاح/الإجمالي</th><th>سعر الإيجار</th>
+            <th>الحالة المادية</th><th>الموقع</th><th>الحالة</th>
+            <th class="actions-col">الإجراءات</th>
+          </tr></thead>
+          <tbody>
+            ${items.map(i => `
+              <tr onclick="showItemDetails(${i.id})">
+                <td>${itemThumb(i.main_image)}</td>
+                <td><strong style="font-family:monospace">${i.item_code}</strong></td>
+                <td>${i.name}<br><small style="color:var(--text-light)">${i.category_name || ''}</small></td>
+                <td>${i.warehouse === 'decorations' ? '🎨 ديكورات' : '✨ اكسسوارات'}</td>
+                <td><strong>${i.quantity_available}</strong> / ${i.quantity_total}</td>
+                <td>${fmtMoney(i.rental_price)}</td>
+                <td>${badge(i.condition, CONDITION_LABELS)}</td>
+                <td>${i.location_in_warehouse || '-'}</td>
+                <td>${badge(i.status, ITEM_STATUS_LABELS)}</td>
+                <td class="actions-cell">${rowActions('inventory', i.id, i.name)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+    cache.inventory = items;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function switchInvTab(btn, w) {
+  document.querySelectorAll('.wh-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('inv-warehouse').value = w;
+  filterInventory();
+}
+function filterInventory() {
+  if (!cache.inventory) return;
+  const q = document.getElementById('inv-search').value.toLowerCase();
+  const w = document.getElementById('inv-warehouse').value;
+  const s = document.getElementById('inv-status').value;
+  let filtered = cache.inventory;
+  if (q) filtered = filtered.filter(i => i.name.toLowerCase().includes(q) || i.item_code.toLowerCase().includes(q));
+  if (w) {
+    if (w === 'zulfi') filtered = filtered.filter(i => i.branch === 'zulfi');
+    else if (w === 'raw_riyadh') filtered = filtered.filter(i => i.warehouse === 'factory_raw' && (i.branch || 'riyadh') === 'riyadh');
+    else if (w === 'raw_zulfi') filtered = filtered.filter(i => i.warehouse === 'factory_raw' && i.branch === 'zulfi');
+    else filtered = filtered.filter(i => i.warehouse === w && (i.branch || 'riyadh') === 'riyadh');
+  }
+  if (s) filtered = filtered.filter(i => i.status === s);
+  document.querySelector('#inventory-table tbody').innerHTML = filtered.map(i => `
+    <tr onclick="showItemDetails(${i.id})">
+      <td>${itemThumb(i.main_image)}</td>
+      <td><strong style="font-family:monospace">${i.item_code}</strong></td>
+      <td>${i.name}<br><small style="color:var(--text-light)">${i.category_name || ''}</small></td>
+      <td>${i.warehouse === 'decorations' ? '🎨 ديكورات' : '✨ اكسسوارات'}</td>
+      <td><strong>${i.quantity_available}</strong> / ${i.quantity_total}</td>
+      <td>${fmtMoney(i.rental_price)}</td>
+      <td>${badge(i.condition, CONDITION_LABELS)}</td>
+      <td>${i.location_in_warehouse || '-'}</td>
+      <td>${badge(i.status, ITEM_STATUS_LABELS)}</td>
+      <td class="actions-cell">${rowActions('inventory', i.id, i.name)}</td>
+    </tr>
+  `).join('');
+}
+
+async function showItemDetails(id) {
+  try {
+    const i = await api('/inventory/' + id);
+    const body = `
+      <div class="detail-grid">
+        <div class="detail-item"><strong>الكود</strong>${i.item_code}</div>
+        <div class="detail-item"><strong>الحالة المادية</strong>${badge(i.condition, CONDITION_LABELS)}</div>
+        <div class="detail-item"><strong>المستودع</strong>${i.warehouse}</div>
+        <div class="detail-item"><strong>التصنيف</strong>${i.category_name || '-'}</div>
+        <div class="detail-item"><strong>تكلفة الوحدة</strong>${fmtMoney(i.unit_cost)}</div>
+        <div class="detail-item"><strong>سعر الإيجار</strong>${fmtMoney(i.rental_price)}</div>
+        <div class="detail-item"><strong>المتاح</strong>${i.quantity_available} / ${i.quantity_total}</div>
+        <div class="detail-item"><strong>عدد مرات الاستخدام</strong>${i.times_used}</div>
+        <div class="detail-item"><strong>الموقع</strong>${i.location_in_warehouse || '-'}</div>
+        <div class="detail-item"><strong>آخر استخدام</strong>${fmtDate(i.last_used_date)}</div>
+      </div>
+      ${i.notes ? `<p style="margin-bottom:16px">${i.notes}</p>` : ''}
+      <h4 style="margin:16px 0 8px;color:var(--primary)">📋 سجل الحركات (${i.movements.length})</h4>
+      ${i.movements.length ? `<table>
+        <thead><tr><th>التاريخ</th><th>النوع</th><th>المناسبة</th><th>الكمية</th><th>الموظف</th><th>ملاحظات</th></tr></thead>
+        <tbody>${i.movements.map(m => `
+          <tr><td>${fmtDateTime(m.movement_date)}</td><td>${m.movement_type}</td><td>${m.event_title || '-'}</td><td>${m.quantity}</td><td>${m.user_name}</td><td>${m.notes || '-'}</td></tr>
+        `).join('')}</tbody>
+      </table>` : '<p class="empty">لا توجد حركات مسجلة</p>'}
+    `;
+    openModal(`${i.name} — ${i.item_code}`, body, '<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function showNewItemForm() {
+  const cats = await api('/categories');
+  const body = `
+    <form id="item-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">كود الصنف (باركود) *</label>
+          <input class="form-input" name="item_code" required placeholder="مثل: DEC-T-005">
+        </div>
+        <div class="form-group">
+          <label class="form-label">المستودع *</label>
+          <select class="form-select" name="warehouse" required>
+            <option value="decorations">ديكورات</option>
+            <option value="accessories">اكسسوارات</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">اسم الصنف *</label>
+        <input class="form-input" name="name" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">التصنيف</label>
+          <select class="form-select" name="category_id">
+            <option value="">بدون</option>
+            ${cats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">العدد الإجمالي</label>
+          <input class="form-input" type="number" name="quantity_total" value="1" min="1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">تكلفة الوحدة (ر.س)</label>
+          <input class="form-input" type="number" name="unit_cost" step="0.01" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">سعر الإيجار للمناسبة (ر.س)</label>
+          <input class="form-input" type="number" name="rental_price" step="0.01" value="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الموقع في المستودع</label>
+        <input class="form-input" name="location_in_warehouse" placeholder="مثل: رف A1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات</label>
+        <textarea class="form-textarea" name="notes" rows="2"></textarea>
+      </div>
+    </form>
+  `;
+  openModal('إضافة صنف جديد', body, `
+    <button class="btn btn-success" onclick="saveItem()">حفظ</button>
+    <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+  `);
+}
+
+async function saveItem() {
+  const data = Object.fromEntries(new FormData(document.getElementById('item-form')));
+  if (!data.item_code || !data.name || !data.warehouse) return toast('املأ الحقول المطلوبة', 'error');
+  data.category_id = Number(data.category_id) || null;
+  data.quantity_total = Number(data.quantity_total) || 1;
+  data.unit_cost = Number(data.unit_cost) || 0;
+  data.rental_price = Number(data.rental_price) || 0;
+  try {
+    await api('/inventory', { method: 'POST', body: JSON.stringify(data) });
+    closeModal();
+    toast('تمت إضافة الصنف بنجاح', 'success');
+    renderInventory();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ============ خطط العمل ============
+// قائمة المناسبات → اضغط مناسبة → اضغط خطة → بطاقات الخطط الفرعية مع نسبة الإنجاز
+async function renderWorkPlansList() {
+  try {
+    const [events, plans] = await Promise.all([api('/events'), api('/workplans')]);
+    // اربط كل مناسبة بخططها
+    const byEvent = {};
+    plans.forEach(p => {
+      if (!byEvent[p.event_id]) byEvent[p.event_id] = [];
+      byEvent[p.event_id].push(p);
+    });
+    const html = `
+      <div class="page-header">
+        <h2 class="page-title">📋 خطط العمل</h2>
+        <a href="/dashboard/plan_builder.html" class="btn">+ بناء خطة جديدة</a>
+      </div>
+      <div class="card">
+        <div class="search-bar">
+          <input class="search-input" id="wp-search" placeholder="بحث بالعميل أو الكود..." oninput="filterWorkPlans()">
+        </div>
+        <table id="workplans-table">
+          <thead><tr>
+            <th>كود المناسبة</th><th>أمر التشغيل</th><th>العميل</th>
+            <th>نوع المناسبة</th><th>التاريخ المتوقع</th>
+            <th>عدد الخطط</th><th>حالة الخطط</th><th class="actions-col">عرض</th>
+          </tr></thead>
+          <tbody>
+            ${events.map(e => {
+              const evPlans = byEvent[e.id] || [];
+              const statusBadge = evPlans.length === 0
+                ? '<span class="badge badge-lead">بدون خطة</span>'
+                : evPlans.some(p => p.status==='executing' || p.status==='in_progress')
+                  ? '<span class="badge badge-in_progress">قيد التنفيذ</span>'
+                  : evPlans.some(p => p.status==='approved')
+                    ? '<span class="badge badge-completed">معتمدة</span>'
+                    : '<span class="badge badge-quoted">مسودة</span>';
+              return `<tr onclick="openEventWorkPlans(${e.id})" style="cursor:pointer">
+                <td><strong>${e.event_code}</strong></td>
+                <td>${e.operation_order || '-'}</td>
+                <td>${e.customer_name}</td>
+                <td>${EVENT_TYPES[e.event_type] || e.event_type}</td>
+                <td>${fmtDate(e.event_date)}</td>
+                <td><strong>${evPlans.length}</strong></td>
+                <td>${statusBadge}</td>
+                <td class="actions-cell"><button class="action-btn action-edit" onclick="event.stopPropagation();openEventWorkPlans(${e.id})">📂</button></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+    cache.workPlansEvents = events;
+    cache.workPlansByEvent = byEvent;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function filterWorkPlans() {
+  const q = (document.getElementById('wp-search')?.value || '').toLowerCase();
+  const events = (cache.workPlansEvents || []).filter(e =>
+    !q || e.customer_name.toLowerCase().includes(q) || (e.event_code||'').toLowerCase().includes(q)
+       || (e.operation_order||'').toLowerCase().includes(q));
+  const byEvent = cache.workPlansByEvent || {};
+  document.querySelector('#workplans-table tbody').innerHTML = events.map(e => {
+    const evPlans = byEvent[e.id] || [];
+    return `<tr onclick="openEventWorkPlans(${e.id})" style="cursor:pointer">
+      <td><strong>${e.event_code}</strong></td>
+      <td>${e.operation_order || '-'}</td>
+      <td>${e.customer_name}</td>
+      <td>${EVENT_TYPES[e.event_type] || e.event_type}</td>
+      <td>${fmtDate(e.event_date)}</td>
+      <td><strong>${evPlans.length}</strong></td>
+      <td></td>
+      <td class="actions-cell"><button class="action-btn action-edit" onclick="event.stopPropagation();openEventWorkPlans(${e.id})">📂</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function openEventWorkPlans(eventId) {
+  try {
+    const e = await api('/events/' + eventId);
+    const plans = (await api('/workplans')).filter(p => p.event_id === eventId);
+    const html = `
+      <div class="page-header" style="align-items:flex-start">
+        <div>
+          <a href="#" onclick="event.preventDefault();renderWorkPlansList()" style="color:var(--text-light);text-decoration:none;font-size:13px">‹ رجوع لقائمة خطط العمل</a>
+          <h2 class="page-title" style="margin-top:4px">📋 خطط ${e.title}</h2>
+          <small style="color:var(--text-light)">${e.event_code} · ${e.operation_order || ''} · ${fmtDate(e.event_date)}${e.actual_date ? ' (فعلي: '+fmtDate(e.actual_date)+')' : ''}</small>
+        </div>
+        <button class="btn" onclick="addPlanForEvent(${eventId})">+ خطة عمل جديدة</button>
+      </div>
+      ${plans.length === 0
+        ? `<div class="card" style="text-align:center;padding:40px">
+            <p style="color:var(--text-light);margin-bottom:16px">لا توجد خطط عمل لهذه المناسبة بعد.</p>
+            <button class="btn" onclick="addPlanForEvent(${eventId})">+ إنشاء خطة جديدة</button>
+          </div>`
+        : '<div class="card-grid">' + plans.map(p => renderPlanCard(p)).join('') + '</div>'
+      }
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+function renderPlanCard(p) {
+  const isWarehouse = p.title && p.title.includes('warehouse');
+  const isFactory = p.title && p.title.includes('factory');
+  const icon = isWarehouse ? '📦' : isFactory ? '🏭' : '📋';
+  const statusColor = {draft:'#E5E7EB', submitted:'#DBEAFE', approved:'#D1FAE5',
+                       executing:'#FED7AA', completed:'#D1FAE5', closed:'#E5E7EB'}[p.status] || '#E5E7EB';
+  const itemsCount = p.items_count || 0;
+  return `
+    <div class="plan-card" onclick="openPlanDetails(${p.id})">
+      <div class="plan-card-header" style="background:${statusColor}">
+        <span class="plan-card-icon">${icon}</span>
+        <div>
+          <strong>${p.plan_code}</strong>
+          <small style="display:block;color:var(--text-light)">${p.title.replace(/\[(warehouse|factory)\]/g,'').trim()}</small>
+        </div>
+      </div>
+      <div class="plan-card-body">
+        <div class="plan-stat"><span>📑 البنود</span><strong>${itemsCount}</strong></div>
+        <div class="plan-stat"><span>📊 الحالة</span><span class="badge">${p.status}</span></div>
+        <div class="plan-stat"><span>📋 الفرعية</span><strong>${p.checklists_count || 0}</strong></div>
+      </div>
+      <div class="plan-card-actions">
+        <button class="action-btn action-edit" onclick="event.stopPropagation();openPlanDetails(${p.id})">عرض/تعديل ✏️</button>
+        <button class="action-btn action-delete" onclick="event.stopPropagation();confirmDelete('workplan',${p.id},'${p.plan_code}')">🗑️</button>
+      </div>
+    </div>
+  `;
+}
+
+async function openPlanDetails(planId) {
+  try {
+    const plan = await api('/workplans/' + planId);
+    // الخطط الفرعية لهذه المناسبة (تنفيذ/مصنع/إلخ)
+    const subplans = plan.checklists || [];
+    const html = `
+      <div class="page-header" style="align-items:flex-start">
+        <div>
+          <a href="#" onclick="event.preventDefault();openEventWorkPlans(${plan.event_id})" style="color:var(--text-light);text-decoration:none;font-size:13px">‹ رجوع لخطط المناسبة</a>
+          <h2 class="page-title" style="margin-top:4px">📋 ${plan.plan_code}</h2>
+          <small style="color:var(--text-light)">${plan.event_title} · ${plan.customer_name}</small>
+        </div>
+        <div style="display:flex;gap:8px">
+          <a href="/dashboard/plan_print.html?plan_id=${plan.id}" target="_blank" class="btn btn-outline">🖨 طباعة كاملة</a>
+          <a href="/dashboard/plan_print_cnc.html?plan_id=${plan.id}" target="_blank" class="btn">🛠 خطة الفني (CNC + ستيكر)</a>
+          <button class="btn btn-outline" onclick="confirmDelete('workplan',${plan.id},'${plan.plan_code}')">🗑️ حذف</button>
+        </div>
+      </div>
+
+      <h3 style="margin:24px 0 12px;color:var(--primary)">📑 بنود الخطة (${plan.items.length})</h3>
+      <div class="card">
+        <table>
+          <thead><tr><th>#</th><th>الصورة</th><th>المستودع</th><th>الاسم</th><th>الكمية</th><th>ملاحظات</th><th class="actions-col">إجراءات</th></tr></thead>
+          <tbody>
+            ${plan.items.map((it,i) => `
+              <tr>
+                <td>${i+1}</td>
+                <td>${itemThumb(it.sample_image)}</td>
+                <td>${it.target_warehouse || '-'}</td>
+                <td><strong>${it.custom_name || '-'}</strong></td>
+                <td>${it.quantity || ''}</td>
+                <td><small>${(it.notes||'').substring(0,80)}${(it.notes||'').length>80?'…':''}</small></td>
+                <td class="actions-cell">
+                  <button class="action-btn action-edit" onclick="editPlanItem(${it.id})">✏️</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin:24px 0 12px;color:var(--primary)">📊 الخطط الفرعية - بطاقات التقدّم (${subplans.length})</h3>
+      ${subplans.length === 0
+        ? '<div class="card" style="padding:24px;text-align:center;color:var(--text-light)">لم تُنشأ خطط فرعية بعد. ستظهر تلقائياً عند الموافقة على الخطة.</div>'
+        : '<div class="card-grid">' + subplans.map(sp => renderSubPlanCard(sp)).join('') + '</div>'
+      }
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+function renderSubPlanCard(sp) {
+  const total = sp.total_items || 0;
+  const done = sp.picked_items || 0;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const teamIcons = {decorations:'🎨', accessories:'✨', factory:'🏭',
+                     hospitality:'🍽️', purchasing:'🛒', risk:'⚠️',
+                     execution:'⚙️', supervision:'👁️'};
+  const icon = teamIcons[sp.warehouse] || '📋';
+  return `
+    <div class="plan-card">
+      <div class="plan-card-header" style="background:#F8F4ED">
+        <span class="plan-card-icon">${icon}</span>
+        <div>
+          <strong>${sp.warehouse}</strong>
+          <small style="display:block;color:var(--text-light)">${sp.assignee_name || 'غير مسند'}</small>
+        </div>
+      </div>
+      <div class="plan-card-body">
+        <div class="progress-row">
+          <small>${done}/${total} بند منجز</small>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <small style="color:var(--primary);font-weight:700">${pct}%</small>
+        </div>
+        <div class="plan-stat"><span>الحالة</span><span class="badge">${sp.status}</span></div>
+      </div>
+    </div>
+  `;
+}
+
+async function addPlanForEvent(eventId) {
+  toast('استخدم "بناء خطة جديدة" من القائمة الجانبية لإنشاء خطة بالتفاصيل الكاملة', 'info');
+}
+
+async function editPlanItem(itemId) {
+  // فتح نموذج تعديل لبند الخطة
+  toast('قريباً: تعديل بند الخطة', 'info');
+}
+
+// ============ الفرق ============
+// ============ الفرق - عرض شامل لكل فريق مع خططه ومهامه ============
+const TEAM_TYPE_PLAN_MAP = {
+  // كل نوع فريق له نوع خطة فرعية مرتبط
+  'warehouse_decor': 'warehouse_decor',
+  'warehouse_acc': 'warehouse_acc',
+  'factory': 'factory',
+  'purchasing': 'purchases',
+  'hospitality': 'hospitality',
+  'field': 'execution',
+  'supervision': 'supervision',
+};
+const TEAM_TYPE_ROLE_MAP = {
+  'warehouse_decor': ['warehouse_decor','warehouse'],
+  'warehouse_acc': ['warehouse_acc','warehouse'],
+  'factory': ['factory'],
+  'purchasing': ['purchasing'],
+  'hospitality': ['hospitality'],
+  'field': ['field'],
+  'supervision': ['supervisor'],
+  'project_management': ['project_manager','designer'],
+  'customer_service': ['customer_service'],
+  'finance': ['finance'],
+  'executive': ['owner','general_manager','admin'],
+};
+const TEAM_ICONS = {
+  executive:'👑', project_management:'📋', supervision:'👁',
+  field:'⚙️', warehouse_decor:'🎨', warehouse_acc:'✨',
+  factory:'🏭', hospitality:'🍽', customer_service:'📝',
+  finance:'💰', purchasing:'🛒'
+};
+
+async function renderTeams() {
+  try {
+    const [teams, users, subplans, events] = await Promise.all([
+      api('/teams'),
+      api('/users'),
+      api('/sub-plans').catch(() => []),
+      api('/events'),
+    ]);
+    cache._teamsData = { teams, users, subplans, events };
+
+    const teamMembers = (team) => {
+      const allowedRoles = TEAM_TYPE_ROLE_MAP[team.type] || [];
+      return users.filter(u => u.team_id === team.id || allowedRoles.includes(u.role));
+    };
+    const teamPlans = (team) => {
+      const planType = TEAM_TYPE_PLAN_MAP[team.type];
+      if (!planType) return [];
+      return subplans.filter(p => p.plan_type === planType);
+    };
+
+    const html = `
+      <div class="page-header">
+        <h2 class="page-title">👷 الفرق (${teams.length})</h2>
+        <small style="color:var(--text-light)">اضغط على بطاقة الفريق لعرض خططه ومهامه</small>
+      </div>
+      <div class="card-grid">
+        ${teams.map(t => {
+          const members = teamMembers(t);
+          const tplans = teamPlans(t);
+          const activePlans = tplans.filter(p => p.status !== 'completed' && p.status !== 'closed');
+          const completedPlans = tplans.filter(p => p.status === 'completed' || p.status === 'closed');
+          const totalItems = tplans.reduce((s,p) => s + (p.total_items || 0), 0);
+          const doneItems = tplans.reduce((s,p) => s + (p.done_items || 0), 0);
+          const pct = totalItems ? Math.round((doneItems/totalItems)*100) : 0;
+          return `
+            <div class="plan-card" onclick="openTeamPage(${t.id})">
+              <div class="plan-card-header" style="background:linear-gradient(135deg,var(--primary-light),var(--accent));color:#fff">
+                <span class="plan-card-icon">${TEAM_ICONS[t.type] || '👥'}</span>
+                <div>
+                  <strong>${t.name}</strong>
+                  <small style="display:block;opacity:0.9">${t.description || ''}</small>
+                </div>
+              </div>
+              <div class="plan-card-body">
+                <div class="plan-stat"><span>👤 الأعضاء</span><strong>${members.length}</strong></div>
+                <div class="plan-stat"><span>📋 خطط نشطة</span><strong>${activePlans.length}</strong></div>
+                <div class="plan-stat"><span>✅ مكتملة</span><strong>${completedPlans.length}</strong></div>
+                <div class="progress-row" style="margin-top:10px">
+                  <small>${doneItems}/${totalItems} بند منجز</small>
+                  <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                  <small style="color:var(--primary);font-weight:700">${pct}%</small>
+                </div>
+              </div>
+              <div class="plan-card-actions">
+                <button class="action-btn action-edit" onclick="event.stopPropagation();openTeamPage(${t.id})">📂 عرض الفريق</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+async function openTeamPage(teamId) {
+  try {
+    const data = cache._teamsData || {};
+    const team = (data.teams || []).find(t => t.id === teamId);
+    if (!team) return toast('فريق غير موجود', 'error');
+
+    const allowedRoles = TEAM_TYPE_ROLE_MAP[team.type] || [];
+    const members = (data.users || []).filter(u =>
+      u.team_id === team.id || allowedRoles.includes(u.role));
+    const planType = TEAM_TYPE_PLAN_MAP[team.type];
+    const subplans = planType ? (data.subplans || []).filter(p => p.plan_type === planType) : [];
+
+    // اجلب المهام للفريق (event_tasks لكل عضو)
+    const memberIds = new Set(members.map(m => m.id));
+    let allTasks = [];
+    try {
+      // نجمع المهام عبر كل المناسبات النشطة (طريقة بسيطة)
+      const events = data.events || [];
+      const promises = events.slice(0, 30).map(e =>
+        api('/events/' + e.id).then(d => (d.tasks || []).map(t => ({...t, event_title:d.title, event_code:d.event_code, event_date:d.event_date})))
+      );
+      const results = await Promise.all(promises);
+      allTasks = results.flat().filter(t => memberIds.has(t.assigned_to));
+    } catch(e){}
+
+    const html = `
+      <div class="page-header" style="align-items:flex-start">
+        <div>
+          <a href="#" onclick="event.preventDefault();renderTeams()" style="color:var(--text-light);text-decoration:none;font-size:13px">‹ رجوع للفرق</a>
+          <h2 class="page-title" style="margin-top:4px">${TEAM_ICONS[team.type]||'👥'} ${team.name}</h2>
+          <small style="color:var(--text-light)">${team.description || ''}</small>
+        </div>
+      </div>
+
+      <!-- ===== أعضاء الفريق ===== -->
+      <h3 style="margin:20px 0 10px;color:var(--primary)">👤 أعضاء الفريق (${members.length})</h3>
+      <div class="card">
+        <table>
+          <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الجوال</th><th>الحالة</th></tr></thead>
+          <tbody>
+            ${members.length ? members.map(u => `
+              <tr>
+                <td><strong>${u.full_name}</strong></td>
+                <td><code>${u.username}</code></td>
+                <td>${ROLE_LABELS[u.role] || u.role}</td>
+                <td dir="ltr">${u.phone || '-'}</td>
+                <td>${u.is_active ? '<span class="badge badge-completed">نشط</span>' : '<span class="badge badge-cancelled">معطّل</span>'}</td>
+              </tr>
+            `).join('') : '<tr><td colspan="5" class="empty">لا يوجد أعضاء معيّنون</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ===== الخطط الفرعية للفريق ===== -->
+      <h3 style="margin:24px 0 10px;color:var(--primary)">📋 خطط الفريق (${subplans.length})</h3>
+      ${subplans.length === 0
+        ? '<div class="card" style="padding:24px;text-align:center;color:var(--text-light)">لا توجد خطط فرعية مسندة لهذا الفريق حالياً.</div>'
+        : '<div class="card-grid">' + subplans.map(p => {
+            const pct = p.total_items ? Math.round((p.done_items/p.total_items)*100) : 0;
+            const prio = (typeof computeRiskPriority==='function')
+              ? computeRiskPriority(p.event_date)
+              : {level:'low', icon:'', label:''};
+            return `
+              <div class="plan-card">
+                <div class="plan-card-header" style="background:#F8F4ED">
+                  <div style="flex:1">
+                    <strong>${p.event_title || ''}</strong>
+                    <small style="display:block;color:var(--text-light)">📅 ${p.event_date || '-'}</small>
+                  </div>
+                  <span class="risk-${prio.level}" style="font-size:11px">${prio.icon} ${prio.label}</span>
+                </div>
+                <div class="plan-card-body">
+                  <div class="plan-stat"><span>👤 المسؤول</span><strong>${p.assigned_name || 'غير معيّن'}</strong></div>
+                  <div class="progress-row">
+                    <small>${p.done_items}/${p.total_items} بند منجز</small>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                    <small style="color:var(--primary);font-weight:700">${pct}%</small>
+                  </div>
+                  <div class="plan-stat"><span>📊 الحالة</span><span class="badge badge-${p.status}">${p.status}</span></div>
+                </div>
+                <div class="plan-card-actions">
+                  <a href="/dashboard/plan_print.html?sub_plan_id=${p.id}" target="_blank" class="action-btn">🖨 طباعة</a>
+                </div>
+              </div>
+            `;
+          }).join('') + '</div>'
+      }
+
+      <!-- ===== جدول المهام ===== -->
+      <h3 style="margin:24px 0 10px;color:var(--primary)">✅ مهام الفريق المفتوحة (${allTasks.length})</h3>
+      <div class="card">
+        <table>
+          <thead><tr>
+            <th>الأولوية</th><th>العنوان</th><th>المناسبة</th>
+            <th>المسؤول</th><th>الموعد</th><th>المرحلة</th><th>الحالة</th>
+          </tr></thead>
+          <tbody>
+            ${allTasks.length ? allTasks.map(t => {
+              const member = members.find(m => m.id === t.assigned_to);
+              return `<tr>
+                <td><span class="badge badge-${t.priority||'normal'}">${t.priority||'عادي'}</span></td>
+                <td><strong>${t.title}</strong>${t.description?'<br><small>'+t.description+'</small>':''}</td>
+                <td><small>${t.event_code || ''} - ${t.event_title || ''}</small><br><small style="color:var(--text-light)">📅 ${t.event_date || ''}</small></td>
+                <td>${member ? member.full_name : t.assignee_name || '-'}</td>
+                <td>${t.due_time || '-'}</td>
+                <td>${t.task_phase || '-'}</td>
+                <td><span class="badge badge-${t.status}">${t.status}</span></td>
+              </tr>`;
+            }).join('') : '<tr><td colspan="7" class="empty">لا توجد مهام مفتوحة لهذا الفريق</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+// ============ المالية ============
+async function renderFinance() {
+  try {
+    const [stats, events, expensesByDept] = await Promise.all([
+      api('/dashboard/stats'),
+      api('/events'),
+      api('/expenses/by-department').catch(() => null)
+    ]);
+    const totalRevenue = events.reduce((s, e) => s + (e.total_price || 0), 0);
+    const totalCost = events.reduce((s, e) => s + (e.cost_total || e.cost_estimate || 0), 0);
+    const totalProfit = events.reduce((s, e) => s + (e.profit || e.profit_estimate || 0), 0);
+    const totalCollected = events.reduce((s, e) => s + (e.paid_amount || 0), 0);
+    const totalRemaining = totalRevenue - totalCollected;
+
+    // تجميع المصاريف حسب القسم - من API أو احتساب محلي
+    const depts = expensesByDept || {
+      execution: { label: 'مصاريف التنفيذ', total: 0, paid: 0, remaining: 0, count: 0 },
+      supervision: { label: 'مصاريف الإشراف', total: 0, paid: 0, remaining: 0, count: 0 },
+      hospitality: { label: 'مصاريف الضيافة', total: 0, paid: 0, remaining: 0, count: 0 },
+      purchases: { label: 'المشتريات', total: 0, paid: 0, remaining: 0, count: 0 },
+    };
+    const totalDeptExpense = Object.values(depts).reduce((s, d) => s + (d.total || 0), 0);
+    const totalDeptRemaining = Object.values(depts).reduce((s, d) => s + (d.remaining || 0), 0);
+
+    const deptColors = {
+      execution: '#8B6F47', supervision: '#5C8E5E',
+      hospitality: '#B5604D', purchases: '#7A6FB7'
+    };
+    const deptIcons = {
+      execution: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-3 3-2-2z"/></svg>',
+      supervision: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+      hospitality: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3v8a3 3 0 003 3v7M8 3v8M19 3c-1.7 0-3 1.5-3 4v5h3M19 3v18"/></svg>',
+      purchases: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3h2.4l2 12.5a2 2 0 002 1.7h8.5a2 2 0 002-1.7L21 7H6"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>',
+    };
+
+    const html = `
+      <div class="page-header"><h2 class="page-title">المالية والربحية</h2></div>
+
+      <!-- ملخص علوي -->
+      <div class="stats-grid">
+        <div class="stat-card success"><div class="stat-label">إجمالي الإيرادات</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalRevenue)}</div></div>
+        <div class="stat-card warning"><div class="stat-label">إجمالي المصاريف</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalDeptExpense || totalCost)}</div></div>
+        <div class="stat-card success"><div class="stat-label">صافي الربح</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalProfit)}</div></div>
+        <div class="stat-card danger" title="مجموع المتبقي على فواتير الموردين من جداول المصاريف والمشتريات"><div class="stat-label">المتبقي للموردين</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalDeptRemaining)}</div></div>
+      </div>
+
+      <!-- المصاريف حسب القسم -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">المصاريف حسب القسم</h3></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;padding:14px">
+          ${Object.entries(depts).map(([key, d]) => {
+            const color = deptColors[key] || 'var(--primary)';
+            const pct = totalDeptExpense ? Math.round((d.total/totalDeptExpense)*100) : 0;
+            return `
+              <div style="background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:16px;border-right:4px solid ${color}">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;color:${color}">
+                  ${deptIcons[key] || ''}
+                  <strong style="font-size:14px">${d.label}</strong>
+                </div>
+                <div style="font-size:22px;font-weight:800;color:${color}">${fmtMoney(d.total)}</div>
+                <div style="font-size:11px;color:var(--text-light);margin-top:4px">${d.count || 0} عملية · ${pct}% من المصاريف</div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">
+                  <span style="color:var(--success)">مسدد: ${fmtMoney(d.paid)}</span>
+                  <span style="color:var(--danger)">متبقي: ${fmtMoney(d.remaining)}</span>
+                </div>
+                <div style="background:var(--cream);height:6px;border-radius:3px;margin-top:6px;overflow:hidden">
+                  <div style="background:${color};height:100%;width:${d.total ? (d.paid/d.total*100) : 0}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- الربحية حسب المناسبة -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">الربحية حسب المناسبة</h3></div>
+        <table>
+          <thead><tr><th>كود العقد</th><th>أمر التشغيل</th><th>المناسبة</th><th>الإيراد</th><th>التكلفة</th><th>الربح</th><th>هامش %</th><th>المتحصل</th><th>المتبقي</th></tr></thead>
+          <tbody>${events.map(e => {
+            const cost = e.cost_total || e.cost_estimate || 0;
+            const profit = e.profit || e.profit_estimate || 0;
+            const margin = e.total_price ? ((profit / e.total_price) * 100).toFixed(1) : 0;
+            const remaining = (e.total_price || 0) - (e.paid_amount || 0);
+            return `<tr onclick="showEventDetails(${e.id})" style="cursor:pointer">
+              <td><strong style="color:var(--gold);font-family:monospace">${e.contract_code || '-'}</strong></td>
+              <td><span style="color:var(--primary);font-family:monospace">${e.operation_order || '-'}</span></td>
+              <td>${e.title}</td>
+              <td>${fmtMoney(e.total_price)}</td>
+              <td>${fmtMoney(cost)}</td>
+              <td style="color:${profit >= 0 ? 'var(--success)' : 'var(--danger)'};font-weight:700">${fmtMoney(profit)}</td>
+              <td>${margin}%</td>
+              <td>${fmtMoney(e.paid_amount)}</td>
+              <td style="color:${remaining > 0 ? 'var(--accent)' : 'var(--success)'}">${fmtMoney(remaining)}</td>
+            </tr>`;
+          }).join('')}
+          <tr style="background:var(--cream);font-weight:700">
+            <td colspan="3">الإجمالي</td>
+            <td>${fmtMoney(totalRevenue)}</td>
+            <td>${fmtMoney(totalCost)}</td>
+            <td style="color:var(--success)">${fmtMoney(totalProfit)}</td>
+            <td>${totalRevenue ? ((totalProfit/totalRevenue)*100).toFixed(1) : 0}%</td>
+            <td>${fmtMoney(totalCollected)}</td>
+            <td style="color:var(--danger)">${fmtMoney(totalRemaining)}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+// ============ التقارير ============
+async function renderReports() {
+  try {
+    const [events, items] = await Promise.all([api('/events'), api('/inventory')]);
+    // تحليل أنواع المناسبات
+    const byType = {};
+    events.forEach(e => { byType[e.event_type] = (byType[e.event_type] || 0) + 1; });
+    // أكثر القطع استخدامًا
+    const topUsed = [...items].sort((a, b) => b.times_used - a.times_used).slice(0, 10);
+    const html = `
+      <div class="page-header"><h2 class="page-title">التقارير التحليلية</h2></div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">📊 توزيع المناسبات حسب النوع</h3></div>
+        <table>
+          <thead><tr><th>النوع</th><th>العدد</th><th>النسبة</th></tr></thead>
+          <tbody>${Object.entries(byType).map(([k,v]) => `
+            <tr><td>${EVENT_TYPES[k]}</td><td><strong>${v}</strong></td><td>${((v/events.length)*100).toFixed(1)}%</td></tr>
+          `).join('')}</tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">🏆 أكثر القطع استخدامًا</h3></div>
+        <table>
+          <thead><tr><th>الكود</th><th>الصنف</th><th>عدد مرات الاستخدام</th><th>تكلفة الشراء</th></tr></thead>
+          <tbody>${topUsed.map(i => `
+            <tr><td><strong>${i.item_code}</strong></td><td>${i.name}</td><td>${i.times_used}</td><td>${fmtMoney(i.unit_cost)}</td></tr>
+          `).join('')}</tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('page-content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('page-content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function filterTable(input, tableId) {
+  const q = input.value.toLowerCase();
+  document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// إغلاق المودال بالنقر خارجها
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') closeModal();
+});
+
+// تحميل أولي مع الصلاحيات واللغة
+async function initApp() {
+  // تحميل الصلاحيات والترجمات (إن كانت modules.js محمّلة)
+  if (typeof loadMyPermissions === 'function') {
+    try { await loadMyPermissions(); } catch(e) {}
+  }
+  // مبدّل اللغة أُزيل من الواجهة - تُحدد لغة المستخدم تلقائياً من قاعدة البيانات
+  // (عمران=أوردو، daryl/rose=إنجليزي، الباقي=عربي)
+
+  // فلترة الشريط الجانبي حسب الصلاحية (لو متاح)
+  if (window.CURRENT_PERMS && window.CURRENT_PERMS.menu && window.CURRENT_PERMS.menu !== '*') {
+    const allowedSet = new Set(window.CURRENT_PERMS.menu);
+    document.querySelectorAll('.nav-item').forEach(item => {
+      const page = item.dataset.page;
+      // المالكة والمدير العام يشاهدون كل شي (menu === '*')
+      if (window.CURRENT_PERMS.is_super) return;
+      if (page && !allowedSet.has(page)) item.style.display = 'none';
+    });
+  }
+  loadTopBarStats();
+  loadAlerts();
+  renderPage();
+  // أخفِ نتائج البحث عند الضغط خارجها
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.top-search-wrap')) {
+      const r = document.getElementById('globalSearchResults');
+      if (r) r.classList.remove('show');
+    }
+  });
+  // اختصارات لوحة المفاتيح
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      document.getElementById('globalSearch')?.focus();
+    }
+    if (e.key === 'Escape') {
+      const r = document.getElementById('globalSearchResults');
+      if (r) r.classList.remove('show');
+    }
+  });
+}
+
+// ============ بحث عام عبر الكيانات ============
+let __globalSearchCache = null;
+let __globalSearchTimer = null;
+async function globalSearchHandler(q) {
+  const box = document.getElementById('globalSearchResults');
+  if (!box) return;
+  q = (q || '').trim().toLowerCase();
+  if (q.length < 2) { box.classList.remove('show'); return; }
+
+  if (__globalSearchTimer) clearTimeout(__globalSearchTimer);
+  __globalSearchTimer = setTimeout(async () => {
+    try {
+      // حمّل البيانات أول مرة فقط، ثم استعمل الكاش
+      if (!__globalSearchCache) {
+        const [customers, events, inventory, appts] = await Promise.all([
+          api('/customers').catch(()=>[]),
+          api('/events').catch(()=>[]),
+          api('/inventory').catch(()=>[]),
+          api('/appointments').catch(()=>[]),
+        ]);
+        __globalSearchCache = { customers, events, inventory, appts };
+        // امسح الكاش بعد دقيقة
+        setTimeout(() => { __globalSearchCache = null; }, 60000);
+      }
+      const D = __globalSearchCache;
+      const matchCust = D.customers.filter(c =>
+        (c.full_name||'').toLowerCase().includes(q) ||
+        (c.phone||'').includes(q) ||
+        (c.email||'').toLowerCase().includes(q)).slice(0, 5);
+      const matchEv = D.events.filter(e =>
+        (e.title||'').toLowerCase().includes(q) ||
+        (e.event_code||'').toLowerCase().includes(q) ||
+        (e.operation_order||'').toLowerCase().includes(q) ||
+        (e.customer_name||'').toLowerCase().includes(q)).slice(0, 5);
+      const matchInv = D.inventory.filter(i =>
+        (i.name||'').toLowerCase().includes(q) ||
+        (i.item_code||'').toLowerCase().includes(q)).slice(0, 5);
+      const matchAppt = D.appts.filter(a =>
+        (a.title||'').toLowerCase().includes(q) ||
+        (a.appointment_code||'').toLowerCase().includes(q) ||
+        (a.customer_name||'').toLowerCase().includes(q)).slice(0, 3);
+
+      let html = '';
+      if (matchCust.length) {
+        html += '<div class="gsr-section">👥 العملاء</div>' + matchCust.map(c => `
+          <div class="gsr-item" onclick="gsrOpen('customer',${c.id})">
+            <span class="gsr-icon">👤</span>
+            <div class="gsr-text"><strong>${c.full_name}</strong><small>${c.phone || '-'} • ${c.city || ''}</small></div>
+          </div>`).join('');
+      }
+      if (matchEv.length) {
+        html += '<div class="gsr-section">🎉 المناسبات</div>' + matchEv.map(e => `
+          <div class="gsr-item" onclick="gsrOpen('event',${e.id})">
+            <span class="gsr-icon">🎉</span>
+            <div class="gsr-text"><strong>${e.title}</strong><small>${e.event_code} • ${e.customer_name} • ${e.event_date || '-'}</small></div>
+          </div>`).join('');
+      }
+      if (matchInv.length) {
+        html += '<div class="gsr-section">📦 المخزون</div>' + matchInv.map(i => `
+          <div class="gsr-item" onclick="gsrOpen('inventory',${i.id})">
+            <span class="gsr-icon">📦</span>
+            <div class="gsr-text"><strong>${i.name}</strong><small>${i.item_code} • ${i.warehouse} • متاح ${i.quantity_available}</small></div>
+          </div>`).join('');
+      }
+      if (matchAppt.length) {
+        html += '<div class="gsr-section">📅 المواعيد</div>' + matchAppt.map(a => `
+          <div class="gsr-item" onclick="gsrOpen('appointment',${a.id})">
+            <span class="gsr-icon">📅</span>
+            <div class="gsr-text"><strong>${a.title}</strong><small>${a.appointment_code} • ${a.appointment_date} ${a.start_time || ''}</small></div>
+          </div>`).join('');
+      }
+      if (!html) html = '<div class="gsr-item" style="color:var(--text-light)">لا نتائج لـ "' + q + '"</div>';
+      box.innerHTML = html;
+      box.classList.add('show');
+    } catch(e) { console.error(e); }
+  }, 200);
+}
+function gsrOpen(type, id) {
+  document.getElementById('globalSearchResults').classList.remove('show');
+  document.getElementById('globalSearch').value = '';
+  if (type === 'customer') { currentPage='customers'; renderPage(); setTimeout(()=>typeof showCustomerDetails==='function'&&showCustomerDetails(id), 200); }
+  else if (type === 'event') { currentPage='events'; renderPage(); setTimeout(()=>typeof showEventDetails==='function'&&showEventDetails(id), 200); }
+  else if (type === 'inventory') { currentPage='inventory'; renderPage(); setTimeout(()=>typeof showItemDetails==='function'&&showItemDetails(id), 200); }
+  else if (type === 'appointment') { currentPage='appointments'; renderPage(); }
+}
+
+// ============ شريط الإحصائيات العلوي ============
+async function loadTopBarStats() {
+  try {
+    const events = await api('/events');
+    const today = new Date().toISOString().split('T')[0];
+    const todayCount = events.filter(e => (e.actual_date || e.event_date) === today && e.status !== 'cancelled').length;
+    const weekFromNow = new Date(); weekFromNow.setDate(weekFromNow.getDate() + 7);
+    const weekStr = weekFromNow.toISOString().split('T')[0];
+    const weekCount = events.filter(e => {
+      const d = e.actual_date || e.event_date;
+      return d > today && d <= weekStr && e.status !== 'cancelled';
+    }).length;
+    const el = document.getElementById('todayStat');
+    if (el) {
+      el.innerHTML = todayCount > 0
+        ? `🔥 <strong>${todayCount}</strong> اليوم • ⏰ <strong>${weekCount}</strong> هذا الأسبوع`
+        : `📅 <strong>${weekCount}</strong> مناسبة هذا الأسبوع`;
+    }
+  } catch(e) {}
+}
+
+// ============ التنبيهات الذكية ============
+async function loadAlerts() {
+  try {
+    const [events, inv] = await Promise.all([api('/events'), api('/inventory')]);
+    const today = new Date().toISOString().split('T')[0];
+    const alerts = [];
+    // مناسبات بدون خطة عمل
+    try {
+      const plans = await api('/workplans');
+      const planEventIds = new Set(plans.map(p => p.event_id));
+      events.filter(e => !planEventIds.has(e.id) && e.status !== 'cancelled' && e.event_date >= today)
+        .slice(0, 5).forEach(e => alerts.push({
+          icon: '⚠️', type: 'warning',
+          title: 'مناسبة بدون خطة عمل', msg: `${e.event_code} - ${e.title}`,
+          action: () => { currentPage='work_plans'; renderPage(); }
+        }));
+    } catch(e){}
+    // مخزون قليل
+    inv.filter(i => i.quantity_available <= 1 && i.quantity_total > 0)
+      .slice(0, 5).forEach(i => alerts.push({
+        icon: '📉', type: 'warning',
+        title: 'مخزون قليل', msg: `${i.item_code} - ${i.name} (متبقي ${i.quantity_available})`,
+        action: () => { currentPage='inventory'; renderPage(); setTimeout(()=>showItemDetails(i.id), 200); }
+      }));
+    // مخزون متضرر
+    inv.filter(i => ['damaged','lost'].includes(i.condition))
+      .slice(0, 3).forEach(i => alerts.push({
+        icon: '❌', type: 'danger',
+        title: 'مخزون تالف', msg: `${i.item_code} - ${i.name} (${i.condition})`,
+        action: () => { currentPage='inventory'; renderPage(); setTimeout(()=>showItemDetails(i.id), 200); }
+      }));
+    // مناسبات اليوم
+    events.filter(e => (e.actual_date || e.event_date) === today && e.status !== 'cancelled')
+      .forEach(e => alerts.push({
+        icon: '🔥', type: 'critical',
+        title: 'مناسبة اليوم!', msg: `${e.event_code} - ${e.title}`,
+        action: () => { currentPage='events'; renderPage(); setTimeout(()=>showEventDetails(e.id), 200); }
+      }));
+    window.__currentAlerts = alerts;
+    const badge = document.getElementById('alertBadge');
+    if (badge) {
+      if (alerts.length > 0) {
+        badge.textContent = alerts.length;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch(e) {}
+}
+function showAlerts() {
+  const alerts = window.__currentAlerts || [];
+  if (alerts.length === 0) {
+    openModal('🔔 التنبيهات', '<p style="text-align:center;padding:40px;color:var(--text-light)">✓ لا توجد تنبيهات. كل شي تمام!</p>',
+      '<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
+    return;
+  }
+  const colors = { critical: '#FECACA', danger: '#FEE2E2', warning: '#FEF3C7', info: '#DBEAFE' };
+  const body = alerts.map((a, i) => `
+    <div onclick="closeModal();window.__currentAlerts[${i}].action()"
+         style="cursor:pointer;padding:14px;border-radius:8px;background:${colors[a.type]||colors.info};
+                margin-bottom:8px;display:flex;gap:12px;align-items:center">
+      <span style="font-size:24px">${a.icon}</span>
+      <div style="flex:1">
+        <strong>${a.title}</strong>
+        <div style="font-size:12px;color:var(--text-light);margin-top:2px">${a.msg}</div>
+      </div>
+      <span style="color:var(--text-light)">›</span>
+    </div>
+  `).join('');
+  openModal(`🔔 التنبيهات (${alerts.length})`, body,
+    '<button class="btn btn-outline" onclick="closeModal()">إغلاق</button>');
+}
+// نشغّل بعد تحميل modules.js
+// الإصدار 4: الدخول أولاً ثم تشغيل اللوحة حسب صلاحيات المستخدم
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(startApp, 150));
+} else {
+  setTimeout(startApp, 150);
+}
+</script>
+</body>
+</html>

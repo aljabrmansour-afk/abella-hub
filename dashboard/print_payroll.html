@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أبيلا — مسيّر الرواتب</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="/assets/session.js"></script>
+<style>
+  :root { --brown: #5C4528; --gold: #B8975D; --line: #E8DFD0; --soft: #FBF7EF; --muted: #8B7E6E; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; color: #2D1F14; background: #EDE7DC; font-size: 12px; }
+  .bar { position: sticky; top: 0; background: var(--brown); padding: 10px; display: flex; gap: 8px; justify-content: center; z-index: 5; }
+  .bar button { background: #fff; color: var(--brown); border: 0; border-radius: 8px; padding: 8px 16px; font-family: inherit; font-weight: 700; cursor: pointer; }
+  .page { background: #fff; margin: 14px auto; padding: 12mm; box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+  .land { width: 297mm; } .port { width: 210mm; }
+  header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); padding-bottom: 8px; margin-bottom: 12px; }
+  header img { width: 110px; }
+  h1 { font-size: 18px; color: var(--brown); }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--soft); color: var(--brown); }
+  th, td { border: 1px solid var(--line); padding: 5px 6px; text-align: center; }
+  td.n { text-align: right; white-space: nowrap; }
+  tfoot td { font-weight: 800; background: var(--soft); }
+  .sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; text-align: center; }
+  .sign div { border-top: 1px solid #333; padding-top: 6px; }
+  .slip { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 12px; break-inside: avoid; }
+  .slip h3 { font-size: 14px; color: var(--brown); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .slip .g { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .slip td { text-align: right; } .slip td:last-child { text-align: left; }
+  .net { font-size: 15px; font-weight: 800; color: var(--brown); text-align: center; margin-top: 8px; background: var(--soft); padding: 6px; border-radius: 6px; }
+  @media print { body { background: #fff; } .bar { display: none; } .page { margin: 0; box-shadow: none; width: auto; padding: 8mm; } .page + .page { break-before: page; } }
+  @page { margin: 0; }
+</style>
+</head>
+<body>
+<div class="bar"><button onclick="window.print()">🖨 طباعة / PDF</button><button onclick="window.close()">إغلاق</button></div>
+<div id="root">جارِ التحميل...</div>
+<script>
+const esc = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const m = v => (Number(v) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+(async () => {
+  const id = new URLSearchParams(location.search).get('id');
+  const r = await fetch('/api/hr/payroll/' + id); const p = await r.json();
+  if (!r.ok) { document.getElementById('root').innerHTML = `<p style="padding:40px;text-align:center">${esc(p.error || 'تعذر التحميل')}</p>`; return; }
+  const S = k => p.lines.reduce((s, l) => s + (+l[k] || 0), 0);
+  const st = { draft: 'مسودة', approved: 'معتمد', paid: 'مصروف' }[p.status];
+  const head = `<header><div><h1>مسيّر رواتب شهر ${esc(p.period)}</h1><div>${esc(p.company || 'أبيلا للأفراح والمناسبات')} — الحالة: ${st}</div></div><img src="/assets/logo-abella.png"></header>`;
+  const sheet = `<div class="page land">${head}<table><thead><tr><th>#</th><th>الموظف</th><th>أيام</th><th>الأساسي</th><th>السكن</th><th>النقل</th><th>أخرى</th><th>إضافي</th><th>مكافأة</th><th>الإجمالي</th><th>بدون راتب</th><th>غياب</th><th>جزاءات</th><th>سلفة</th><th>أخرى</th><th>تأمينات</th><th>الصافي</th><th>الآيبان</th></tr></thead>
+    <tbody>${p.lines.map((l, i) => `<tr><td>${i + 1}</td><td class="n">${esc(l.full_name)}</td><td>${l.days_worked}</td><td>${m(l.basic)}</td><td>${m(l.housing)}</td><td>${m(l.transport)}</td><td>${m(l.other_allow)}</td><td>${m(l.overtime)}</td><td>${m(l.bonus)}</td><td><b>${m(l.gross)}</b></td><td>${m(l.unpaid_leave_ded)}</td><td>${m(l.absence_ded)}</td><td>${m(l.penalty_ded)}</td><td>${m(l.advance_ded)}</td><td>${m(l.other_ded)}</td><td>${m(l.gosi_employee)}</td><td><b>${m(l.net)}</b></td><td dir="ltr" style="font-size:10px">${esc(l.iban || '')}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td colspan="3">الإجمالي</td><td>${m(S('basic'))}</td><td>${m(S('housing'))}</td><td>${m(S('transport'))}</td><td>${m(S('other_allow'))}</td><td>${m(S('overtime'))}</td><td>${m(S('bonus'))}</td><td>${m(S('gross'))}</td><td>${m(S('unpaid_leave_ded'))}</td><td>${m(S('absence_ded'))}</td><td>${m(S('penalty_ded'))}</td><td>${m(S('advance_ded'))}</td><td>${m(S('other_ded'))}</td><td>${m(S('gosi_employee'))}</td><td>${m(S('net'))}</td><td></td></tr></tfoot></table>
+    <p style="margin-top:8px">حصة المنشأة في التأمينات: <b>${m(S('gosi_employer'))}</b> ر.س</p>
+    <div class="sign"><div>أعدّه</div><div>المدير المالي</div><div>الاعتماد</div></div></div>`;
+  const slips = `<div class="page port">${head}${p.lines.map(l => `<div class="slip"><h3><span>${esc(l.full_name)} ${l.emp_no ? '— ' + esc(l.emp_no) : ''}</span><span>${esc(l.job_title || '')}</span></h3>
+    <div class="g"><table><tr><th colspan="2">المستحقات</th></tr><tr><td>الأساسي</td><td>${m(l.basic)}</td></tr><tr><td>السكن</td><td>${m(l.housing)}</td></tr><tr><td>النقل</td><td>${m(l.transport)}</td></tr>${+l.other_allow ? `<tr><td>بدلات أخرى</td><td>${m(l.other_allow)}</td></tr>` : ''}${+l.overtime ? `<tr><td>عمل إضافي</td><td>${m(l.overtime)}</td></tr>` : ''}${+l.bonus ? `<tr><td>مكافأة</td><td>${m(l.bonus)}</td></tr>` : ''}<tr><td><b>الإجمالي</b></td><td><b>${m(l.gross)}</b></td></tr></table>
+    <table><tr><th colspan="2">الاستقطاعات</th></tr>${+l.gosi_employee ? `<tr><td>التأمينات الاجتماعية</td><td>${m(l.gosi_employee)}</td></tr>` : ''}${+l.unpaid_leave_ded ? `<tr><td>إجازة بدون راتب (${l.unpaid_leave_days} يوم)</td><td>${m(l.unpaid_leave_ded)}</td></tr>` : ''}${+l.absence_ded ? `<tr><td>غياب</td><td>${m(l.absence_ded)}</td></tr>` : ''}${+l.penalty_ded ? `<tr><td>جزاءات</td><td>${m(l.penalty_ded)}</td></tr>` : ''}${+l.advance_ded ? `<tr><td>قسط سلفة</td><td>${m(l.advance_ded)}</td></tr>` : ''}${+l.other_ded ? `<tr><td>أخرى</td><td>${m(l.other_ded)}</td></tr>` : ''}<tr><td><b>الإجمالي</b></td><td><b>${m(l.total_ded)}</b></td></tr></table></div>
+    <div class="net">صافي الراتب: ${m(l.net)} ر.س</div></div>`).join('')}</div>`;
+  document.getElementById('root').innerHTML = sheet + slips;
+})();
+</script>
+</body>
+</html>

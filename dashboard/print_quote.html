@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أبيلا — عرض سعر / عقد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="/assets/session.js"></script>
+<style>
+  :root { --brown: #5C4528; --gold: #B8975D; --line: #E8DFD0; --soft: #FBF7EF; --text: #2D1F14; --muted: #8B7E6E; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; color: var(--text); background: #EDE7DC; font-size: 13.5px; line-height: 1.7; }
+  .bar { position: sticky; top: 0; background: var(--brown); color: #fff; padding: 10px 16px; display: flex; gap: 8px; justify-content: center; z-index: 5; }
+  .bar button { background: #fff; color: var(--brown); border: 0; border-radius: 8px; padding: 8px 18px; font-family: inherit; font-weight: 700; cursor: pointer; }
+  .page { background: #fff; width: 210mm; min-height: 297mm; margin: 16px auto; padding: 16mm 15mm; box-shadow: 0 4px 24px rgba(0,0,0,.12); }
+  header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--gold); padding-bottom: 12px; margin-bottom: 16px; }
+  header img { width: 150px; }
+  .co { font-size: 11.5px; color: var(--muted); text-align: left; line-height: 1.8; }
+  h1 { font-size: 22px; color: var(--brown); font-weight: 800; }
+  .meta { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  .meta b { color: var(--text); }
+  h2 { font-size: 14.5px; color: var(--brown); margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+  .grid div span { color: var(--muted); margin-left: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--soft); color: var(--brown); font-weight: 700; font-size: 12.5px; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: right; }
+  td.n, th.n { width: 36px; text-align: center; }
+  td.q, th.q { width: 70px; text-align: center; }
+  .totals { width: 55%; margin-right: auto; margin-top: 12px; }
+  .totals td:first-child { color: var(--muted); }
+  .totals td:last-child { text-align: left; font-weight: 700; white-space: nowrap; }
+  .totals tr.big td { background: var(--soft); color: var(--brown); font-size: 15px; }
+  .note { background: var(--soft); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  ol.terms { padding-right: 20px; font-size: 12px; }
+  ol.terms li { margin-bottom: 4px; }
+  .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .sign div { border-top: 1px solid var(--text); padding-top: 6px; text-align: center; font-size: 12.5px; min-height: 70px; }
+  .foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 24px; }
+  .err { text-align: center; padding: 60px; color: #8A2E2E; }
+  @media print {
+    body { background: #fff; }
+    .bar { display: none; }
+    .page { margin: 0; box-shadow: none; width: auto; min-height: auto; padding: 10mm 12mm; }
+    @page { size: A4; margin: 0; }
+    h2, table, .sign { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="bar"><button onclick="window.print()">🖨 طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
+<div id="root"><div class="err">جارِ التحميل...</div></div>
+<script>
+const EV = { newborn: 'استقبال مولود', special: 'مناسبة خاصة / زواج', exhibition: 'معرض' };
+const VN = { hospital: 'مستشفى', home: 'منزل', hall: 'قاعة', other: 'أخرى' };
+const esc = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = v => (Number(v) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ر.س';
+const d = s => s ? new Date(String(s).slice(0, 10) + 'T00:00:00').toLocaleDateString('ar-SA-u-ca-gregory', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+(async () => {
+  const id = new URLSearchParams(location.search).get('id');
+  const r = await fetch('/api/quotes/' + id);
+  const q = await r.json();
+  if (!r.ok) { document.getElementById('root').innerHTML = `<div class="err">${esc(q.error || 'تعذر التحميل — سجّل دخولك من لوحة التحكم أولاً')}</div>`; return; }
+  const contract = q.status === 'contracted';
+  document.title = (contract ? 'عقد ' + q.contract_code : 'عرض سعر ' + q.quote_code) + ' — ' + q.client_name;
+  const terms = (q.terms || '').split('\n').map(t => t.replace(/^\s*[\d٠-٩]+\s*[-.)]\s*/, '').trim()).filter(Boolean);
+  const co = q.company || {};
+  document.getElementById('root').innerHTML = `<div class="page">
+    <header>
+      <div><img src="/assets/logo-abella.png" alt="أبيلا"></div>
+      <div class="co"><b>${esc(co.company_name || 'أبيلا للأفراح والمناسبات')}</b><br>س.ت: ${esc(co.company_cr || '')}<br>الرقم الضريبي: ${esc(co.company_vat || '')}<br>الرقم الموحد: ${esc(co.company_unified || '')}</div>
+    </header>
+    <h1>${contract ? 'عقد تقديم خدمات تنسيق مناسبة' : 'عرض سعر'}</h1>
+    <div class="meta">${contract ? `<div>رقم العقد: <b>${esc(q.contract_code)}</b></div>` : ''}<div>رقم العرض: <b>${esc(q.quote_code)}</b></div>
+      <div>التاريخ: <b>${d(contract ? q.contracted_at : q.created_at)}</b></div>${!contract && q.valid_until ? `<div>صالح حتى: <b>${d(q.valid_until)}</b></div>` : ''}</div>
+    <h2>بيانات العميل</h2>
+    <div class="grid"><div><span>الاسم:</span>${esc(q.client_name)}</div><div><span>الجوال:</span><bdi>${esc(q.client_phone || '—')}</bdi></div>
+      ${q.client_id_number ? `<div><span>رقم الهوية:</span>${esc(q.client_id_number)}</div>` : ''}</div>
+    <h2>بيانات المناسبة</h2>
+    <div class="grid"><div><span>النوع:</span>${esc(EV[q.event_type] || '')}</div><div><span>المكان:</span>${esc(VN[q.venue_kind] || '')} ${esc(q.venue_name || '')}</div>
+      <div><span>التاريخ${q.event_type === 'newborn' && !q.actual_date ? ' (المتوقع)' : ''}:</span>${d(q.actual_date || q.expected_date)}</div><div><span>الوقت:</span>${esc(q.event_time || '—')}</div>
+      ${q.package ? `<div><span>الباقة:</span>${esc(q.package)}</div>` : ''}${q.guests_count ? `<div><span>عدد الضيوف:</span>${esc(q.guests_count)}</div>` : ''}</div>
+    <h2>الخدمات المقدمة</h2>
+    <table><thead><tr><th class="n">#</th><th>الخدمة</th><th class="q">العدد</th><th>تفاصيل</th></tr></thead>
+      <tbody>${q.items.map((it, i) => `<tr><td class="n">${i + 1}</td><td>${esc(it.name)}</td><td class="q">${esc(+it.qty)}</td><td>${esc(it.notes || '')}</td></tr>`).join('')}</tbody></table>
+    <table class="totals"><tbody>
+      <tr><td>قيمة الخدمات</td><td>${money(q.contract_value)}</td></tr>
+      ${q.additional ? `<tr><td>مبالغ إضافية</td><td>${money(q.additional)}</td></tr>` : ''}
+      ${q.discount ? `<tr><td>خصم</td><td>- ${money(q.discount)}</td></tr>` : ''}
+      <tr><td>ضريبة القيمة المضافة ${Math.round((q.vat_rate || 0) * 100)}%</td><td>${money(q.vat_amount)}</td></tr>
+      <tr class="big"><td>الإجمالي شامل الضريبة</td><td>${money(q.total_with_vat)}</td></tr>
+      <tr><td>العربون المطلوب لتأكيد الحجز</td><td>${money(q.deposit)}</td></tr>
+      <tr><td>مبلغ التأمين (مسترد)</td><td>${money(q.insurance)}</td></tr>
+    </tbody></table>
+    ${q.notes ? `<div class="note">${esc(q.notes).replace(/\n/g, '<br>')}</div>` : ''}
+    ${terms.length ? `<h2>الشروط والأحكام</h2><ol class="terms">${terms.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : (contract ? '<div class="note">⚠ لم تُضف الشروط والأحكام لهذا النوع في الإعدادات بعد.</div>' : '')}
+    ${contract ? `<div class="sign"><div>الطرف الأول: ${esc(co.company_name || 'أبيلا')}<br>التوقيع والختم</div><div>الطرف الثاني: ${esc(q.client_name)}<br>التوقيع</div></div>` : ''}
+    <div class="foot">أبيلا للأفراح والمناسبات — theabella.com</div>
+  </div>`;
+})();
+</script>
+</body>
+</html>

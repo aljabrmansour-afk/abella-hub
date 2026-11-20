@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script src="/assets/session.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#5C4528">
+<title>أبيلا للأفراح والمناسبات — لوحة المالكة</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary: #8B6F47;
+  --primary-light: #B8975D;
+  --primary-dark: #5C4528;
+  --accent: #C9A560;
+  --gold: #D4B97A;
+  --success: #7A8A5F;
+  --warning: #D4A04C;
+  --danger: #A04545;
+  --bg: #F8F4ED;
+  --surface: #FFFFFF;
+  --border: #E8DFD0;
+  --text: #2D1F14;
+  --text-light: #8B7E6E;
+}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html, body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; font-size: 15px; user-select: none;
+}
+
+/* ============ Header ============ */
+.app-header {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: #fff; padding: 18px 16px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(92,69,40,0.3);
+}
+.header-top {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.header-greeting { font-size: 12px; opacity: 0.85; }
+.header-name { font-size: 18px; font-weight: 700; color: var(--gold); }
+.live-indicator {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(122,138,95,0.25); padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; color: #fff;
+}
+.live-dot {
+  width: 8px; height: 8px; background: var(--gold); border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.last-sync { font-size: 10px; opacity: 0.7; margin-top: 4px; }
+
+/* ============ Content ============ */
+.content { padding: 16px; padding-bottom: 80px; }
+
+.section { margin-bottom: 24px; }
+.section-title {
+  font-size: 14px; font-weight: 700; color: var(--primary-dark);
+  margin-bottom: 10px; padding: 0 4px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.section-title .count {
+  background: var(--primary); color: #fff;
+  padding: 2px 10px; border-radius: 12px; font-size: 11px;
+}
+.section-title .count.urgent { background: var(--danger); }
+
+/* ============ Stat Cards ============ */
+.stats-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 16px;
+}
+.stat-mini {
+  background: var(--surface); padding: 14px; border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(139,111,71,0.08);
+  border-right: 3px solid var(--primary);
+}
+.stat-mini.success { border-color: var(--success); }
+.stat-mini.warning { border-color: var(--warning); }
+.stat-mini.danger { border-color: var(--danger); }
+.stat-mini.gold { border-color: var(--gold); }
+.stat-label { font-size: 11px; color: var(--text-light); margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 700; color: var(--text); }
+.stat-sub { font-size: 10px; color: var(--text-light); margin-top: 2px; }
+
+/* ============ Item Cards ============ */
+.item-card {
+  background: var(--surface); border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; box-shadow: 0 2px 8px rgba(139,111,71,0.06);
+  border-right: 4px solid var(--primary);
+  cursor: pointer; transition: all 0.15s;
+}
+.item-card:active { transform: scale(0.98); }
+.item-card.urgent { border-color: var(--danger); }
+.item-card.success { border-color: var(--success); }
+.item-card.warning { border-color: var(--warning); }
+.item-card.gold { border-color: var(--gold); }
+.item-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; color: var(--primary-dark); }
+.item-meta {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  font-size: 12px; color: var(--text-light); margin-top: 6px;
+}
+.item-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.progress-bar {
+  background: var(--border); height: 6px; border-radius: 3px;
+  margin-top: 8px; overflow: hidden;
+}
+.progress-fill {
+  background: linear-gradient(90deg, var(--primary), var(--gold));
+  height: 100%; transition: width 0.3s;
+}
+
+/* ============ Badges ============ */
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 14px;
+  font-size: 11px; font-weight: 700;
+}
+.badge-pending { background: #FEF3C7; color: #92400E; }
+.badge-in_progress { background: #FED7AA; color: #9A3412; }
+.badge-ready { background: #D1FAE5; color: #065F46; }
+.badge-draft { background: #E5E7EB; color: #4B5563; }
+.badge-approved { background: #D1FAE5; color: #065F46; }
+.badge-completed { background: #D1FAE5; color: #065F46; }
+.badge-contracted { background: #DBEAFE; color: #1E40AF; }
+.badge-planning { background: #FED7AA; color: #9A3412; }
+
+/* ============ Bottom Nav ============ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-around;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 90; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+.nav-tab {
+  flex: 1; text-align: center; padding: 8px 4px;
+  cursor: pointer; color: var(--text-light); font-size: 11px;
+}
+.nav-tab.active { color: var(--primary-dark); font-weight: 700; }
+.nav-tab .icon { font-size: 22px; display: block; margin-bottom: 2px; }
+.nav-tab .badge-num {
+  background: var(--danger); color: #fff;
+  border-radius: 10px; padding: 1px 6px; font-size: 9px;
+  margin-right: 4px;
+}
+
+/* ============ Modal/Sheet ============ */
+.sheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: none; z-index: 200; align-items: flex-end;
+}
+.sheet-overlay.show { display: flex; }
+.sheet {
+  background: var(--surface); width: 100%; max-height: 90vh;
+  border-radius: 20px 20px 0 0; padding: 20px;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+.sheet-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: -10px auto 16px;
+}
+.sheet-title {
+  font-size: 18px; font-weight: 700; color: var(--primary-dark);
+  margin-bottom: 8px;
+}
+
+/* ============ Action Buttons ============ */
+.action-btn {
+  display: block; width: 100%; padding: 14px;
+  border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+  cursor: pointer; margin-top: 8px; font-family: inherit;
+}
+.action-btn.approve { background: var(--success); color: #fff; }
+.action-btn.reject { background: var(--danger); color: #fff; }
+.action-btn.comment { background: var(--primary); color: #fff; }
+.action-btn.outline {
+  background: #fff; color: var(--primary); border: 1.5px solid var(--primary);
+}
+.action-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-row .action-btn { margin-top: 0; }
+
+/* ============ Forms ============ */
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.form-input, .form-textarea {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+  border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff;
+}
+.form-textarea { min-height: 80px; resize: vertical; }
+.form-input:focus, .form-textarea:focus {
+  outline: none; border-color: var(--primary-light);
+}
+
+/* ============ Comments ============ */
+.comment {
+  background: var(--bg); padding: 12px; border-radius: 10px;
+  margin-bottom: 8px; border-right: 3px solid var(--text-light);
+}
+.comment.owner-note { border-color: var(--gold); background: #FFF8E7; }
+.comment-header {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text-light); margin-bottom: 4px;
+}
+.comment-author { font-weight: 700; color: var(--primary-dark); }
+.comment-text { font-size: 13px; line-height: 1.6; }
+
+/* ============ Activity Feed ============ */
+.activity {
+  display: flex; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity:last-child { border-bottom: none; }
+.activity-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.activity-icon.success { background: var(--success); }
+.activity-icon.warning { background: var(--warning); }
+.activity-icon.payment { background: var(--gold); }
+.activity-content { flex: 1; }
+.activity-text { font-size: 13px; color: var(--text); }
+.activity-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+/* ============ Login Screen ============ */
+.login-screen {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, #5C4528, #8B6F47);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; z-index: 300;
+}
+.login-screen.hide { display: none; }
+.login-card {
+  background: #fff; border-radius: 20px; padding: 32px 24px;
+  width: 100%; max-width: 400px;
+}
+.login-logo { text-align: center; margin-bottom: 24px; }
+.login-logo p { color: var(--text-light); font-size: 12px; letter-spacing: 1px; margin-top: 8px; }
+
+/* ============ Helpers ============ */
+.empty { text-align: center; padding: 32px 20px; color: var(--text-light); font-size: 14px; }
+.empty .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+.loading { text-align: center; padding: 30px; color: var(--text-light); }
+.toast {
+  position: fixed; top: 80px; left: 16px; right: 16px;
+  background: var(--text); color: #fff; padding: 14px;
+  border-radius: 12px; text-align: center; z-index: 500;
+  opacity: 0; transition: opacity 0.3s; font-size: 14px;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="/assets/logo-abella.png" alt="أبيلا" style="width:100%;max-width:200px;height:auto;display:block;margin:0 auto 8px">
+      <p>لوحة المالكة</p>
+    </div>
+    <form onsubmit="doLogin(event)">
+      <div class="form-group">
+        <label class="form-label">اسم المستخدم</label>
+        <input class="form-input" id="login-username" required value="nouf">
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <input class="form-input" type="password" id="login-password" required value="admin123">
+      </div>
+      <button type="submit" class="action-btn approve" style="margin-top:16px">دخول</button>
+    </form>
+  </div>
+</div>
+
+<!-- App -->
+<header class="app-header">
+  <div class="header-top">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="/assets/logo-abella-light.png" alt="أبيلا" style="height:44px;width:auto">
+      <div>
+        <div class="header-greeting">مرحبًا بكِ</div>
+        <div class="header-name" id="user-name">نوف</div>
+        <div style="font-size:10px;opacity:0.8;margin-top:2px">أبيلا للأفراح والمناسبات</div>
+      </div>
+    </div>
+    <div>
+      <span class="live-indicator"><span class="live-dot"></span> مباشر</span>
+      <div class="last-sync" id="last-sync"></div>
+    </div>
+  </div>
+</header>
+
+<main class="content" id="content">
+  <div class="loading">جارِ التحميل...</div>
+</main>
+
+<nav class="bottom-nav">
+  <div class="nav-tab active" data-tab="home" onclick="switchTab('home')">
+    <span class="icon">🏠</span><div>الرئيسية</div>
+  </div>
+  <div class="nav-tab" data-tab="calendar" onclick="switchTab('calendar')">
+    <span class="icon">🗓</span><div>التقويم</div>
+  </div>
+  <div class="nav-tab" data-tab="approvals" onclick="switchTab('approvals')">
+    <span class="icon">✅</span><div>الموافقات <span id="approval-count" class="badge-num" style="display:none">0</span></div>
+  </div>
+  <div class="nav-tab" data-tab="events" onclick="switchTab('events')">
+    <span class="icon">🎉</span><div>المناسبات</div>
+  </div>
+  <div class="nav-tab" data-tab="activity" onclick="switchTab('activity')">
+    <span class="icon">⚡</span><div>النشاط</div>
+  </div>
+</nav>
+
+<div class="sheet-overlay" id="sheet-overlay" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('abela_owner_token');
+let currentUser = null;
+let currentTab = 'home';
+let liveData = null;
+let refreshTimer = null;
+
+async function api(path, opts={}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { headers, ...opts });
+  if (res.status === 401) {
+    localStorage.removeItem('abela_owner_token');
+    document.getElementById('login-screen').classList.remove('hide');
+    throw new Error('الجلسة منتهية');
+  }
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({error:'خطأ'}));
+    throw new Error(e.error || 'خطأ');
+  }
+  return res.json();
+}
+
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 2500);
+}
+
+function fmtMoney(v) {
+  return (Number(v) || 0).toLocaleString('ar-SA', {maximumFractionDigits:0}) + ' ر.س';
+}
+function fmtDate(s) {
+  if (!s) return '-';
+  return new Date(s).toLocaleDateString('ar-SA', {weekday:'short', month:'long', day:'numeric'});
+}
+function fmtTime(s) {
+  if (!s) return '';
+  return new Date(s).toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit'});
+}
+function timeAgo(s) {
+  if (!s) return '';
+  const diff = (Date.now() - new Date(s).getTime()) / 1000;
+  if (diff < 60) return 'الآن';
+  if (diff < 3600) return `منذ ${Math.floor(diff/60)} د`;
+  if (diff < 86400) return `منذ ${Math.floor(diff/3600)} س`;
+  return `منذ ${Math.floor(diff/86400)} يوم`;
+}
+
+const STATUS_LABELS = {
+  lead:'استفسار', quoted:'عرض سعر', contracted:'متعاقد', planning:'تخطيط',
+  ready:'جاهز', in_progress:'قيد التنفيذ', completed:'منفذ', closed:'مقفل',
+  cancelled:'ملغي', draft:'مسودة', approved:'معتمد', pending:'معلق'
+};
+const EVENT_TYPES = {
+  newborn:'استقبال مولود', queen:'ملكة', wedding:'زفاف',
+  engagement:'خطوبة', birthday:'عيد ميلاد', exhibition:'معرض',
+  corporate:'مؤسسي', other:'أخرى'
+};
+const WAREHOUSE_LABELS = {
+  decorations:'🎨 ديكورات', accessories:'✨ اكسسوارات', factory:'🛠️ مصنع'
+};
+
+async function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('login-username').value;
+  const password = document.getElementById('login-password').value;
+  try {
+    const r = await fetch(API + '/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'فشل الدخول');
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('abela_owner_token', token);
+    localStorage.setItem('abela_owner_user', JSON.stringify(data.user));
+    document.getElementById('login-screen').classList.add('hide');
+    document.getElementById('user-name').textContent = data.user.full_name.split('—')[0].trim();
+    startLiveFeed();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function fetchLive() {
+  try {
+    liveData = await api('/owner/live');
+    document.getElementById('last-sync').textContent = 'تحديث: ' + fmtTime(liveData.timestamp);
+    const ac = liveData.pending_approvals.length;
+    const badge = document.getElementById('approval-count');
+    if (ac > 0) { badge.textContent = ac; badge.style.display = 'inline-block'; }
+    else badge.style.display = 'none';
+    renderTab();
+  } catch(e) { console.error(e); }
+}
+
+function startLiveFeed() {
+  fetchLive();
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(fetchLive, 15000);  // كل 15 ثانية
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  renderTab();
+}
+
+function renderTab() {
+  if (!liveData) return;
+  switch(currentTab) {
+    case 'home': return renderHome();
+    case 'calendar': return renderOwnerCalendar();
+    case 'approvals': return renderApprovals();
+    case 'events': return renderEvents();
+    case 'activity': return renderActivity();
+  }
+}
+
+// ============ التقويم البصري — مواعيد ومناسبات في خلية واحدة ============
+let calCurrentYear = new Date().getFullYear();
+let calCurrentMonth = new Date().getMonth() + 1;
+
+async function renderOwnerCalendar() {
+  await renderOwnerCalendarMonth(calCurrentYear, calCurrentMonth);
+}
+
+async function renderOwnerCalendarMonth(year, month) {
+  calCurrentYear = year; calCurrentMonth = month;
+  const c = document.getElementById('content');
+  c.innerHTML = '<div class="loading">جارِ تحميل التقويم...</div>';
+  try {
+    const data = await api(`/calendar?year=${year}&month=${month}`);
+    const monthName = new Date(year, month-1, 1).toLocaleDateString('ar-SA', { month:'long', year:'numeric' });
+    const firstDay = new Date(year, month-1, 1).getDay();
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const items = data.all_items || [];
+
+    // ترتيب البنود حسب التاريخ
+    const itemsByDate = {};
+    items.forEach(it => {
+      const d = it.date;
+      if (!itemsByDate[d]) itemsByDate[d] = [];
+      itemsByDate[d].push(it);
+    });
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dayNames = ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+
+    let cells = '';
+    for (let i = 0; i < firstDay; i++) cells += '<div class="cal-empty"></div>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dayItems = itemsByDate[dateStr] || [];
+      const isToday = todayStr === dateStr;
+      const onClick = dayItems.length ? `onclick="showOwnerDayDetails('${dateStr}')"` : '';
+      cells += `
+        <div class="cal-day ${isToday ? 'today' : ''} ${dayItems.length ? 'has-items' : ''}" ${onClick}>
+          <div class="cal-day-num">${d}</div>
+          ${dayItems.slice(0,3).map(it => `
+            <div class="cal-item cal-item-${it.item_type}" title="${escapeAttr(it.title)}">
+              ${it.item_type === 'event' ? '🎉' : '📅'} ${truncate(it.title, 14)}
+            </div>
+          `).join('')}
+          ${dayItems.length > 3 ? `<div class="cal-more">+${dayItems.length - 3}</div>` : ''}
+        </div>
+      `;
+    }
+
+    const totalEvents = items.filter(i => i.item_type === 'event').length;
+    const totalAppts = items.filter(i => i.item_type === 'appointment').length;
+
+    c.innerHTML = `
+      <style>
+        .cal-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; }
+        .cal-nav-btn { background:var(--primary); color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:700; font-size:14px; }
+        .cal-month-title { font-weight:700; font-size:16px; color:var(--primary-dark); flex:1; text-align:center; }
+        .cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; background:var(--border); border-radius:10px; overflow:hidden; padding:3px; }
+        .cal-header { background:var(--primary-dark); color:#fff; padding:8px 4px; text-align:center; font-weight:700; font-size:11px; }
+        .cal-day { background:#fff; min-height:80px; padding:4px 3px; cursor:default; transition:transform 0.1s; }
+        .cal-day.has-items { cursor:pointer; }
+        .cal-day.has-items:active { transform:scale(0.96); }
+        .cal-day.today { background:#FFF8E7; box-shadow:inset 0 0 0 2px var(--gold, #C9A560); }
+        .cal-empty { background:transparent; min-height:80px; }
+        .cal-day-num { font-weight:700; font-size:13px; color:var(--primary-dark); margin-bottom:2px; }
+        .cal-item { padding:1px 4px; border-radius:3px; font-size:9px; margin-bottom:1px; line-height:1.3; }
+        .cal-item-event { background:#FFE8C4; color:#7A5500; }
+        .cal-item-appointment { background:#D4E3F4; color:#1F4E79; }
+        .cal-more { font-size:9px; color:var(--primary); font-weight:700; text-align:center; margin-top:1px; }
+        .cal-legend { display:flex; gap:14px; justify-content:center; margin-top:10px; font-size:11px; color:var(--text-light); }
+        .cal-legend-dot { display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:middle; margin-left:4px; }
+        .cal-summary { background:var(--bg); border-radius:10px; padding:10px; text-align:center; margin-top:10px; font-size:12px; }
+      </style>
+      <div class="cal-controls">
+        <button class="cal-nav-btn" onclick="renderOwnerCalendarMonth(${month===1?year-1:year}, ${month===1?12:month-1})">‹</button>
+        <div class="cal-month-title">🗓 ${monthName}</div>
+        <button class="cal-nav-btn" onclick="renderOwnerCalendarMonth(${month===12?year+1:year}, ${month===12?1:month+1})">›</button>
+      </div>
+      <button class="cal-nav-btn" onclick="renderOwnerCalendarMonth(new Date().getFullYear(), new Date().getMonth()+1)" style="width:100%; margin-bottom:10px; background:var(--gold,#C9A560);">اليوم</button>
+      <div class="cal-grid">
+        ${dayNames.map(d => `<div class="cal-header">${d}</div>`).join('')}
+        ${cells}
+      </div>
+      <div class="cal-legend">
+        <span><span class="cal-legend-dot" style="background:#FFE8C4"></span>مناسبات (${totalEvents})</span>
+        <span><span class="cal-legend-dot" style="background:#D4E3F4"></span>مواعيد (${totalAppts})</span>
+        <span><span class="cal-legend-dot" style="background:#FFF8E7;border:2px solid #C9A560"></span>اليوم</span>
+      </div>
+      <div class="cal-summary">إجمالي ${items.length} بند في ${monthName} — اضغط على أي يوم لعرض التفاصيل</div>
+    `;
+
+    // نخزّن للوصول السريع في تفاصيل اليوم
+    window._calItemsByDate = itemsByDate;
+  } catch (e) {
+    c.innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function showOwnerDayDetails(dateStr) {
+  const items = (window._calItemsByDate && window._calItemsByDate[dateStr]) || [];
+  if (!items.length) return;
+  const dayName = new Date(dateStr).toLocaleDateString('ar-SA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  const html = `
+    <div style="font-size:18px;font-weight:700;color:var(--primary-dark);margin-bottom:4px">${dayName}</div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:14px">${items.length} بند</div>
+    ${items.map(it => `
+      <div class="card" onclick="${it.item_type==='event' ? `showEventDetails(${it.id})` : `showApptDetails(${it.id})`}" style="cursor:pointer; border-left:4px solid ${it.item_type==='event'?'#D4A04C':'#1F4E79'}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="flex:1">
+            <div style="font-weight:700">${it.item_type==='event'?'🎉':'📅'} ${escapeHtml(it.title)}</div>
+            ${it.time ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px">⏰ ${it.time}</div>` : ''}
+            ${it.customer_name ? `<div style="font-size:12px;margin-top:2px">👤 ${escapeHtml(it.customer_name)}</div>` : ''}
+            ${it.status ? `<div style="font-size:11px;margin-top:4px"><span class="badge">${STATUS_LABELS[it.status] || it.status}</span></div>` : ''}
+          </div>
+          <div style="color:var(--text-light)">›</div>
+        </div>
+      </div>
+    `).join('')}
+    <button class="btn" onclick="closeSheet()" style="width:100%; margin-top:12px; background:var(--text-light); color:#fff; padding:12px; border-radius:8px; border:none;">إغلاق</button>
+  `;
+  openSheet(html);
+}
+
+async function showEventDetails(id) {
+  try {
+    const e = await api('/events/' + id);
+    const html = `
+      <div style="font-size:18px;font-weight:700;color:var(--primary-dark)">🎉 ${escapeHtml(e.title)}</div>
+      <div style="font-size:12px;color:var(--text-light);margin:4px 0 12px">${e.event_code} • ${EVENT_TYPES[e.event_type] || e.event_type}</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>📅 التاريخ:</span><span>${fmtDate(e.event_date)}</span></div>
+        ${e.event_start_time ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>⏰ من:</span><span>${e.event_start_time} ${e.event_end_time?'إلى '+e.event_end_time:''}</span></div>` : ''}
+        ${e.venue_name ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>📍 المكان:</span><span>${escapeHtml(e.venue_name)}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>👤 العميل:</span><span>${escapeHtml(e.customer_name)}</span></div>
+        ${e.customer_phone ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>📱 الجوال:</span><span dir="ltr">${e.customer_phone}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>📊 الحالة:</span><span class="badge">${STATUS_LABELS[e.status] || e.status}</span></div>
+      </div>
+      <div class="card" style="margin-top:8px">
+        <div style="font-weight:700;color:var(--primary-dark);margin-bottom:8px">💰 المالي</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span>السعر الإجمالي:</span><strong>${fmtMoney(e.total_price)}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--success)"><span>المحصّل:</span><strong>${fmtMoney(e.paid_amount)}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--danger)"><span>المتبقي:</span><strong>${fmtMoney((e.total_price||0)-(e.paid_amount||0))}</strong></div>
+      </div>
+      <button class="btn" onclick="closeSheet()" style="width:100%; margin-top:12px; background:var(--text-light); color:#fff; padding:12px; border-radius:8px; border:none;">إغلاق</button>
+    `;
+    openSheet(html);
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function showApptDetails(id) {
+  try {
+    const list = await api('/appointments');
+    const a = list.find(x => x.id === id);
+    if (!a) return toast('الموعد غير موجود', 'error');
+    const html = `
+      <div style="font-size:18px;font-weight:700;color:var(--primary-dark)">📅 ${escapeHtml(a.title)}</div>
+      <div style="font-size:12px;color:var(--text-light);margin:4px 0 12px">${a.appointment_code}</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>📅 التاريخ:</span><span>${a.appointment_date}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>⏰ الوقت:</span><span>${a.start_time} ${a.end_time?'- '+a.end_time:''}</span></div>
+        ${a.location ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>📍 المكان:</span><span>${escapeHtml(a.location)}</span></div>` : ''}
+        ${a.customer_full_name ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>👤 العميل:</span><span>${escapeHtml(a.customer_full_name)}</span></div>` : ''}
+        ${a.assigned_name ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>🧑‍💼 المسؤول:</span><span>${escapeHtml(a.assigned_name)}</span></div>` : ''}
+        ${a.notes ? `<div style="margin-top:8px;font-size:13px"><strong>ملاحظات:</strong><br>${escapeHtml(a.notes)}</div>` : ''}
+      </div>
+      <button class="btn" onclick="closeSheet()" style="width:100%; margin-top:12px; background:var(--text-light); color:#fff; padding:12px; border-radius:8px; border:none;">إغلاق</button>
+    `;
+    openSheet(html);
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+function truncate(s, n) {
+  s = String(s||''); return s.length > n ? s.slice(0,n) + '…' : s;
+}
+
+function renderHome() {
+  const t = liveData.totals;
+  const html = `
+    <div class="stats-row">
+      <div class="stat-mini success">
+        <div class="stat-label">مناسبات نشطة</div>
+        <div class="stat-value">${t.active_events}</div>
+        <div class="stat-sub">من ${t.total_events} كلي</div>
+      </div>
+      <div class="stat-mini gold">
+        <div class="stat-label">إيراد اليوم</div>
+        <div class="stat-value" style="font-size:18px">${fmtMoney(t.today_revenue)}</div>
+        <div class="stat-sub">${fmtMoney(t.this_month_revenue)} هذا الشهر</div>
+      </div>
+      <div class="stat-mini danger">
+        <div class="stat-label">متبقي للتحصيل</div>
+        <div class="stat-value" style="font-size:18px">${fmtMoney(t.pending_payments)}</div>
+        <div class="stat-sub">على عملاء حاليين</div>
+      </div>
+      <div class="stat-mini warning">
+        <div class="stat-label">خطط معلقة</div>
+        <div class="stat-value">${t.pending_workplans}</div>
+        <div class="stat-sub">تنتظر موافقتك</div>
+      </div>
+    </div>
+
+    <!-- رسوم بيانية بصرية مبسّطة -->
+    <div class="card">
+      <div class="section-title" style="margin:0 0 8px">📊 نظرة بصرية</div>
+      <div style="position:relative;height:180px"><canvas id="owner-revenue-chart"></canvas></div>
+    </div>
+    <div class="stats-row" style="margin-top:8px">
+      <div class="card" style="padding:10px;margin:0">
+        <div style="text-align:center;font-size:11px;color:var(--text-light)">📈 المناسبات حسب الحالة</div>
+        <div style="position:relative;height:140px"><canvas id="owner-status-chart"></canvas></div>
+      </div>
+      <div class="card" style="padding:10px;margin:0">
+        <div style="text-align:center;font-size:11px;color:var(--text-light)">🎯 إنجاز التشيك ليست</div>
+        <div style="position:relative;height:140px"><canvas id="owner-checklist-chart"></canvas></div>
+      </div>
+    </div>
+
+    ${liveData.today_events.length ? `
+      <div class="section">
+        <div class="section-title">🎉 مناسبات اليوم <span class="count">${liveData.today_events.length}</span></div>
+        ${liveData.today_events.map(e => renderEventCard(e, 'urgent')).join('')}
+      </div>
+    ` : ''}
+
+    ${liveData.tomorrow_events.length ? `
+      <div class="section">
+        <div class="section-title">📅 الغد <span class="count">${liveData.tomorrow_events.length}</span></div>
+        ${liveData.tomorrow_events.map(e => renderEventCard(e, 'warning')).join('')}
+      </div>
+    ` : ''}
+
+    ${liveData.active_checklists.length ? `
+      <div class="section">
+        <div class="section-title">📋 تشيك ليست جارية <span class="count">${liveData.active_checklists.length}</span></div>
+        ${liveData.active_checklists.map(c => renderChecklistCard(c)).join('')}
+      </div>
+    ` : ''}
+
+    ${liveData.pending_approvals.length ? `
+      <div class="section">
+        <div class="section-title">⏳ بانتظار موافقتك <span class="count urgent">${liveData.pending_approvals.length}</span></div>
+        ${liveData.pending_approvals.map(a => renderApprovalCard(a)).join('')}
+      </div>
+    ` : ''}
+  `;
+  document.getElementById('content').innerHTML = html;
+  // ارسم الرسوم البيانية بعد تركيب HTML
+  setTimeout(() => renderOwnerCharts(t), 50);
+}
+
+function renderOwnerCharts(totals) {
+  if (typeof Chart === 'undefined') return;
+  const colors = {
+    primary: '#8B6F47', accent: '#C9A560', gold: '#D4B97A',
+    success: '#7A8A5F', warning: '#D4A04C', danger: '#A04545',
+  };
+  Chart.defaults.font.family = "'Segoe UI', Tahoma, Arial, sans-serif";
+  Chart.defaults.font.size = 10;
+
+  // 1. الإيراد: اليوم vs الشهر vs المتبقي
+  const c1 = document.getElementById('owner-revenue-chart');
+  if (c1) {
+    new Chart(c1, {
+      type: 'bar',
+      data: {
+        labels: ['اليوم', 'هذا الشهر', 'متبقي للتحصيل'],
+        datasets: [{
+          data: [totals.today_revenue, totals.this_month_revenue, totals.pending_payments],
+          backgroundColor: [colors.success, colors.gold, colors.danger],
+          borderRadius: 8, borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: v => v > 1000 ? (v/1000).toFixed(0) + 'k' : v } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // 2. حالة المناسبات (Doughnut)
+  const c2 = document.getElementById('owner-status-chart');
+  if (c2) {
+    const active = totals.active_events || 0;
+    const completed = totals.completed_events || 0;
+    const other = (totals.total_events || 0) - active - completed;
+    new Chart(c2, {
+      type: 'doughnut',
+      data: {
+        labels: ['نشطة', 'مكتملة', 'أخرى'],
+        datasets: [{
+          data: [active, completed, Math.max(0, other)],
+          backgroundColor: [colors.gold, colors.success, '#E8DFD0'],
+          borderColor: '#fff', borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { padding: 6, font: { size: 9 } } } },
+        cutout: '55%'
+      }
+    });
+  }
+
+  // 3. إنجاز التشيك ليست (Polar)
+  const c3 = document.getElementById('owner-checklist-chart');
+  if (c3) {
+    const checklists = liveData.active_checklists || [];
+    const totalItems = checklists.reduce((s, c) => s + (c.total || 0), 0);
+    const doneItems = checklists.reduce((s, c) => s + (c.done || 0), 0);
+    const pendingItems = totalItems - doneItems;
+    new Chart(c3, {
+      type: 'doughnut',
+      data: {
+        labels: ['منجز', 'معلق'],
+        datasets: [{
+          data: [doneItems, pendingItems],
+          backgroundColor: [colors.success, colors.warning],
+          borderColor: '#fff', borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { padding: 6, font: { size: 9 } } } },
+        cutout: '55%'
+      }
+    });
+  }
+}
+
+function renderApprovals() {
+  const html = liveData.pending_approvals.length ? `
+    <div class="section-title">⏳ خطط بانتظار موافقتك (${liveData.pending_approvals.length})</div>
+    ${liveData.pending_approvals.map(a => renderApprovalCard(a)).join('')}
+  ` : '<div class="empty"><div class="icon">✅</div>لا توجد طلبات معلقة<br><small>كل شي معتمد!</small></div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderEvents() {
+  const all = [...liveData.today_events, ...liveData.tomorrow_events];
+  const html = all.length ? `
+    <div class="section-title">🎉 المناسبات النشطة</div>
+    ${all.map(e => renderEventCard(e)).join('')}
+  ` : '<div class="empty"><div class="icon">🎉</div>لا توجد مناسبات قريبة</div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderActivity() {
+  const html = liveData.recent_activity.length ? `
+    <div class="section-title">⚡ آخر النشاط (${liveData.recent_activity.length})</div>
+    <div style="background:var(--surface);border-radius:12px;padding:8px 16px">
+      ${liveData.recent_activity.map(a => {
+        const icon = a.type==='task_completed'?'✓':a.type==='item_picked'?'📦':a.type==='payment'?'💰':'📌';
+        const cls = a.type==='task_completed'?'success':a.type==='payment'?'payment':'';
+        return `<div class="activity">
+          <div class="activity-icon ${cls}">${icon}</div>
+          <div class="activity-content">
+            <div class="activity-text">${a.text}</div>
+            <div class="activity-meta">${a.user_name||''} • ${a.context||''} • ${timeAgo(a.time)}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  ` : '<div class="empty"><div class="icon">⚡</div>لا يوجد نشاط حديث</div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderEventCard(e, cls='') {
+  return `<div class="item-card ${cls}" onclick="openEvent(${e.id})">
+    <div class="item-title">${e.title}</div>
+    <div style="font-size:13px;color:var(--text-light)">${e.customer_name}</div>
+    <div class="item-meta">
+      <span>📅 ${fmtDate(e.event_date)}</span>
+      ${e.event_start_time ? `<span>⏰ ${e.event_start_time}</span>` : ''}
+      ${e.venue_name ? `<span>📍 ${e.venue_name}</span>` : ''}
+      <span class="badge badge-${e.status}">${STATUS_LABELS[e.status]||e.status}</span>
+    </div>
+  </div>`;
+}
+
+function renderChecklistCard(c) {
+  const pct = c.total ? Math.round((c.done/c.total)*100) : 0;
+  return `<div class="item-card ${c.status==='ready'?'success':c.status==='in_progress'?'warning':''}" onclick="openChecklist(${c.id})">
+    <div class="item-title">${WAREHOUSE_LABELS[c.warehouse]} — ${c.event_title}</div>
+    <div style="font-size:12px;color:var(--text-light)">${c.plan_title}</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="item-meta">
+      <span>${c.done}/${c.total} عنصر مُجهز</span>
+      <span class="badge badge-${c.status}">${STATUS_LABELS[c.status]||c.status}</span>
+    </div>
+  </div>`;
+}
+
+function renderApprovalCard(a) {
+  return `<div class="item-card urgent" onclick="openWorkplan(${a.entity_id})">
+    <div class="item-title">📋 ${a.title}</div>
+    <div style="font-size:12px;color:var(--text-light)">${a.event_title} • ${a.planner_name}</div>
+    <div class="btn-row">
+      <button class="action-btn approve" style="padding:8px;font-size:12px" onclick="event.stopPropagation();decide('workplan',${a.entity_id},'approved')">✓ اعتمدي</button>
+      <button class="action-btn reject" style="padding:8px;font-size:12px" onclick="event.stopPropagation();decide('workplan',${a.entity_id},'rejected')">✗ ارفضي</button>
+    </div>
+  </div>`;
+}
+
+async function openEvent(id) {
+  try {
+    const e = await api('/events/'+id);
+    const comments = await api('/comments?entity_type=event&entity_id='+id);
+    showSheet(`
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">${e.title}</div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:16px">
+        ${e.event_code} • ${e.customer_name}<br>
+        📅 ${fmtDate(e.event_date)} ${e.event_start_time||''}<br>
+        📍 ${e.venue_name||''}
+      </div>
+      <div class="stats-row">
+        <div class="stat-mini gold"><div class="stat-label">السعر</div><div class="stat-value" style="font-size:16px">${fmtMoney(e.total_price)}</div></div>
+        <div class="stat-mini success"><div class="stat-label">المدفوع</div><div class="stat-value" style="font-size:16px">${fmtMoney(e.paid_amount)}</div></div>
+      </div>
+      <div class="section-title" style="margin-top:16px">📝 الملاحظات (${comments.length})</div>
+      <div id="comments-list">
+        ${comments.length ? comments.map(c => `
+          <div class="comment ${c.is_owner_note?'owner-note':''}">
+            <div class="comment-header">
+              <span class="comment-author">${c.user_name}${c.is_owner_note?' 👑':''}</span>
+              <span>${timeAgo(c.created_at)}</span>
+            </div>
+            <div class="comment-text">${c.comment_text}</div>
+          </div>
+        `).join('') : '<div class="empty">لا توجد ملاحظات</div>'}
+      </div>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">إضافة ملاحظة</label>
+        <textarea class="form-textarea" id="new-comment" placeholder="اكتبي ملاحظتك..."></textarea>
+      </div>
+      <button class="action-btn comment" onclick="addComment('event',${id})">📝 إرسال ملاحظة</button>
+      <button class="action-btn outline" onclick="closeSheet()">إغلاق</button>
+    `);
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function openWorkplan(id) {
+  try {
+    const wp = await api('/workplans/'+id);
+    const comments = await api('/comments?entity_type=workplan&entity_id='+id);
+    showSheet(`
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">📋 ${wp.title}</div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:8px">
+        ${wp.plan_code} • ${wp.event_title}<br>
+        معد الخطة: ${wp.planner_name}
+      </div>
+      ${wp.planner_notes ? `<div style="background:var(--bg);padding:10px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>📝 ملاحظات المعد:</strong><br>${wp.planner_notes}</div>` : ''}
+      <div class="section-title">العناصر (${wp.items.length})</div>
+      ${wp.items.map(it => `
+        <div class="item-card" style="cursor:default">
+          <div style="font-weight:700">${it.category_icon||''} ${it.category_name}</div>
+          <div style="font-size:13px">${it.custom_name||''} × ${it.quantity}</div>
+          <div class="item-meta">
+            ${it.color_code ? `<span>🎨 ${it.color_code}</span>` : ''}
+            ${it.fabric_code ? `<span>🧵 ${it.fabric_code}</span>` : ''}
+            <span>${WAREHOUSE_LABELS[it.warehouse]}</span>
+          </div>
+          ${it.notes ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px">📝 ${it.notes}</div>` : ''}
+        </div>
+      `).join('')}
+
+      ${wp.status === 'draft' ? `
+        <div class="btn-row" style="margin-top:16px">
+          <button class="action-btn approve" onclick="decide('workplan',${id},'approved')">✓ اعتمدي</button>
+          <button class="action-btn reject" onclick="decide('workplan',${id},'rejected')">✗ ارفضي</button>
+        </div>
+      ` : `<div style="margin:16px 0;text-align:center"><span class="badge badge-${wp.status}">${STATUS_LABELS[wp.status]}</span></div>`}
+
+      <div class="section-title" style="margin-top:16px">📝 الملاحظات (${comments.length})</div>
+      ${comments.length ? comments.map(c => `
+        <div class="comment ${c.is_owner_note?'owner-note':''}">
+          <div class="comment-header">
+            <span class="comment-author">${c.user_name}${c.is_owner_note?' 👑':''}</span>
+            <span>${timeAgo(c.created_at)}</span>
+          </div>
+          <div class="comment-text">${c.comment_text}</div>
+        </div>
+      `).join('') : '<div class="empty">لا توجد ملاحظات</div>'}
+      <div class="form-group" style="margin-top:12px">
+        <textarea class="form-textarea" id="new-comment" placeholder="ملاحظة على هذه الخطة..."></textarea>
+      </div>
+      <button class="action-btn comment" onclick="addComment('workplan',${id})">📝 إرسال ملاحظة</button>
+      <button class="action-btn outline" onclick="closeSheet()">إغلاق</button>
+    `);
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function openChecklist(id) {
+  try {
+    const cl = await api('/checklists/'+id);
+    const pickedCount = cl.items.filter(i=>i.is_picked).length;
+    showSheet(`
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">${WAREHOUSE_LABELS[cl.warehouse]}</div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:12px">
+        ${cl.event_title} • ${cl.plan_title}
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${(pickedCount/cl.items.length)*100}%"></div></div>
+      <div style="text-align:center;font-size:13px;margin:8px 0">${pickedCount}/${cl.items.length} عنصر مُجهز</div>
+      ${cl.items.map(it => `
+        <div class="item-card" style="cursor:default;border-color:${it.is_picked?'var(--success)':'var(--warning)'}">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <strong>${it.category_icon||''} ${it.category_name}</strong>
+              <div style="font-size:13px">${it.custom_name||''} × ${it.required_quantity}</div>
+            </div>
+            <div style="font-size:24px">${it.is_picked?'✓':'⏳'}</div>
+          </div>
+          ${it.color_code||it.fabric_code ? `<div class="item-meta">
+            ${it.color_code?`<span>🎨 ${it.color_code}</span>`:''}
+            ${it.fabric_code?`<span>🧵 ${it.fabric_code}</span>`:''}
+          </div>` : ''}
+        </div>
+      `).join('')}
+      <button class="action-btn outline" onclick="closeSheet()" style="margin-top:16px">إغلاق</button>
+    `);
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function addComment(entityType, entityId) {
+  const text = document.getElementById('new-comment').value.trim();
+  if (!text) return toast('اكتبي الملاحظة أولاً', 'error');
+  try {
+    await api('/comments', {
+      method:'POST',
+      body: JSON.stringify({entity_type:entityType, entity_id:entityId, comment_text:text})
+    });
+    toast('✓ تم إرسال الملاحظة', 'success');
+    closeSheet();
+    fetchLive();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function decide(entityType, entityId, decision) {
+  const notes = prompt(decision==='approved' ? 'أي ملاحظات للاعتماد؟ (اختياري)' : 'سبب الرفض:');
+  if (decision==='rejected' && !notes) return;
+  try {
+    await api('/approve', {
+      method:'POST',
+      body: JSON.stringify({entity_type:entityType, entity_id:entityId, decision, notes})
+    });
+    toast(decision==='approved'?'✓ تم الاعتماد':'✗ تم الرفض', decision==='approved'?'success':'error');
+    closeSheet();
+    fetchLive();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function showSheet(html) {
+  document.getElementById('sheet').innerHTML = html;
+  document.getElementById('sheet-overlay').classList.add('show');
+}
+// alias لسهولة الاستخدام
+const openSheet = showSheet;
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('show');
+}
+
+// Auto-login if saved + تحديث user من السيرفر إذا قديم
+const saved = localStorage.getItem('abela_owner_user');
+if (token && saved) {
+  currentUser = JSON.parse(saved);
+  document.getElementById('login-screen').classList.add('hide');
+  document.getElementById('user-name').textContent = currentUser.full_name.split('—')[0].trim();
+  // تحديث user من السيرفر بصمت (يضمن أحدث الحقول)
+  fetch(API + '/me', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (d && d.user) {
+        currentUser = d.user;
+        localStorage.setItem('abela_owner_user', JSON.stringify(currentUser));
+      }
+    }).catch(() => {});
+  startLiveFeed();
+}
+</script>
+</body>
+</html>

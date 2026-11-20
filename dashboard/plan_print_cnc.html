@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script src="/assets/session.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أبيلا — خطة فني CNC</title>
+<style>
+:root {
+  --primary: #8B6F47; --primary-dark: #5C4528; --primary-deeper: #3E2C1C;
+  --accent: #C9A560; --gold: #D4B97A; --gold-light: #F0E5C8;
+  --cream: #FBF7EF; --paper: #FFFFFF;
+  --text: #2D1F14; --text-mute: #8B7E6E; --line: #E8DFD0;
+  --success: #7A8A5F; --warning: #D4A04C; --danger: #A04545;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: #f0ece5; color: var(--text); font-size: 14px;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.toolbar {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-deeper));
+  color: #fff; padding: 14px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.toolbar h1 { font-size: 18px; font-weight: 700; }
+.btn {
+  padding: 8px 18px; border-radius: 8px; cursor: pointer;
+  font-weight: 700; border: none; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--gold); color: var(--primary-deeper); }
+.btn-ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+
+.page {
+  background: #fff; max-width: 1100px; margin: 24px auto;
+  padding: 30px 40px; box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-radius: 8px;
+}
+
+/* رأس الصفحة */
+.header {
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 16px; margin-bottom: 22px;
+  display: flex; justify-content: space-between; align-items: flex-end;
+}
+.brand {
+  font-size: 28px; font-weight: 700; color: var(--primary-dark);
+  font-family: 'Brush Script MT', cursive;
+}
+.brand-sub { font-size: 11px; color: var(--text-mute); letter-spacing: 2px; }
+.header-info { text-align: left; font-size: 12px; color: var(--text-mute); line-height: 1.7; }
+.header-info strong { color: var(--text); display: inline-block; min-width: 90px; }
+
+.title-section {
+  background: linear-gradient(90deg, var(--gold-light), transparent);
+  padding: 16px 20px; border-right: 5px solid var(--accent);
+  margin-bottom: 20px; border-radius: 6px;
+}
+.title-section h2 { font-size: 22px; color: var(--primary-deeper); margin-bottom: 4px; }
+.title-section p { font-size: 12px; color: var(--text-mute); }
+
+/* جدول البنود */
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+thead th {
+  background: var(--primary-dark); color: #fff;
+  padding: 10px 8px; text-align: right; font-size: 12px; font-weight: 700;
+  border: 1px solid var(--primary-deeper);
+}
+tbody td {
+  padding: 10px 8px; border: 1px solid var(--line);
+  vertical-align: top; font-size: 12px;
+}
+tbody tr:nth-child(odd) { background: var(--cream); }
+tbody tr:hover { background: var(--gold-light); }
+
+.item-img {
+  width: 80px; height: 80px; object-fit: contain;
+  background: #fff; border: 1px solid var(--line);
+  border-radius: 6px; display: block;
+}
+.qty-badge {
+  background: var(--accent); color: #fff;
+  padding: 4px 12px; border-radius: 20px;
+  font-weight: 700; font-size: 14px; display: inline-block;
+}
+
+.cnc-flag, .sticker-flag {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 4px; font-size: 10px; font-weight: 700;
+  margin: 2px;
+}
+.cnc-flag { background: #D4A04C; color: #fff; }
+.sticker-flag { background: var(--success); color: #fff; }
+.refurb-flag { background: var(--warning); color: #fff; }
+
+/* بطاقة الستيكر (لكل بند) */
+.sticker-section { margin-top: 30px; page-break-before: always; }
+.sticker-section h2 {
+  font-size: 20px; color: var(--primary-deeper);
+  border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 16px;
+}
+.stickers-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+.sticker-card {
+  border: 2px dashed var(--accent); border-radius: 12px;
+  padding: 20px; text-align: center;
+  background: #FFF; page-break-inside: avoid;
+}
+.sticker-card .sticker-name {
+  font-size: 22px; font-weight: 700; color: var(--primary-deeper);
+  margin-bottom: 6px;
+}
+.sticker-card .sticker-name-en {
+  font-size: 14px; color: var(--text-mute); direction: ltr;
+}
+.sticker-card .sticker-code {
+  display: inline-block; padding: 4px 14px;
+  background: var(--primary-dark); color: #fff;
+  border-radius: 16px; font-family: monospace;
+  font-size: 13px; margin: 10px 0;
+}
+.sticker-card .sticker-qty {
+  font-size: 36px; color: var(--accent); font-weight: 700;
+  margin: 12px 0 6px;
+}
+.sticker-card .sticker-meta {
+  font-size: 11px; color: var(--text-mute);
+  border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 10px;
+}
+.sticker-card img {
+  max-width: 120px; max-height: 120px;
+  object-fit: contain; margin: 0 auto 8px;
+}
+
+/* CNC قسم خاص */
+.cnc-section {
+  background: linear-gradient(135deg, #FEF3C7, #fff);
+  padding: 16px; border-radius: 8px;
+  border-right: 5px solid var(--warning); margin-top: 20px;
+}
+.cnc-section h3 { color: var(--warning); margin-bottom: 8px; }
+.cnc-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cnc-item {
+  background: #fff; padding: 10px; border-radius: 6px;
+  border: 1px solid var(--warning);
+}
+
+.signatures {
+  margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;
+}
+.sig-block {
+  text-align: center; border-top: 2px solid var(--text);
+  padding-top: 8px; font-size: 12px; font-weight: 700;
+}
+
+/* عند الطباعة */
+@media print {
+  body { background: #fff; }
+  .toolbar { display: none; }
+  .page { box-shadow: none; max-width: none; margin: 0; padding: 14mm; }
+  @page { size: A4; margin: 12mm; }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>🛠 خطة الفني (CNC + ستيكر)</h1>
+  <div>
+    <button class="btn btn-primary" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:6px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      طباعة
+    </button>
+    <button class="btn btn-ghost" onclick="if(window.history.length>1&&document.referrer){history.back()}else{window.location.href='/dashboard/'}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:6px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      العودة
+    </button>
+  </div>
+</div>
+
+<div class="page" id="content">
+  <div style="text-align:center;padding:60px;color:#888">جارِ التحميل...</div>
+</div>
+
+<script>
+const API = '/api';
+const params = new URLSearchParams(location.search);
+const planId = params.get('plan_id');
+const subPlanId = params.get('sub_plan_id');
+
+async function api(path) {
+  const r = await fetch(API + path, { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('abela_token')||'') } });
+  return r.json();
+}
+
+async function load() {
+  if (!planId && !subPlanId) {
+    document.getElementById('content').innerHTML = '<p style="color:red;text-align:center;padding:40px">يجب تمرير plan_id أو sub_plan_id في الرابط</p>';
+    return;
+  }
+  let plan, items;
+  if (planId) {
+    plan = await api('/workplans/' + planId);
+    items = plan.items || [];
+  } else {
+    // sub-plan: نجلب الخطة الأم ثم نفلتر البنود
+    const sp = await api('/sub-plans/' + subPlanId);
+    plan = await api('/workplans/' + sp.parent_plan_id);
+    items = (plan.items || []).filter(it =>
+      sp.items && sp.items.some(spi => spi.work_plan_item_id === it.id)
+    );
+    if (items.length === 0) items = plan.items || [];
+  }
+
+  // فلتر فقط البنود اللي تحتاج CNC أو ستيكر
+  const cncItems = items.filter(it =>
+    it.cnc_required || /\bCNC\b|سي\s*ان\s*سي|cnc/i.test((it.notes||'') + (it.notes_red||''))
+  );
+  const stickerItems = items.filter(it =>
+    it.sticker_required || it.sticker_image || /ستيكر|sticker/i.test((it.notes||'') + (it.notes_red||''))
+  );
+
+  const today = new Date().toLocaleDateString('ar-SA', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  document.getElementById('content').innerHTML = `
+    <div class="header">
+      <div>
+        <div class="brand">Abella</div>
+        <div class="brand-sub">للأفراح والمناسبات</div>
+      </div>
+      <div class="header-info">
+        <div><strong>كود الخطة:</strong> ${plan.plan_code}</div>
+        <div><strong>المناسبة:</strong> ${plan.event_title}</div>
+        <div><strong>العميل:</strong> ${plan.customer_name}</div>
+        <div><strong>تاريخ المناسبة:</strong> ${plan.event_date}</div>
+        <div><strong>تاريخ الطباعة:</strong> ${today}</div>
+      </div>
+    </div>
+
+    <div class="title-section">
+      <h2>🛠 خطة الفني — تشطيبات وتصنيع</h2>
+      <p>هذه الخطة تشمل: البنود التي تحتاج CNC + ستيكرات + إعادة تدوير. كل بند له ستيكر منفصل قابل للقص.</p>
+    </div>
+
+    <h3 style="color:var(--primary-dark);margin-bottom:10px">📋 جدول البنود (${items.length})</h3>
+    <table>
+      <thead><tr>
+        <th style="width:90px">الصورة</th>
+        <th>الاسم</th>
+        <th style="width:70px">الكمية</th>
+        <th style="width:100px">المستودع</th>
+        <th style="width:100px">المتطلبات</th>
+        <th>ملاحظات</th>
+      </tr></thead>
+      <tbody>
+        ${items.map(it => `
+          <tr>
+            <td>${it.sample_image ? `<img src="${it.sample_image.startsWith('http')?it.sample_image:'/'+it.sample_image.replace(/^\\/+/,'')}" class="item-img">` : '—'}</td>
+            <td>
+              <strong style="font-size:14px">${it.custom_name || '-'}</strong>
+              ${it.custom_name_en ? `<br><small style="direction:ltr;color:var(--text-mute)">${it.custom_name_en}</small>` : ''}
+              ${it.color_code ? `<br><small>🎨 ${it.color_code}</small>` : ''}
+              ${it.fabric_code ? `<br><small>🧵 ${it.fabric_code}</small>` : ''}
+              ${it.dimensions ? `<br><small>📐 ${it.dimensions}</small>` : ''}
+            </td>
+            <td><span class="qty-badge">${it.quantity || '1'}</span></td>
+            <td>${it.target_warehouse || '-'}</td>
+            <td>
+              ${it.cnc_required ? '<span class="cnc-flag">🛠 CNC</span>' : ''}
+              ${it.sticker_required ? '<span class="sticker-flag">🏷 ستيكر</span>' : ''}
+              ${it.needs_refurb ? '<span class="refurb-flag">♻️ إعادة</span>' : ''}
+            </td>
+            <td style="font-size:11px">
+              ${it.notes || ''}
+              ${it.notes_red ? `<br><span style="color:var(--danger);font-weight:700">⚠ ${it.notes_red}</span>` : ''}
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    ${cncItems.length ? `
+      <div class="cnc-section">
+        <h3>🛠 بنود تحتاج CNC (${cncItems.length})</h3>
+        <div class="cnc-list">
+          ${cncItems.map(it => `
+            <div class="cnc-item">
+              <strong>${it.custom_name}</strong>
+              <div style="font-size:11px;color:var(--text-mute);margin-top:4px">
+                الكمية: ${it.quantity} • ${it.color_code || ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- الستيكرات للقص -->
+    ${stickerItems.length ? `
+      <div class="sticker-section">
+        <h2>🏷 ستيكرات البنود (${stickerItems.length}) — للقص واللصق</h2>
+        <div class="stickers-grid">
+          ${stickerItems.map(it => `
+            <div class="sticker-card">
+              ${it.sample_image ? `<img src="${it.sample_image.startsWith('http')?it.sample_image:'/'+it.sample_image.replace(/^\\/+/,'')}">` : ''}
+              <div class="sticker-name">${it.custom_name}</div>
+              ${it.custom_name_en ? `<div class="sticker-name-en">${it.custom_name_en}</div>` : ''}
+              <div class="sticker-code">${plan.plan_code}-${(items.indexOf(it)+1).toString().padStart(3,'0')}</div>
+              <div class="sticker-qty">×${it.quantity}</div>
+              <div class="sticker-meta">
+                ${it.color_code ? '🎨 '+it.color_code+' • ' : ''}
+                ${it.dimensions ? '📐 '+it.dimensions+' • ' : ''}
+                ${plan.event_title}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="signatures">
+      <div class="sig-block">المصمم<br><small style="font-weight:400;color:#999">_____________________</small></div>
+      <div class="sig-block">الفني (CNC)<br><small style="font-weight:400;color:#999">_____________________</small></div>
+      <div class="sig-block">المشرف<br><small style="font-weight:400;color:#999">_____________________</small></div>
+    </div>
+  `;
+}
+
+load().catch(e => {
+  document.getElementById('content').innerHTML = '<p style="color:red;text-align:center;padding:40px">خطأ: ' + e.message + '</p>';
+});
+</script>
+</body>
+</html>

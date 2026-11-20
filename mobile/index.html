@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script src="/assets/session.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1F4E79">
+<link rel="manifest" href="/mobile/manifest.json">
+<title>أبيلا للأفراح والمناسبات — تطبيق الفرق</title>
+<style>
+:root {
+  /* هوية أبيلا الراقية */
+  --primary: #8B6F47;
+  --primary-light: #B8975D;
+  --primary-dark: #5C4528;
+  --accent: #C9A560;
+  --success: #7A8A5F;
+  --warning: #D4A04C;
+  --danger: #A04545;
+  --bg: #F8F4ED;
+  --surface: #FFFFFF;
+  --border: #E8DFD0;
+  --text: #2D1F14;
+  --text-light: #8B7E6E;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  user-select: none;
+}
+
+/* ============ شريط علوي ============ */
+.app-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 16px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.app-title { font-size: 16px; font-weight: 700; }
+.user-info { font-size: 12px; opacity: 0.85; }
+
+/* ============ المحتوى ============ */
+.app-content { padding: 16px; padding-bottom: 80px; }
+
+/* ============ التبويبات السفلية ============ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-around;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+.nav-tab {
+  flex: 1; text-align: center; padding: 8px 4px;
+  cursor: pointer; transition: all 0.15s;
+  color: var(--text-light); font-size: 11px;
+}
+.nav-tab.active { color: var(--primary); }
+.nav-tab { position: relative; }
+.nav-badge {
+  position: absolute;
+  top: 4px;
+  right: 25%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+.nav-tab .icon { font-size: 22px; display: block; margin-bottom: 2px; }
+.nav-tab.scan {
+  background: linear-gradient(135deg, var(--accent), var(--primary)); color: #fff;
+  border-radius: 50%; width: 64px; height: 64px;
+  margin-top: -28px; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; box-shadow: 0 4px 16px rgba(139,111,71,0.4);
+  flex: 0 0 64px; padding: 0;
+}
+.nav-tab.scan .icon { font-size: 24px; margin: 0; }
+.nav-tab.scan .label { font-size: 9px; }
+
+/* ============ البطاقات ============ */
+.card {
+  background: var(--surface); border-radius: 14px; padding: 16px;
+  margin-bottom: 12px; box-shadow: 0 2px 8px rgba(31,78,121,0.06);
+}
+.card-event {
+  border-right: 5px solid var(--primary); cursor: pointer;
+  transition: all 0.15s;
+}
+.card-event:active { transform: scale(0.98); }
+.event-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; color: var(--primary); }
+.event-meta { font-size: 12px; color: var(--text-light); margin-top: 8px; }
+.event-meta span { display: inline-block; margin-left: 12px; }
+
+/* ============ الشارات ============ */
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 14px;
+  font-size: 11px; font-weight: 700;
+}
+.badge-pending { background: #FEF3C7; color: #92400E; }
+.badge-in_progress { background: #DBEAFE; color: #1E40AF; }
+.badge-completed { background: #D1FAE5; color: #065F46; }
+.badge-high { background: #FEE2E2; color: #991B1B; }
+.badge-urgent { background: #C00000; color: #fff; }
+.badge-normal { background: #F3F4F6; color: #4B5563; }
+.badge-low { background: #E5E7EB; color: #6B7280; }
+
+/* ============ الأزرار ============ */
+.btn {
+  display: block; width: 100%; padding: 14px;
+  background: var(--primary); color: #fff;
+  border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; text-align: center; margin-top: 8px;
+  font-family: inherit;
+}
+.btn:active { transform: scale(0.98); opacity: 0.9; }
+.btn-success { background: var(--success); }
+.btn-danger { background: var(--accent); }
+.btn-warning { background: var(--warning); color: #4B3000; }
+.btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-row .btn { margin-top: 0; }
+
+/* ============ المهام ============ */
+.task-card {
+  background: #fff; padding: 14px; border-radius: 12px;
+  margin-bottom: 10px; border-right: 4px solid var(--warning);
+}
+.task-card.completed { opacity: 0.6; border-color: var(--success); }
+.task-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+.task-event { font-size: 12px; color: var(--text-light); }
+.task-actions { display: flex; gap: 8px; margin-top: 10px; }
+.task-btn {
+  flex: 1; padding: 8px; border: 1px solid var(--border); background: #fff;
+  border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.task-btn.primary { background: var(--success); color: #fff; border-color: var(--success); }
+
+/* ============ الماسح ============ */
+.scanner-screen {
+  position: fixed; inset: 0; background: #000; z-index: 200;
+  display: none; flex-direction: column;
+}
+.scanner-screen.show { display: flex; }
+.scanner-header {
+  background: rgba(0,0,0,0.8); color: #fff; padding: 16px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.scanner-video { flex: 1; position: relative; overflow: hidden; }
+.scanner-video video, .scanner-video canvas {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.scanner-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.scanner-frame {
+  width: 80%; max-width: 300px; aspect-ratio: 1;
+  border: 3px solid var(--success); border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+}
+.scanner-hint {
+  position: absolute; bottom: 100px; left: 0; right: 0;
+  text-align: center; color: #fff; font-size: 14px;
+}
+.scanner-manual {
+  position: absolute; bottom: 30px; left: 16px; right: 16px;
+  display: flex; gap: 8px;
+}
+.scanner-manual input {
+  flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px;
+  background: #fff; font-family: inherit;
+}
+.scanner-manual button {
+  padding: 14px 20px; background: var(--success); color: #fff;
+  border: none; border-radius: 10px; font-size: 16px; font-weight: 700;
+}
+
+/* ============ نموذج الفحص ============ */
+.scan-result {
+  background: #fff; border-radius: 16px 16px 0 0;
+  padding: 20px; max-height: 80vh; overflow-y: auto;
+}
+.scan-item-name { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.scan-item-code { font-family: monospace; color: var(--text-light); font-size: 13px; margin-bottom: 16px; }
+.scan-info { background: #F8FAFD; padding: 12px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+.scan-info div { margin: 4px 0; }
+.scan-info strong { color: var(--text-light); display: inline-block; min-width: 80px; }
+
+/* ============ تسجيل الدخول ============ */
+.login-screen {
+  position: fixed; inset: 0; background: linear-gradient(135deg, #5C4528, #8B6F47);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; z-index: 300;
+}
+.login-screen.hide { display: none; }
+.login-card {
+  background: #fff; border-radius: 20px; padding: 32px 24px;
+  width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.login-logo { text-align: center; margin-bottom: 24px; }
+.login-logo p { color: var(--text-light); font-size: 12px; letter-spacing: 1px; }
+
+/* ============ النماذج ============ */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+  border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--primary-light);
+}
+
+/* ============ المساعدات ============ */
+.empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 14px; }
+.empty .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.loading { text-align: center; padding: 40px; color: var(--text-light); }
+.toast {
+  position: fixed; top: 70px; left: 16px; right: 16px;
+  background: var(--text); color: #fff; padding: 14px;
+  border-radius: 12px; text-align: center; z-index: 500;
+  opacity: 0; transition: opacity 0.3s; font-size: 14px;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--accent); }
+
+.section-title {
+  font-size: 14px; font-weight: 700; color: var(--text-light);
+  margin: 16px 0 8px; padding: 0 4px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.online-status {
+  display: inline-block; width: 8px; height: 8px;
+  background: var(--success); border-radius: 50%; margin-left: 6px;
+  animation: pulse 2s infinite;
+}
+.online-status.offline { background: var(--accent); animation: none; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+</style>
+</head>
+<body>
+
+<!-- شاشة تسجيل الدخول -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="/assets/logo-abella.png" alt="أبيلا" style="width:100%;max-width:200px;height:auto;display:block;margin:0 auto 8px">
+      <h2 style="margin-top:8px;color:var(--primary-dark);font-size:18px">للأفراح والمناسبات</h2>
+      <p>تطبيق الفرق الميدانية</p>
+    </div>
+    <form id="login-form" onsubmit="doLogin(event)">
+      <div class="form-group">
+        <label class="form-label" id="lbl-username">اسم المستخدم / Username / صارف نام</label>
+        <input class="form-input" id="login-username" required value="" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-password">كلمة المرور / Password / پاس ورڈ</label>
+        <input class="form-input" type="password" id="login-password" required value="" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-success" style="margin-top: 16px;" id="btn-login">دخول / Login / لاگ ان</button>
+    </form>
+    <p style="text-align:center;color:var(--text-light);font-size:11px;margin-top:16px;">
+      faheem / omran / daryl / rose / nouf — admin123
+    </p>
+  </div>
+</div>
+
+<!-- التطبيق الرئيسي -->
+<header class="app-header">
+  <div>
+    <div class="app-title" style="display:flex;align-items:center;gap:8px">
+      <img src="/assets/logo-abella-light.png" alt="أبيلا" style="height:44px;width:auto">
+      <span>أبيلا للأفراح والمناسبات</span>
+    </div>
+    <div class="user-info">
+      <span id="user-name">-</span>
+      <span class="online-status" id="online-indicator"></span>
+    </div>
+  </div>
+  <button onclick="doLogout()" data-i18n="logout" style="background:none;border:none;color:#fff;font-size:14px;cursor:pointer">خروج</button>
+</header>
+
+<main class="app-content" id="content">
+  <div class="loading">جارِ التحميل...</div>
+</main>
+
+<nav class="bottom-nav">
+  <div class="nav-tab active" data-tab="home" onclick="switchTab('home')">
+    <span class="icon">🏠</span><div data-i18n="home">الرئيسية</div>
+  </div>
+  <div class="nav-tab" data-tab="events" onclick="switchTab('events')">
+    <span class="icon">🗓</span><div data-i18n="schedule">الجدول الزمني</div>
+    <span id="badge-events" class="nav-badge" style="display:none">0</span>
+  </div>
+  <div class="nav-tab scan" onclick="openScanner()">
+    <span class="icon">📷</span><div class="label" data-i18n="scan">مسح</div>
+  </div>
+  <div class="nav-tab" data-tab="tasks" onclick="switchTab('tasks')">
+    <span class="icon">✅</span><div data-i18n="tasks">مهامي</div>
+    <span id="badge-tasks" class="nav-badge" style="display:none">0</span>
+  </div>
+  <div class="nav-tab" data-tab="more" onclick="switchTab('more')">
+    <span class="icon">⋯</span><div data-i18n="more">المزيد</div>
+  </div>
+</nav>
+
+<!-- زر عائم لتسجيل مصروف (يظهر للأدوار المسموح لها) -->
+<button id="fab-expense" onclick="showExpenseForm()"
+        style="display:none; position:fixed; bottom:88px; left:16px; z-index:99;
+               width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+               background:linear-gradient(135deg,#7A8A5F,#5C6E3F); color:#fff;
+               font-size:22px; box-shadow:0 4px 16px rgba(0,0,0,0.25);"
+        title="تسجيل مصروف">💰+</button>
+
+<!-- Modal عام -->
+<div id="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200;
+     align-items:flex-end; justify-content:center;" onclick="if(event.target===this) closeModal()">
+  <div id="modal-card" style="background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:600px;
+       max-height:92vh; overflow-y:auto; padding:20px;">
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- الماسح -->
+<div class="scanner-screen" id="scanner">
+  <div class="scanner-header">
+    <button onclick="closeScanner()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer">✕</button>
+    <div data-i18n="barcode_scan">مسح الباركود</div>
+    <div style="width:24px"></div>
+  </div>
+  <div class="scanner-video" id="scanner-video">
+    <div class="scanner-overlay">
+      <div class="scanner-frame"></div>
+    </div>
+    <div class="scanner-hint" data-i18n="point_camera">وجّه الكاميرا نحو الباركود</div>
+    <div class="scanner-manual">
+      <input id="manual-code" placeholder="أو أدخل الكود يدويًا..." autocomplete="off">
+      <button onclick="searchByCode()">بحث</button>
+    </div>
+  </div>
+  <div id="scan-result-container" style="display:none"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let currentUser = null;
+let currentTab = 'home';
+let token = localStorage.getItem('abela_token');
+let videoStream = null;
+
+// ============ المساعدات ============
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, { headers, ...opts });
+  if (res.status === 401) {
+    localStorage.removeItem('abela_token');
+    document.getElementById('login-screen').classList.remove('hide');
+    throw new Error('انتهت الجلسة');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'خطأ' }));
+    throw new Error(err.error || 'حدث خطأ');
+  }
+  return res.json();
+}
+
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 3000);
+}
+
+function fmtDate(s) {
+  if (!s) return '-';
+  return new Date(s).toLocaleDateString('ar-SA', { weekday: 'short', month: 'long', day: 'numeric' });
+}
+
+const STATUS_LABELS = {
+  pending: 'في الانتظار', in_progress: 'قيد العمل', completed: 'منجز'
+};
+const PRIORITY_LABELS = {
+  low: 'عادي', normal: 'متوسط', high: 'مهم', urgent: 'عاجل'
+};
+
+// ============ تسجيل الدخول ============
+async function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('login-username').value;
+  const password = document.getElementById('login-password').value;
+  try {
+    const r = await fetch(API + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'فشل الدخول');
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('abela_token', token);
+    localStorage.setItem('abela_user', JSON.stringify(data.user));
+    document.getElementById('login-screen').classList.add('hide');
+    document.getElementById('user-name').textContent = data.user.full_name;
+    applyRoleUI();
+    renderTab();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+function doLogout() {
+  const msg = (currentUser && currentUser.language === 'ur') ? 'کیا آپ لاگ آؤٹ کرنا چاہتے ہیں؟'
+            : (currentUser && currentUser.language === 'en') ? 'Do you want to logout?'
+            : 'هل تريد الخروج من التطبيق؟';
+  if (confirm(msg)) {
+    localStorage.removeItem('abela_token');
+    localStorage.removeItem('abela_user');
+    location.reload();
+  }
+}
+
+// ============ التبويبات ============
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  renderTab();
+}
+
+function renderTab() {
+  const c = document.getElementById('content');
+  c.innerHTML = '<div class="loading">' + tr('loading') + '</div>';
+  updateNavBadges();
+  switch (currentTab) {
+    case 'home': return renderHome();
+    case 'events': return renderEvents();
+    case 'tasks': return renderTasks();
+    case 'inventory': return renderInventory();
+    case 'more': return renderMore();
+  }
+}
+
+// تحديث تلقائي للشارات كل 60 ثانية
+setInterval(() => {
+  if (currentUser) updateNavBadges();
+}, 60000);
+
+// تحديث شارات العداد على الشريط السفلي
+async function updateNavBadges() {
+  try {
+    const [tasks, myEvents] = await Promise.all([
+      api('/my-tasks').catch(()=>[]),
+      api('/my-events').catch(()=>[]),
+    ]);
+    const openTasks = tasks.filter(t => t.status !== 'completed').length;
+    const today = new Date().toISOString().split('T')[0];
+    const todayEvents = myEvents.filter(e => e.event_date === today).length;
+    const taskBadge = document.getElementById('badge-tasks');
+    const evBadge = document.getElementById('badge-events');
+    if (taskBadge) {
+      if (openTasks > 0) { taskBadge.textContent = openTasks; taskBadge.style.display = 'flex'; }
+      else taskBadge.style.display = 'none';
+    }
+    if (evBadge) {
+      if (todayEvents > 0) { evBadge.textContent = todayEvents; evBadge.style.display = 'flex'; }
+      else evBadge.style.display = 'none';
+    }
+  } catch (e) {}
+}
+
+// ============ Modal helpers ============
+function openModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+}
+
+// ============ تخصيص الواجهة حسب الدور ============
+function isRole(...roles) {
+  return currentUser && roles.includes(currentUser.role);
+}
+function userLang() {
+  return (currentUser && currentUser.language) || 'ar';
+}
+// قاموس الترجمات الشامل للموبايل (عربي / إنجليزي / أوردو)
+const MOBILE_I18N = {
+  ar: {
+    home:'الرئيسية', schedule:'الجدول الزمني', scan:'مسح', tasks:'مهامي', more:'المزيد',
+    welcome:'مرحباً', logout:'خروج', login:'دخول', username:'اسم المستخدم', password:'كلمة المرور',
+    today_events:'مناسبات اليوم', upcoming_events:'المناسبات القادمة', urgent_tasks:'مهام عاجلة',
+    no_events_tasks:'لا توجد مناسبات أو مهام قريبة', no_events:'لا توجد مناسبات', no_tasks:'لا توجد مهام',
+    my_events:'مناسباتي', all_events:'الكل', today:'اليوم', this_week:'هذا الأسبوع',
+    upcoming:'قادمة', past:'مكتملة/سابقة', tonight:'الليلة',
+    back:'رجوع', done:'منجز', start:'ابدأ', cancel:'إلغاء', confirm:'تأكيد',
+    save:'حفظ', delete:'حذف', edit:'تعديل', view:'عرض', search:'بحث...',
+    completed:'تم الإنجاز', priority:'الأولوية', date:'التاريخ', time:'الوقت', location:'الموقع',
+    customer:'العميل', items:'البنود', quantity:'الكمية', notes:'ملاحظات', status:'الحالة',
+    warehouse:'المستودع', factory:'المصنع', accessories:'الاكسسوارات', decorations:'الديكورات',
+    hospitality:'الضيافة', purchases:'المشتريات', risk:'إدارة المخاطر',
+    my_plans:'خططي', sub_plans:'الخطط الفرعية', plan_items:'بنود الخطة',
+    inventory:'المخزون', no_inventory:'لا يوجد مخزون', code:'الكود',
+    available:'متاح', total:'الإجمالي',
+    loading:'جارِ التحميل...',
+    pri_low:'عادي', pri_normal:'متوسط', pri_high:'مهم', pri_urgent:'عاجل',
+    in_warehouse:'بالمستودع', reserved:'محجوز', in_event:'بالمناسبة', in_repair:'بالصيانة',
+    excellent:'ممتاز', good:'جيد', fair:'مقبول', damaged:'تالف', lost:'مفقود',
+    record_expense:'تسجيل مصروف', open_camera:'فتح الكاميرا', photo_capture:'التقاط صورة',
+    contracted:'متعاقد', planning:'تخطيط', ready:'جاهز', in_progress:'قيد التنفيذ',
+    cancelled:'ملغي', closed:'مقفل', quoted:'عرض سعر', lead:'استفسار',
+    open_event:'فتح المناسبة', open_task:'فتح المهمة',
+    open_plan:'فتح الخطة', complete_task:'تم الإنجاز', start_task:'ابدأ',
+    confirm_logout:'هل تريد الخروج من التطبيق؟',
+    cant_undo_done:'لا يمكن إلغاء المنجز من الجوال — تواصل مع المشرف',
+    confirm_done:'هل تأكدت من إنجاز هذه المهمة؟',
+    task_started:'بدأت المهمة', task_done:'تم تسجيل الإنجاز',
+    open_plans:'افتح خططي', open_tasks:'افتح مهامي',
+    test:'للتجربة', login_failed:'فشل الدخول',
+    barcode_scan:'مسح الباركود', point_camera:'وجّه الكاميرا نحو الباركود',
+  },
+  en: {
+    home:'Home', schedule:'Schedule', scan:'Scan', tasks:'My Tasks', more:'More',
+    welcome:'Welcome', logout:'Logout', login:'Login', username:'Username', password:'Password',
+    today_events:"Today's Events", upcoming_events:'Upcoming Events', urgent_tasks:'Urgent Tasks',
+    no_events_tasks:'No events or upcoming tasks', no_events:'No events', no_tasks:'No tasks',
+    my_events:'My Events', all_events:'All', today:'Today', this_week:'This Week',
+    upcoming:'Upcoming', past:'Completed / Past', tonight:'Tonight',
+    back:'Back', done:'Done', start:'Start', cancel:'Cancel', confirm:'Confirm',
+    save:'Save', delete:'Delete', edit:'Edit', view:'View', search:'Search...',
+    completed:'Completed', priority:'Priority', date:'Date', time:'Time', location:'Location',
+    customer:'Customer', items:'Items', quantity:'Qty', notes:'Notes', status:'Status',
+    warehouse:'Warehouse', factory:'Factory', accessories:'Accessories', decorations:'Decorations',
+    hospitality:'Hospitality', purchases:'Purchases', risk:'Risk Management',
+    my_plans:'My Plans', sub_plans:'Sub-Plans', plan_items:'Plan Items',
+    inventory:'Inventory', no_inventory:'No inventory', code:'Code',
+    available:'Available', total:'Total',
+    loading:'Loading...',
+    pri_low:'Low', pri_normal:'Normal', pri_high:'High', pri_urgent:'Urgent',
+    in_warehouse:'In Warehouse', reserved:'Reserved', in_event:'At Event', in_repair:'In Repair',
+    excellent:'Excellent', good:'Good', fair:'Fair', damaged:'Damaged', lost:'Lost',
+    record_expense:'Record Expense', open_camera:'Open Camera', photo_capture:'Take Photo',
+    contracted:'Contracted', planning:'Planning', ready:'Ready', in_progress:'In Progress',
+    cancelled:'Cancelled', closed:'Closed', quoted:'Quoted', lead:'Lead',
+    open_event:'Open Event', open_task:'Open Task',
+    open_plan:'Open Plan', complete_task:'Mark Done', start_task:'Start',
+    confirm_logout:'Do you want to logout?',
+    cant_undo_done:'Cannot undo completed items from mobile — contact supervisor',
+    confirm_done:'Are you sure this task is done?',
+    task_started:'Task started', task_done:'Marked as done',
+    open_plans:'Open My Plans', open_tasks:'Open My Tasks',
+    test:'Try', login_failed:'Login failed',
+    barcode_scan:'Scan Barcode', point_camera:'Point camera at barcode',
+  },
+  ur: {
+    home:'گھر', schedule:'شیڈول', scan:'اسکین', tasks:'میرے کام', more:'مزید',
+    welcome:'خوش آمدید', logout:'لاگ آؤٹ', login:'لاگ ان', username:'صارف نام', password:'پاس ورڈ',
+    today_events:'آج کے واقعات', upcoming_events:'آنے والے واقعات', urgent_tasks:'فوری کام',
+    no_events_tasks:'کوئی واقعات یا کام نہیں', no_events:'کوئی واقعات نہیں', no_tasks:'کوئی کام نہیں',
+    my_events:'میرے واقعات', all_events:'تمام', today:'آج', this_week:'یہ ہفتہ',
+    upcoming:'آنے والے', past:'مکمل/گزشتہ', tonight:'آج رات',
+    back:'واپس', done:'مکمل', start:'شروع', cancel:'منسوخ', confirm:'تصدیق',
+    save:'محفوظ', delete:'حذف', edit:'ترمیم', view:'دیکھیں', search:'تلاش...',
+    completed:'مکمل', priority:'ترجیح', date:'تاریخ', time:'وقت', location:'مقام',
+    customer:'گاہک', items:'اشیاء', quantity:'مقدار', notes:'نوٹس', status:'حالت',
+    warehouse:'گودام', factory:'فیکٹری', accessories:'لوازمات', decorations:'سجاوٹ',
+    hospitality:'مہمان نوازی', purchases:'خریداری', risk:'خطرہ کا انتظام',
+    my_plans:'میرے منصوبے', sub_plans:'ذیلی منصوبے', plan_items:'منصوبے کی اشیاء',
+    inventory:'انوینٹری', no_inventory:'کوئی انوینٹری نہیں', code:'کوڈ',
+    available:'دستیاب', total:'کل',
+    loading:'لوڈ ہو رہا ہے...',
+    pri_low:'کم', pri_normal:'عام', pri_high:'اعلی', pri_urgent:'فوری',
+    in_warehouse:'گودام میں', reserved:'محفوظ', in_event:'تقریب میں', in_repair:'مرمت میں',
+    excellent:'بہترین', good:'اچھا', fair:'مناسب', damaged:'خراب', lost:'گم شدہ',
+    record_expense:'اخراجات ریکارڈ', open_camera:'کیمرا کھولیں', photo_capture:'تصویر لیں',
+    contracted:'معاہدہ شدہ', planning:'منصوبہ بندی', ready:'تیار', in_progress:'جاری',
+    cancelled:'منسوخ', closed:'بند', quoted:'قیمت کی پیشکش', lead:'استفسار',
+    open_event:'تقریب کھولیں', open_task:'کام کھولیں',
+    open_plan:'منصوبہ کھولیں', complete_task:'مکمل', start_task:'شروع',
+    confirm_logout:'کیا آپ لاگ آؤٹ کرنا چاہتے ہیں؟',
+    cant_undo_done:'موبائل سے مکمل کاموں کو منسوخ نہیں کیا جا سکتا — سپروائزر سے رابطہ کریں',
+    confirm_done:'کیا آپ یقینی ہیں کہ یہ کام مکمل ہو گیا؟',
+    task_started:'کام شروع ہو گیا', task_done:'مکمل کے طور پر نشان زد',
+    open_plans:'میرے منصوبے کھولیں', open_tasks:'میرے کام کھولیں',
+    test:'آزمائش', login_failed:'لاگ ان ناکام',
+    barcode_scan:'بارکوڈ اسکین', point_camera:'کیمرا بارکوڈ کی طرف کریں',
+  },
+};
+function tr(key) {
+  const lang = userLang();
+  return (MOBILE_I18N[lang] && MOBILE_I18N[lang][key]) || (MOBILE_I18N.ar[key] || key);
+}
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    el.textContent = tr(k);
+  });
+}
+
+function applyRoleUI() {
+  // إظهار زر المصاريف
+  const fab = document.getElementById('fab-expense');
+  if (fab) {
+    const allowed = currentUser && (
+      currentUser.can_record_expenses ||
+      isRole('admin','owner','general_manager','finance','project_manager','supervisor','field')
+    );
+    fab.style.display = allowed ? 'block' : 'none';
+  }
+  // اتجاه الواجهة حسب اللغة
+  const lang = userLang();
+  if (lang === 'en') {
+    document.documentElement.setAttribute('lang','en');
+    document.documentElement.setAttribute('dir','ltr');
+  } else if (lang === 'ur') {
+    document.documentElement.setAttribute('lang','ur');
+    document.documentElement.setAttribute('dir','rtl');
+  } else {
+    document.documentElement.setAttribute('lang','ar');
+    document.documentElement.setAttribute('dir','rtl');
+  }
+  // طبّق ترجمات DOM
+  applyTranslations();
+}
+
+// ============ الرئيسية ============
+async function renderHome() {
+  try {
+    const [events, tasks] = await Promise.all([api('/my-events'), api('/my-tasks')]);
+    const today = new Date().toISOString().split('T')[0];
+    const todayEvents = events.filter(e => e.event_date === today);
+    const upcomingEvents = events.filter(e => e.event_date > today).slice(0, 3);
+    const urgentTasks = tasks.filter(t => t.priority === 'urgent' || t.priority === 'high').slice(0, 3);
+
+    const lang = userLang();
+    const eventLabel = lang === 'en' ? 'event(s) today' : lang === 'ur' ? 'تقریبات آج' : 'مناسبة اليوم';
+    const taskLabel = lang === 'en' ? 'open task(s)' : lang === 'ur' ? 'کھلے کام' : 'مهمة مفتوحة';
+    const html = `
+      <div class="card" style="background:linear-gradient(135deg,#5C4528,#B8975D);color:#fff;border-radius:14px">
+        <div style="font-size:13px;opacity:0.85">${tr('welcome')}</div>
+        <div style="font-size:22px;font-weight:700;margin-top:4px">${currentUser.full_name}</div>
+        <div style="margin-top:12px;font-size:13px;opacity:0.9">
+          ${todayEvents.length} ${eventLabel} • ${tasks.length} ${taskLabel}
+        </div>
+      </div>
+
+      ${todayEvents.length ? `
+        <div class="section-title">📅 ${tr('today_events')}</div>
+        ${todayEvents.map(e => renderEventCard(e)).join('')}
+      ` : ''}
+
+      ${urgentTasks.length ? `
+        <div class="section-title">🚨 ${tr('urgent_tasks')}</div>
+        ${urgentTasks.map(t => renderTaskCard(t)).join('')}
+      ` : ''}
+
+      ${upcomingEvents.length ? `
+        <div class="section-title">📆 ${tr('upcoming_events')}</div>
+        ${upcomingEvents.map(e => renderEventCard(e)).join('')}
+      ` : ''}
+
+      ${!todayEvents.length && !urgentTasks.length && !upcomingEvents.length ? `
+        <div class="empty"><div class="icon">🎉</div>${tr('no_events_tasks')}</div>
+      ` : ''}
+
+      <!-- إجراءات سريعة -->
+      <div class="section-title" style="margin-top:24px">⚡ ${lang==='en'?'Quick Actions':lang==='ur'?'فوری اعمال':'إجراءات سريعة'}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+        <a href="/mobile/photo_capture.html" class="card" style="text-align:center;padding:18px;text-decoration:none;color:var(--text);background:linear-gradient(135deg,#FFF8E0,#FFFFFF)">
+          <div style="font-size:32px">📷</div>
+          <div style="font-weight:700;margin-top:6px">${tr('photo_capture')}</div>
+        </a>
+        <div onclick="showQuickAddInventory()" class="card" style="text-align:center;padding:18px;cursor:pointer;background:linear-gradient(135deg,#FFF0E5,#FFFFFF)">
+          <div style="font-size:32px">📦</div>
+          <div style="font-weight:700;margin-top:6px">${lang==='en'?'Quick Add Item':lang==='ur'?'فوری اضافہ':'إضافة عنصر سريعة'}</div>
+        </div>
+        <div onclick="switchTab('tasks')" class="card" style="text-align:center;padding:18px;cursor:pointer;background:linear-gradient(135deg,#F0F4E8,#FFFFFF)">
+          <div style="font-size:32px">✅</div>
+          <div style="font-weight:700;margin-top:6px">${tr('tasks')} (${tasks.length})</div>
+        </div>
+        <div onclick="switchTab('events')" class="card" style="text-align:center;padding:18px;cursor:pointer;background:linear-gradient(135deg,#E8F0FE,#FFFFFF)">
+          <div style="font-size:32px">🗓</div>
+          <div style="font-weight:700;margin-top:6px">${tr('schedule')}</div>
+        </div>
+      </div>
+    `;
+    document.getElementById('content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+// ============ المناسبات — جدول زمني ============
+let eventsViewMode = localStorage.getItem('events_view') || 'mine'; // mine | all
+
+async function renderEvents() {
+  try {
+    // نجيب الاثنين عشان نعرف عدد كل واحد
+    const [mine, all] = await Promise.all([
+      api('/my-events').catch(() => []),
+      api('/events').catch(() => [])
+    ]);
+    const list = (eventsViewMode === 'all' ? all : mine);
+
+    // ترتيب حسب التاريخ (الأقرب أولاً)
+    const today = new Date().toISOString().split('T')[0];
+    const sorted = [...list].sort((a, b) => {
+      const ad = a.event_date || '9999-12-31';
+      const bd = b.event_date || '9999-12-31';
+      return ad.localeCompare(bd);
+    });
+
+    // تجميع حسب الفترة
+    const groups = { past:[], today:[], thisWeek:[], later:[] };
+    const now = new Date(today);
+    const weekFromNow = new Date(now); weekFromNow.setDate(now.getDate() + 7);
+    sorted.forEach(e => {
+      const d = e.event_date || '';
+      if (!d) { groups.later.push(e); return; }
+      if (d < today) groups.past.push(e);
+      else if (d === today) groups.today.push(e);
+      else if (new Date(d) <= weekFromNow) groups.thisWeek.push(e);
+      else groups.later.push(e);
+    });
+
+    const renderGroup = (label, icon, list, color) => list.length ? `
+      <div class="section-title" style="display:flex;align-items:center;gap:6px;color:${color}">
+        <span style="font-size:18px">${icon}</span> ${label}
+        <span style="background:${color};color:#fff;padding:1px 8px;border-radius:10px;font-size:11px">${list.length}</span>
+      </div>
+      ${list.map(e => renderEventCard(e)).join('')}
+    ` : '';
+
+    document.getElementById('content').innerHTML = `
+      <div style="display:flex;background:#fff;border-radius:10px;padding:4px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+        <button class="${eventsViewMode==='mine'?'btn btn-success':'btn btn-outline'}"
+          style="flex:1;border-radius:8px;padding:10px"
+          onclick="switchEventsView('mine')">
+          🎯 ${tr('my_events')} (${mine.length})
+        </button>
+        <button class="${eventsViewMode==='all'?'btn btn-success':'btn btn-outline'}"
+          style="flex:1;border-radius:8px;padding:10px"
+          onclick="switchEventsView('all')">
+          🗓 ${tr('all_events')} (${all.length})
+        </button>
+      </div>
+      ${renderGroup(tr('today'), '🔥', groups.today, 'var(--danger)')}
+      ${renderGroup(tr('this_week'), '⏰', groups.thisWeek, 'var(--warning)')}
+      ${renderGroup(tr('upcoming'), '📅', groups.later, 'var(--primary)')}
+      ${renderGroup(tr('past'), '✓', groups.past.reverse().slice(0,10), 'var(--text-light)')}
+      ${!sorted.length ? `<div class="empty"><div class="icon">📅</div>${tr('no_events')}</div>` : ''}
+    `;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function switchEventsView(mode) {
+  eventsViewMode = mode;
+  localStorage.setItem('events_view', mode);
+  renderEvents();
+}
+
+function statusBadge(status) {
+  const colors = {
+    contracted:'#1F4E79', planning:'#7A6F00', ready:'#5C6E3F',
+    in_progress:'#A04545', completed:'#7A8A5F', closed:'#8B7E6E',
+    quoted:'#B8975D', lead:'#8B7E6E', cancelled:'#A04545'
+  };
+  const c = colors[status] || '#8B7E6E';
+  const l = tr(status) || status;
+  return `<span style="background:${c};color:#fff;padding:2px 8px;border-radius:6px;font-size:11px">${l}</span>`;
+}
+
+function renderEventCard(e) {
+  const lang = userLang();
+  const daysUntil = e.event_date ? Math.floor((new Date(e.event_date) - new Date(new Date().toISOString().split('T')[0])) / 86400000) : null;
+  const T = {
+    ar: { today_lbl:'🔥 اليوم', after:'بعد', day:'يوم', since:'منذ',
+          docs:'📷 توثيق', map:'🗺 الخريطة', details:'📋 التفاصيل', arrival:'الوصول' },
+    en: { today_lbl:'🔥 Today', after:'In', day:'day(s)', since:'Ago',
+          docs:'📷 Photos', map:'🗺 Map', details:'📋 Details', arrival:'Arrival' },
+    ur: { today_lbl:'🔥 آج', after:'بعد', day:'دن', since:'پہلے',
+          docs:'📷 تصاویر', map:'🗺 نقشہ', details:'📋 تفصیلات', arrival:'آمد' },
+  };
+  const L = T[lang] || T.ar;
+  let countdownBadge = '';
+  if (daysUntil !== null) {
+    if (daysUntil === 0) countdownBadge = `<span style="background:var(--danger);color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">${L.today_lbl}</span>`;
+    else if (daysUntil > 0 && daysUntil <= 7) countdownBadge = `<span style="background:var(--warning);color:#fff;padding:2px 8px;border-radius:6px;font-size:11px">⏰ ${L.after} ${daysUntil} ${L.day}</span>`;
+    else if (daysUntil < 0) countdownBadge = `<span style="background:var(--text-light);color:#fff;padding:2px 8px;border-radius:6px;font-size:11px">${L.since} ${Math.abs(daysUntil)} ${L.day}</span>`;
+  }
+  // استخدم venue_map_url لو متوفر، وإلا lat/lng
+  const mapUrl = e.venue_map_url ? e.venue_map_url
+              : (e.venue_lat ? `https://maps.google.com/?q=${e.venue_lat},${e.venue_lng}` : null);
+  return `
+    <div class="card card-event" style="border-right:4px solid var(--primary)">
+      <div onclick="showEventDetails(${e.id})" style="cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1">
+            <div class="event-title">${(lang==='en'&&e.title_en)?e.title_en:(lang==='ur'&&e.title_ur)?e.title_ur:e.title}</div>
+            <div style="font-size:13px;color:var(--text-light);margin-top:2px">${(lang==='en'&&e.customer_name_en)?e.customer_name_en:(lang==='ur'&&e.customer_name_ur)?e.customer_name_ur:(e.customer_name||'-')}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+            ${e.status ? statusBadge(e.status) : ''}
+            ${countdownBadge}
+          </div>
+        </div>
+        <div class="event-meta" style="margin-top:8px">
+          <span>📅 ${fmtDate(e.event_date)}</span>
+          ${e.event_start_time ? `<span>⏰ ${e.event_start_time}</span>` : ''}
+          ${e.venue_name ? `<span>📍 ${(lang==='en'&&e.venue_name_en)?e.venue_name_en:(lang==='ur'&&e.venue_name_ur)?e.venue_name_ur:e.venue_name}</span>` : ''}
+        </div>
+        ${e.my_role ? `<div style="margin-top:8px;font-size:12px"><span class="badge badge-in_progress">${e.my_role}</span> ${e.arrival_time ? '— ' + L.arrival + ': ' + e.arrival_time : ''}</div>` : ''}
+      </div>
+      <!-- أزرار سريعة -->
+      <div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+        <a href="/mobile/photo_capture.html?event_id=${e.id}"
+           style="flex:1;text-align:center;background:var(--success);color:#fff;padding:8px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">
+          ${L.docs}
+        </a>
+        ${mapUrl ? `
+          <a href="${mapUrl}" target="_blank"
+             style="flex:1;text-align:center;background:var(--primary);color:#fff;padding:8px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">
+            ${L.map}
+          </a>` : ''}
+        <button onclick="showEventDetails(${e.id})"
+          style="flex:1;background:var(--accent);color:#fff;padding:8px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer">
+          ${L.details}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function showEventDetails(id) {
+  try {
+    const e = await api('/events/' + id);
+    const html = `
+      <div class="card">
+        <div class="event-title">${e.title}</div>
+        <div style="font-size:13px;color:var(--text-light);margin:4px 0">${e.event_code} • ${e.customer_name}</div>
+        <div class="event-meta">
+          <span>📅 ${fmtDate(e.event_date)}</span>
+          <span>⏰ ${e.event_start_time || ''} - ${e.event_end_time || ''}</span>
+        </div>
+        <div style="margin-top:8px;font-size:13px">📍 ${e.venue_name || ''} - ${e.venue_address || ''}</div>
+        ${(e.venue_map_url || e.venue_lat) ? `<a href="${e.venue_map_url || ('https://maps.google.com/?q='+e.venue_lat+','+e.venue_lng)}" target="_blank" class="btn btn-outline" style="margin-top:8px">🗺️ ${userLang()==='en'?'Open in Maps':userLang()==='ur'?'نقشے میں کھولیں':'فتح في الخرائط'}</a>` : ''}
+        <a href="/mobile/photo_capture.html?event_id=${e.id}" class="btn btn-success" style="margin-top:8px">📷 التوثيق بالصور</a>
+      </div>
+
+      <div class="section-title">📦 المخزون المطلوب (${e.inventory.length})</div>
+      ${e.inventory.length ? e.inventory.map(i => `
+        <div class="card" style="padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:600">${i.item_name}</div>
+              <div style="font-size:11px;color:var(--text-light);font-family:monospace">${i.item_code}</div>
+            </div>
+            <div style="text-align:left">
+              <div style="font-size:18px;font-weight:700">${i.quantity}</div>
+              <div style="font-size:10px;color:var(--text-light)">${i.status}</div>
+            </div>
+          </div>
+        </div>
+      `).join('') : '<div class="empty">لا يوجد مخزون محجوز</div>'}
+
+      <div class="section-title">✅ المهام (${e.tasks.length})</div>
+      ${e.tasks.length ? e.tasks.map(t => renderTaskCard(t)).join('') : '<div class="empty">لا توجد مهام</div>'}
+
+      <button class="btn btn-outline" onclick="renderTab()">رجوع</button>
+    `;
+    document.getElementById('content').innerHTML = html;
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+// ============ المهام ============
+async function renderTasks() {
+  try {
+    const tasks = await api('/my-tasks');
+    const html = tasks.length ?
+      tasks.map(t => renderTaskCard(t)).join('') :
+      `<div class="empty"><div class="icon">✅</div>${tr('no_tasks')}</div>`;
+    document.getElementById('content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function renderTaskCard(t) {
+  const completed = t.status === 'completed';
+  const priLabel = tr('pri_' + (t.priority || 'normal')) || PRIORITY_LABELS[t.priority] || t.priority;
+  return `
+    <div class="task-card ${completed ? 'completed' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div class="task-title">${t.title}</div>
+        <span class="badge badge-${t.priority}">${priLabel}</span>
+      </div>
+      ${t.description ? `<div style="font-size:13px;color:var(--text-light);margin-bottom:6px">${t.description}</div>` : ''}
+      <div class="task-event">
+        🎉 ${t.event_title || ''}
+        ${t.venue_name ? '<br>📍 ' + t.venue_name : ''}
+      </div>
+      ${!completed ? `
+        <div class="task-actions">
+          ${t.status === 'pending' ? `<button class="task-btn" onclick="startTask(${t.id})">▶ ${tr('start_task')}</button>` : ''}
+          <button class="task-btn primary" onclick="completeTask(${t.id})">✓ ${tr('complete_task')}</button>
+        </div>
+      ` : `<div style="margin-top:8px;color:var(--success);font-size:12px">✓ ${tr('completed')}</div>`}
+    </div>
+  `;
+}
+
+async function startTask(id) {
+  try {
+    await api('/tasks/start', { method: 'POST', body: JSON.stringify({ task_id: id }) });
+    toast(tr('task_started'), 'success');
+    renderTab();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function completeTask(id) {
+  if (!confirm(tr('confirm_done'))) return;
+  try {
+    await api('/tasks/complete', { method: 'POST', body: JSON.stringify({ task_id: id }) });
+    toast(tr('task_done'), 'success');
+    renderTab();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ============ المخزون ============
+async function renderInventory() {
+  try {
+    const items = await api('/inventory');
+    const placeholder = `🔍 ${tr('search')}`;
+    const html = `
+      <input class="form-input" placeholder="${placeholder}" oninput="filterMobileInventory(this.value, ${JSON.stringify(items).replace(/"/g, '&quot;')})">
+      <div id="mobile-inv-list" style="margin-top:12px">
+        ${items.slice(0, 50).map(i => renderInventoryCard(i)).join('')}
+      </div>
+    `;
+    document.getElementById('content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function filterMobileInventory(q, items) {
+  q = q.toLowerCase();
+  const filtered = items.filter(i =>
+    i.name.toLowerCase().includes(q) || i.item_code.toLowerCase().includes(q)
+  );
+  document.getElementById('mobile-inv-list').innerHTML = filtered.slice(0, 50).map(i => renderInventoryCard(i)).join('');
+}
+
+function renderInventoryCard(i) {
+  const lang = userLang();
+  const statusColor = i.status === 'in_warehouse' ? 'var(--success)' :
+                      i.status === 'in_event' ? 'var(--accent)' : 'var(--warning)';
+  // إذا كان الاسم بالإنجليزي/الأوردو متوفر استخدمه
+  const displayName = (lang === 'en' && i.name_en) ? i.name_en
+                    : (lang === 'ur' && i.name_ur) ? i.name_ur
+                    : i.name;
+  const ofWord = lang === 'en' ? 'of' : lang === 'ur' ? 'سے' : 'من';
+  const imgUrl = i.main_image ? '/' + i.main_image.replace(/^\/+/,'') : '';
+  return `
+    <div class="card" style="padding:12px;border-right:4px solid ${statusColor};display:flex;gap:10px;align-items:center">
+      ${imgUrl ? `<img src="${imgUrl}" style="width:60px;height:60px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:8px;flex-shrink:0">` : ''}
+      <div style="flex:1;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:600">${displayName}</div>
+          <div style="font-size:11px;color:var(--text-light);font-family:monospace">${i.item_code}</div>
+          ${i.location_in_warehouse ? `<div style="font-size:11px;color:var(--text-light)">📍 ${i.location_in_warehouse}</div>` : ''}
+        </div>
+        <div style="text-align:left">
+          <div style="font-size:20px;font-weight:700">${i.quantity_available}</div>
+          <div style="font-size:10px;color:var(--text-light)">${ofWord} ${i.quantity_total}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============ إضافة عنصر مخزون بسرعة (مع صورة + كود تلقائي) ============
+async function showQuickAddInventory() {
+  const lang = userLang();
+  const T = {
+    ar: { title:'📦 إضافة عنصر للمخزون', name:'الاسم *', name_en:'الاسم بالإنجليزي', name_ur:'الاسم بالأوردو',
+          warehouse:'المستودع *', wh_acc:'✨ الأكسسوارات', wh_dec:'🎨 الديكورات', wh_fac:'🏭 المصنع',
+          category:'التصنيف', qty:'الكمية *', shelf:'رقم الرف / الموقع',
+          take_photo:'📷 التقط صورة', take_again:'إعادة التقاط', save:'✓ حفظ',
+          cancel:'إلغاء', branch:'الفرع', riyadh:'الرياض', zulfi:'الزلفي',
+          saved:'تم بنجاح! الكود:', no_name:'الاسم مطلوب' },
+    en: { title:'📦 Add Inventory Item', name:'Name *', name_en:'English Name', name_ur:'Urdu Name',
+          warehouse:'Warehouse *', wh_acc:'✨ Accessories', wh_dec:'🎨 Decorations', wh_fac:'🏭 Factory',
+          category:'Category', qty:'Quantity *', shelf:'Shelf / Location',
+          take_photo:'📷 Take Photo', take_again:'Retake', save:'✓ Save',
+          cancel:'Cancel', branch:'Branch', riyadh:'Riyadh', zulfi:'Zulfi',
+          saved:'Success! Code:', no_name:'Name required' },
+    ur: { title:'📦 انوینٹری شامل کریں', name:'نام *', name_en:'انگریزی نام', name_ur:'اردو نام',
+          warehouse:'گودام *', wh_acc:'✨ لوازمات', wh_dec:'🎨 سجاوٹ', wh_fac:'🏭 فیکٹری',
+          category:'زمرہ', qty:'مقدار *', shelf:'شیلف / مقام',
+          take_photo:'📷 تصویر لیں', take_again:'دوبارہ', save:'✓ محفوظ',
+          cancel:'منسوخ', branch:'برانچ', riyadh:'ریاض', zulfi:'زلفی',
+          saved:'کامیاب! کوڈ:', no_name:'نام درکار ہے' },
+  };
+  const L = T[lang] || T.ar;
+
+  // حدد المستودع الافتراضي حسب دور المستخدم
+  const role = currentUser?.role || '';
+  let defaultWh = 'accessories';
+  if (role === 'warehouse_decor') defaultWh = 'decorations';
+  else if (role === 'factory') defaultWh = 'factory';
+
+  // جلب التصنيفات
+  let cats = [];
+  try { cats = await api('/categories'); } catch(e) {}
+
+  const body = `
+    <div style="margin-bottom:14px">
+      <h3 style="margin-bottom:8px;color:var(--primary-dark)">${L.title}</h3>
+      <small style="color:var(--text-light)">سيُولَّد كود تلقائياً حسب المستودع</small>
+    </div>
+    <form id="qa-form" onsubmit="event.preventDefault();saveQuickAddInventory()">
+      <!-- الصورة -->
+      <div class="form-group" style="text-align:center">
+        <div id="qa-photo-preview" style="width:160px;height:160px;margin:0 auto;border:2px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--bg);cursor:pointer;font-size:48px;color:var(--text-light)" onclick="document.getElementById('qa-photo-input').click()">📷</div>
+        <input type="file" id="qa-photo-input" accept="image/*" capture="environment" style="display:none" onchange="qaPhotoChosen(event)">
+        <button type="button" class="btn btn-outline" style="margin-top:8px" onclick="document.getElementById('qa-photo-input').click()">${L.take_photo}</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.name}</label>
+        <input class="form-input" id="qa-name" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">${L.name_en}</label>
+          <input class="form-input" id="qa-name-en" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${L.name_ur}</label>
+          <input class="form-input" id="qa-name-ur" dir="rtl">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">${L.warehouse}</label>
+          <select class="form-select" id="qa-warehouse" onchange="qaLoadCats()">
+            <option value="accessories" ${defaultWh==='accessories'?'selected':''}>${L.wh_acc}</option>
+            <option value="decorations" ${defaultWh==='decorations'?'selected':''}>${L.wh_dec}</option>
+            <option value="factory" ${defaultWh==='factory'?'selected':''}>${L.wh_fac}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">${L.branch}</label>
+          <select class="form-select" id="qa-branch">
+            <option value="riyadh">${L.riyadh}</option>
+            <option value="zulfi">${L.zulfi}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.category}</label>
+        <select class="form-select" id="qa-category">
+          <option value="">— اختر —</option>
+          ${cats.filter(c => c.warehouse === defaultWh).map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">${L.qty}</label>
+          <input class="form-input" type="number" id="qa-qty" min="1" value="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">${L.shelf}</label>
+          <input class="form-input" id="qa-shelf" placeholder="A1, B2, ...">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button type="submit" class="btn btn-success" style="flex:1">${L.save}</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal()">${L.cancel}</button>
+      </div>
+    </form>
+  `;
+  openModal(body);
+  // خزن التصنيفات للوصول من qaLoadCats
+  window.__qaCats = cats;
+}
+
+let __qaPhotoData = null;
+function qaPhotoChosen(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    __qaPhotoData = ev.target.result;
+    const prev = document.getElementById('qa-photo-preview');
+    if (prev) {
+      prev.style.backgroundImage = `url('${ev.target.result}')`;
+      prev.style.backgroundSize = 'cover';
+      prev.style.backgroundPosition = 'center';
+      prev.innerHTML = '';
+    }
+  };
+  reader.readAsDataURL(f);
+}
+
+function qaLoadCats() {
+  const wh = document.getElementById('qa-warehouse')?.value;
+  const sel = document.getElementById('qa-category');
+  if (!sel || !window.__qaCats) return;
+  sel.innerHTML = '<option value="">— اختر —</option>' +
+    window.__qaCats.filter(c => c.warehouse === wh).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+async function saveQuickAddInventory() {
+  const data = {
+    name: document.getElementById('qa-name')?.value.trim(),
+    name_en: document.getElementById('qa-name-en')?.value.trim(),
+    name_ur: document.getElementById('qa-name-ur')?.value.trim(),
+    warehouse: document.getElementById('qa-warehouse')?.value,
+    branch: document.getElementById('qa-branch')?.value,
+    category_id: parseInt(document.getElementById('qa-category')?.value) || null,
+    quantity: parseInt(document.getElementById('qa-qty')?.value) || 1,
+    shelf: document.getElementById('qa-shelf')?.value.trim(),
+    image_base64: __qaPhotoData,
+  };
+  if (!data.name) return toast('الاسم مطلوب', 'error');
+  try {
+    const r = await api('/inventory/quick-add', { method:'POST', body: JSON.stringify(data) });
+    closeModal();
+    __qaPhotoData = null;
+    const lang = userLang();
+    const msg = (lang==='en') ? `✓ Saved! Code: ${r.item_code}`
+              : (lang==='ur') ? `✓ محفوظ! کوڈ: ${r.item_code}`
+              : `✓ تم! الكود: ${r.item_code}`;
+    toast(msg, 'success');
+  } catch(e) {
+    toast(e.message, 'error');
+  }
+}
+
+// ============ ماسح الباركود ============
+async function openScanner() {
+  document.getElementById('scanner').classList.add('show');
+  document.getElementById('scan-result-container').style.display = 'none';
+  document.getElementById('scanner-video').style.display = 'block';
+  document.getElementById('manual-code').value = '';
+
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    let video = document.getElementById('scanner-video').querySelector('video');
+    if (!video) {
+      video = document.createElement('video');
+      video.autoplay = true;
+      video.playsInline = true;
+      video.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      document.getElementById('scanner-video').insertBefore(video, document.querySelector('.scanner-overlay'));
+    }
+    video.srcObject = videoStream;
+
+    // محاولة استخدام BarcodeDetector إذا كان متاحًا
+    if ('BarcodeDetector' in window) {
+      try {
+        const detector = new BarcodeDetector({
+          formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8']
+        });
+        const scanLoop = async () => {
+          if (!document.getElementById('scanner').classList.contains('show')) return;
+          try {
+            const codes = await detector.detect(video);
+            if (codes.length > 0) {
+              await searchByCode(codes[0].rawValue);
+              return;
+            }
+          } catch (e) {}
+          requestAnimationFrame(scanLoop);
+        };
+        scanLoop();
+      } catch (e) {
+        console.log('BarcodeDetector not available, use manual entry');
+      }
+    } else {
+      toast('استخدم الإدخال اليدوي - الماسح غير مدعوم في هذا المتصفح', 'warning');
+    }
+  } catch (e) {
+    toast('لا يمكن فتح الكاميرا — استخدم الإدخال اليدوي', 'warning');
+  }
+}
+
+function closeScanner() {
+  document.getElementById('scanner').classList.remove('show');
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+}
+
+async function searchByCode(codeArg) {
+  const code = codeArg || document.getElementById('manual-code').value.trim();
+  if (!code) return toast('أدخل الكود', 'error');
+  try {
+    const item = await api('/inventory/code/' + encodeURIComponent(code));
+    showScanResult(item);
+  } catch (e) {
+    toast('الكود غير موجود: ' + code, 'error');
+  }
+}
+
+function showScanResult(item) {
+  document.getElementById('scanner-video').style.display = 'none';
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+  const container = document.getElementById('scan-result-container');
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="scan-result">
+      <button onclick="closeScanner()" style="float:left;background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-light)">✕</button>
+      <div class="scan-item-name">${item.name}</div>
+      <div class="scan-item-code">${item.item_code}</div>
+      <div class="scan-info">
+        <div><strong>التصنيف:</strong> ${item.category_name || '-'}</div>
+        <div><strong>المستودع:</strong> ${item.warehouse}</div>
+        <div><strong>المتاح:</strong> ${item.quantity_available} من ${item.quantity_total}</div>
+        <div><strong>الحالة:</strong> ${item.status}</div>
+        <div><strong>الموقع:</strong> ${item.location_in_warehouse || '-'}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الكمية</label>
+        <input class="form-input" type="number" id="scan-qty" value="1" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">المناسبة (اختياري)</label>
+        <select class="form-select" id="scan-event">
+          <option value="">بدون</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات</label>
+        <input class="form-input" id="scan-notes" placeholder="اختياري">
+      </div>
+      <button class="btn btn-success" onclick="doCheckout(${item.id})">📤 خروج من المستودع</button>
+      <button class="btn btn-outline" onclick="doCheckin(${item.id})">📥 إرجاع للمستودع</button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-warning" style="margin-top:0" onclick="doCheckin(${item.id}, 'damaged')">⚠️ إرجاع متضرر</button>
+        <button class="btn btn-danger" style="margin-top:0" onclick="doCheckin(${item.id}, 'lost')">❌ مفقود</button>
+      </div>
+      <button class="btn btn-outline" onclick="openScanner()" style="margin-top:12px">🔄 مسح آخر</button>
+    </div>
+  `;
+  // تحميل المناسبات
+  api('/my-events').then(events => {
+    const sel = document.getElementById('scan-event');
+    if (sel) {
+      events.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = `${e.title} (${e.event_code})`;
+        sel.appendChild(opt);
+      });
+    }
+  }).catch(() => {});
+}
+
+async function doCheckout(itemId) {
+  const qty = Number(document.getElementById('scan-qty').value) || 1;
+  const eventId = document.getElementById('scan-event').value || null;
+  const notes = document.getElementById('scan-notes').value;
+  try {
+    await api('/inventory/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ item_id: itemId, quantity: qty, event_id: eventId, notes })
+    });
+    toast('✓ تم الخروج بنجاح', 'success');
+    setTimeout(() => closeScanner(), 1000);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function doCheckin(itemId, condition = 'excellent') {
+  const qty = Number(document.getElementById('scan-qty').value) || 1;
+  const eventId = document.getElementById('scan-event').value || null;
+  const notes = document.getElementById('scan-notes').value;
+  if (condition === 'lost' && !confirm('تأكيد: هل القطعة مفقودة فعلًا؟')) return;
+  try {
+    await api('/inventory/checkin', {
+      method: 'POST',
+      body: JSON.stringify({ item_id: itemId, quantity: qty, event_id: eventId, condition, notes })
+    });
+    toast(condition === 'lost' ? 'تم تسجيل الفقدان' : '✓ تم الإرجاع بنجاح', 'success');
+    setTimeout(() => closeScanner(), 1000);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ============ المصاريف ============
+const EXPENSE_CATEGORIES = {
+  ar: {
+    materials: 'خامات', transport: 'نقل ومواصلات', food: 'ضيافة وطعام',
+    rental: 'إيجارات', salaries: 'أجور يومية', utilities: 'خدمات (كهرباء/ماء)',
+    maintenance: 'صيانة', office: 'مكتبية', misc: 'متنوعة'
+  },
+  en: {
+    materials: 'Materials', transport: 'Transport', food: 'Food & Hospitality',
+    rental: 'Rentals', salaries: 'Daily wages', utilities: 'Utilities',
+    maintenance: 'Maintenance', office: 'Office supplies', misc: 'Miscellaneous'
+  },
+  ur: {
+    materials: 'خام مال', transport: 'ٹرانسپورٹ', food: 'کھانا',
+    rental: 'کرایہ', salaries: 'یومیہ اجرت', utilities: 'یوٹیلٹیز',
+    maintenance: 'مرمت', office: 'دفتری سامان', misc: 'متفرق'
+  }
+};
+const PAYMENT_METHODS = {
+  ar: { cash:'نقدي', card:'شبكة', bank_transfer:'تحويل بنكي', other:'أخرى' },
+  en: { cash:'Cash', card:'Card', bank_transfer:'Bank transfer', other:'Other' },
+  ur: { cash:'نقد', card:'کارڈ', bank_transfer:'بینک ٹرانسفر', other:'دیگر' }
+};
+const EXPENSE_LABELS = {
+  ar: {title:'تسجيل مصروف جديد', amount:'المبلغ (ر.س)', desc:'الوصف', cat:'الفئة',
+       method:'طريقة الدفع', vendor:'المورد/المحل', invoice:'رقم الفاتورة', date:'التاريخ',
+       event:'مرتبط بمناسبة (اختياري)', notes:'ملاحظات', save:'حفظ', cancel:'إلغاء',
+       saved:'تم تسجيل المصروف', no_event:'بدون'},
+  en: {title:'Record new expense', amount:'Amount (SAR)', desc:'Description', cat:'Category',
+       method:'Payment method', vendor:'Vendor', invoice:'Invoice #', date:'Date',
+       event:'Linked event (optional)', notes:'Notes', save:'Save', cancel:'Cancel',
+       saved:'Expense saved', no_event:'None'},
+  ur: {title:'نیا خرچ ریکارڈ کریں', amount:'رقم (ریال)', desc:'تفصیل', cat:'قسم',
+       method:'ادائیگی کا طریقہ', vendor:'فروخت کنندہ', invoice:'انوائس نمبر', date:'تاریخ',
+       event:'منسلک تقریب', notes:'نوٹس', save:'محفوظ کریں', cancel:'منسوخ',
+       saved:'خرچ محفوظ ہو گیا', no_event:'کوئی نہیں'}
+};
+
+async function showExpenseForm() {
+  const lang = userLang();
+  const L = EXPENSE_LABELS[lang] || EXPENSE_LABELS.ar;
+  const C = EXPENSE_CATEGORIES[lang] || EXPENSE_CATEGORIES.ar;
+  const P = PAYMENT_METHODS[lang] || PAYMENT_METHODS.ar;
+  const today = new Date().toISOString().split('T')[0];
+  let events = [];
+  try { events = await api('/my-events'); } catch(_) {}
+
+  openModal(`
+    <h3 style="margin-bottom:16px;color:var(--primary-dark)">💰 ${L.title}</h3>
+    <form id="expense-form" onsubmit="saveExpense(event)">
+      <div class="form-group">
+        <label class="form-label">${L.amount} *</label>
+        <input class="form-input" type="number" step="0.01" min="0.01" name="amount" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.cat} *</label>
+        <select class="form-select" name="expense_category" required>
+          ${Object.entries(C).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.desc} *</label>
+        <input class="form-input" name="description" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.method}</label>
+        <select class="form-select" name="payment_method">
+          ${Object.entries(P).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.vendor}</label>
+        <input class="form-input" name="vendor_name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.invoice}</label>
+        <input class="form-input" name="invoice_number">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.date}</label>
+        <input class="form-input" type="date" name="expense_date" value="${today}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.event}</label>
+        <select class="form-select" name="event_id">
+          <option value="">${L.no_event}</option>
+          ${events.map(e => `<option value="${e.id}">${e.title}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${L.notes}</label>
+        <textarea class="form-input" name="notes" rows="2"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:16px">
+        <button type="submit" class="btn btn-success" style="flex:1">${L.save}</button>
+        <button type="button" class="btn" onclick="closeModal()" style="flex:1; background:var(--text-light); color:#fff">${L.cancel}</button>
+      </div>
+    </form>
+  `);
+}
+
+async function saveExpense(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd.entries());
+  data.amount = parseFloat(data.amount);
+  if (!data.event_id) delete data.event_id;
+  const L = EXPENSE_LABELS[userLang()] || EXPENSE_LABELS.ar;
+  try {
+    const r = await api('/expenses', { method:'POST', body: JSON.stringify(data) });
+    closeModal();
+    toast(`✓ ${L.saved} (${r.expense_code})`, 'success');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ============ شاشة "المزيد" — تتغير حسب الدور ============
+async function renderMore() {
+  const lang = userLang();
+  const role = currentUser && currentUser.role;
+  let items = [];
+
+  // ترجمات بنود "المزيد"
+  const M = {
+    ar: { more:'المزيد من الخيارات', record_exp:'تسجيل مصروف', record_exp_sub:'سجّل مصروف جديد بسرعة',
+          my_exp:'مصاريفي', my_exp_sub:'آخر المصاريف اللي سجّلتها',
+          appts:'المواعيد والتقويم', appts_sub:'مواعيد العملاء والاجتماعات',
+          factory_plans:'خطط المصنع', factory_sub:'الخطط الصناعية',
+          acc_plans:'خطط الأكسسوارات', acc_sub:'الخطط الفرعية للأكسسوارات',
+          decor_plans:'خطط الديكورات', decor_sub:'الخطط الفرعية للديكورات',
+          hosp_plans:'خطط الضيافة', hosp_sub:'مهام الضيافة والقهوة',
+          purch_plans:'خطط المشتريات', purch_sub:'المشتريات المطلوبة',
+          inv:'المخزون', inv_sub:'تصفّح المخزون',
+          logout:'تسجيل الخروج', logout_sub:'الخروج من التطبيق' },
+    en: { more:'More Options', record_exp:'Record Expense', record_exp_sub:'Add a new expense quickly',
+          my_exp:'My Expenses', my_exp_sub:'Recent expenses you logged',
+          appts:'Appointments & Calendar', appts_sub:'Customer appointments & meetings',
+          factory_plans:'Factory Plans', factory_sub:'Manufacturing plans',
+          acc_plans:'Accessories Plans', acc_sub:'Sub-plans for accessories warehouse',
+          decor_plans:'Decoration Plans', decor_sub:'Sub-plans for decoration warehouse',
+          hosp_plans:'Hospitality Plans', hosp_sub:'Hospitality and coffee tasks',
+          purch_plans:'Purchase Plans', purch_sub:'Required purchases',
+          inv:'Inventory', inv_sub:'Browse inventory',
+          logout:'Logout', logout_sub:'Sign out of the app' },
+    ur: { more:'مزید اختیارات', record_exp:'اخراجات ریکارڈ کریں', record_exp_sub:'نیا خرچ تیزی سے درج کریں',
+          my_exp:'میرے اخراجات', my_exp_sub:'حالیہ اخراجات جو آپ نے درج کیے',
+          appts:'ملاقاتیں اور کیلنڈر', appts_sub:'گاہک کی ملاقاتیں اور میٹنگز',
+          factory_plans:'فیکٹری منصوبے', factory_sub:'مینوفیکچرنگ منصوبے',
+          acc_plans:'لوازمات کے منصوبے', acc_sub:'لوازمات گودام کے ذیلی منصوبے',
+          decor_plans:'سجاوٹ کے منصوبے', decor_sub:'سجاوٹ گودام کے ذیلی منصوبے',
+          hosp_plans:'مہمان نوازی کے منصوبے', hosp_sub:'مہمان نوازی اور کافی کے کام',
+          purch_plans:'خریداری کے منصوبے', purch_sub:'مطلوبہ خریداری',
+          inv:'انوینٹری', inv_sub:'انوینٹری دیکھیں',
+          logout:'لاگ آؤٹ', logout_sub:'ایپ سے باہر نکلیں' },
+  };
+  const L = M[lang] || M.ar;
+
+  const canExpense = currentUser && (currentUser.can_record_expenses ||
+    ['admin','owner','general_manager','finance','project_manager','supervisor','field'].includes(role));
+  if (canExpense) {
+    items.push({ icon:'💰', title:L.record_exp, sub:L.record_exp_sub, action:'showExpenseForm()' });
+    items.push({ icon:'📊', title:L.my_exp, sub:L.my_exp_sub, action:'renderMyExpenses()' });
+  }
+
+  if (['customer_service','admin','owner','general_manager','project_manager','supervisor'].includes(role)) {
+    items.push({ icon:'📅', title:L.appts, sub:L.appts_sub, action:'renderAppointments()' });
+  }
+
+  if (role === 'factory') {
+    items.push({ icon:'🏭', title:L.factory_plans, sub:L.factory_sub, action:'renderMySubPlans("factory")' });
+  } else if (role === 'warehouse_acc') {
+    items.push({ icon:'✨', title:L.acc_plans, sub:L.acc_sub, action:'renderMySubPlans("warehouse_acc")' });
+  } else if (role === 'warehouse_decor') {
+    items.push({ icon:'🎨', title:L.decor_plans, sub:L.decor_sub, action:'renderMySubPlans("warehouse_decor")' });
+  } else if (role === 'hospitality') {
+    items.push({ icon:'☕', title:L.hosp_plans, sub:L.hosp_sub, action:'renderMySubPlans("hospitality")' });
+  } else if (role === 'purchasing') {
+    items.push({ icon:'🛒', title:L.purch_plans, sub:L.purch_sub, action:'renderMySubPlans("purchases")' });
+  }
+
+  items.push({ icon:'📦', title:L.inv, sub:L.inv_sub, action:"switchTab('inventory')" });
+  items.push({ icon:'🚪', title:L.logout, sub:L.logout_sub, action:'doLogout()', danger:true });
+
+  document.getElementById('content').innerHTML = `
+    <div class="section-title" style="font-size:18px;margin-bottom:12px">${L.more}</div>
+    ${items.map(it => `
+      <div class="card" onclick="${it.action}" style="cursor:pointer; display:flex; align-items:center; gap:14px; ${it.danger?'border-left:4px solid var(--danger)':''}">
+        <div style="font-size:28px">${it.icon}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:${it.danger?'var(--danger)':'var(--primary-dark)'}">${it.title}</div>
+          <div style="font-size:12px;color:var(--text-light)">${it.sub}</div>
+        </div>
+        <div style="color:var(--text-light)">›</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+async function renderMyExpenses() {
+  const lang = userLang();
+  const C = EXPENSE_CATEGORIES[lang] || EXPENSE_CATEGORIES.ar;
+  const TXT = {
+    ar: { title:'💰 آخر المصاريف', empty:'لم تسجّل أي مصاريف بعد', approved:'✓ معتمد', pending:'⏳ قيد الاعتماد' },
+    en: { title:'💰 Recent Expenses', empty:'No expenses recorded yet', approved:'✓ Approved', pending:'⏳ Pending' },
+    ur: { title:'💰 حالیہ اخراجات', empty:'ابھی تک کوئی اخراجات درج نہیں', approved:'✓ منظور شدہ', pending:'⏳ زیر التوا' },
+  };
+  const T = TXT[lang] || TXT.ar;
+  try {
+    const data = await api('/expenses?recorded_by=' + currentUser.id);
+    const html = `
+      <div class="section-title" style="font-size:16px">${T.title}</div>
+      ${data.length ? data.slice(0,30).map(ex => `
+        <div class="card" style="display:flex;justify-content:space-between;align-items:center">
+          <div style="flex:1">
+            <div style="font-weight:700">${ex.description}</div>
+            <div style="font-size:11px;color:var(--text-light);margin-top:2px">
+              ${ex.expense_code} • ${C[ex.expense_category] || ex.expense_category} • ${ex.expense_date}
+            </div>
+            ${ex.event_title ? `<div style="font-size:11px;color:var(--primary)">🎉 ${ex.event_title}</div>` : ''}
+          </div>
+          <div style="text-align:left">
+            <div style="font-weight:700;color:var(--danger);font-size:18px">${Number(ex.amount).toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--text-light)">${ex.status === 'approved' ? T.approved : T.pending}</div>
+          </div>
+        </div>
+      `).join('') : `<div class="empty">${T.empty}</div>`}
+    `;
+    document.getElementById('content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+async function renderAppointments() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const appts = await api('/appointments?from=' + today);
+    const html = `
+      <div class="section-title" style="font-size:16px">📅 المواعيد القادمة (${appts.length})</div>
+      ${appts.length ? appts.map(a => `
+        <div class="card">
+          <div style="font-weight:700">${a.title}</div>
+          <div style="font-size:13px;color:var(--text-light);margin:4px 0">${a.appointment_code}</div>
+          <div style="display:flex;gap:8px;font-size:12px;flex-wrap:wrap;color:var(--text-light)">
+            <span>📅 ${a.appointment_date}</span>
+            <span>⏰ ${a.start_time}</span>
+            ${a.location ? `<span>📍 ${a.location}</span>` : ''}
+          </div>
+          ${a.customer_full_name ? `<div style="font-size:12px;margin-top:6px">👤 ${a.customer_full_name}</div>` : ''}
+        </div>
+      `).join('') : '<div class="empty">لا توجد مواعيد قادمة</div>'}
+    `;
+    document.getElementById('content').innerHTML = html;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+// نخزّن آخر نوع خطة فرعية كان معروض ليرجع إليه زر "رجوع"
+window.__lastSubPlanType = null;
+
+async function renderMySubPlans(planType) {
+  const lang = userLang();
+  window.__lastSubPlanType = planType;
+  try {
+    const plans = await api('/sub-plans?type=' + planType);
+    const titleByLang = {
+      ar:`الخطط الفرعية — ${planType}`,
+      en:`Sub-plans — ${planType}`,
+      ur:`ذیلی منصوبے — ${planType}`
+    };
+    document.getElementById('content').innerHTML = `
+      <button class="btn btn-outline" onclick="switchTab('more')" style="margin-bottom:12px">‹ ${tr('back')}</button>
+      <div class="section-title" style="font-size:16px">${titleByLang[lang] || titleByLang.ar} (${plans.length})</div>
+      ${plans.length ? plans.map(p => `
+        <div class="card" onclick="showSubPlan(${p.id})" style="cursor:pointer">
+          <div style="font-weight:700">${p.event_title || '-'}</div>
+          <div style="font-size:12px;color:var(--text-light);margin-top:2px">📅 ${p.event_date}</div>
+          <div style="margin-top:8px;font-size:13px">
+            ${p.done_items}/${p.total_items} ${lang==='en'?'completed':lang==='ur'?'مکمل':'منجز'}
+          </div>
+          <div style="background:#eee;height:6px;border-radius:3px;margin-top:6px;overflow:hidden">
+            <div style="background:var(--success);height:100%;width:${p.total_items?Math.round(p.done_items*100/p.total_items):0}%"></div>
+          </div>
+        </div>
+      `).join('') : '<div class="empty">' + tr('no_events') + '</div>'}
+    `;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+function goBackFromSubPlan() {
+  if (window.__lastSubPlanType) {
+    renderMySubPlans(window.__lastSubPlanType);
+  } else {
+    switchTab('more');
+  }
+}
+
+async function showSubPlan(spid) {
+  const lang = userLang();
+  try {
+    const sp = await api('/sub-plans/' + spid + '?lang=' + lang);
+    const itemsHtml = sp.items.map(it => `
+      <div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1">
+            <div style="font-weight:700;color:var(--primary-dark)">${it.custom_name || '-'}</div>
+            ${it.quantity ? `<div style="font-size:12px;color:var(--text-light)">${lang==='en'?'Qty':lang==='ur'?'مقدار':'الكمية'}: ${it.quantity}</div>` : ''}
+            ${it.color_code ? `<div style="font-size:11px">🎨 ${it.color_code}</div>` : ''}
+            ${it.dimensions ? `<div style="font-size:11px">📏 ${it.dimensions}</div>` : ''}
+            ${it.item_notes ? `<div style="font-size:12px;margin-top:4px">${it.item_notes}</div>` : ''}
+          </div>
+          <button class="btn ${it.is_done?'btn-success':'btn-outline'}" style="min-width:80px"
+            onclick="toggleSubPlanItem(${it.id}, ${spid}, ${!it.is_done})">
+            ${it.is_done ? '✓' : (lang==='en'?'Done':lang==='ur'?'مکمل':'منجز')}
+          </button>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('content').innerHTML = `
+      <button class="btn btn-outline" onclick="goBackFromSubPlan()" style="margin-bottom:12px">‹ ${tr('back')}</button>
+      <a href="/dashboard/plan_print_cnc.html?sub_plan_id=${spid}" target="_blank" class="btn" style="margin-bottom:12px;margin-right:8px">🖨 ${lang==='en'?'Print CNC Plan':lang==='ur'?'سی این سی پلان پرنٹ':'طباعة خطة الفني'}</a>
+      <div class="card">
+        <div style="font-weight:700;font-size:18px">${sp.event_title}</div>
+        <div style="font-size:12px;color:var(--text-light);margin-top:4px">📅 ${sp.event_date} • 📍 ${sp.venue_name || '-'}</div>
+        <div style="font-size:12px;margin-top:4px">👤 ${sp.customer_name}</div>
+      </div>
+      <div class="section-title" style="font-size:14px;margin:16px 0 8px">
+        ${lang==='en'?'Items':lang==='ur'?'اشیاء':'البنود'} (${sp.items.length})
+      </div>
+      ${itemsHtml || '<div class="empty">لا توجد بنود</div>'}
+    `;
+  } catch (e) {
+    document.getElementById('content').innerHTML = '<div class="empty">' + e.message + '</div>';
+  }
+}
+
+async function toggleSubPlanItem(itemId, planId, makeDone) {
+  if (!makeDone) { toast('لا يمكن إلغاء المنجز من الجوال — تواصل مع المشرف', 'error'); return; }
+  try {
+    await api('/sub-plans/items/done', {
+      method: 'POST',
+      body: JSON.stringify({ item_id: itemId, done_quantity: 1 })
+    });
+    showSubPlan(planId);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ============ تتبع الاتصال ============
+function updateOnlineStatus() {
+  const ind = document.getElementById('online-indicator');
+  ind.classList.toggle('offline', !navigator.onLine);
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+
+// ============ بدء التشغيل ============
+async function initApp() {
+  const savedUser = localStorage.getItem('abela_user');
+  if (token && savedUser) {
+    currentUser = JSON.parse(savedUser);
+    document.getElementById('login-screen').classList.add('hide');
+    document.getElementById('user-name').textContent = currentUser.full_name;
+    applyRoleUI();
+    renderTab();
+    // إذا الـ user object قديم (مفقود language)، نحدّثه من السيرفر
+    if (!currentUser.language || currentUser.can_record_expenses === undefined) {
+      try {
+        const r = await api('/me');
+        if (r && r.user) {
+          currentUser = r.user;
+          localStorage.setItem('abela_user', JSON.stringify(currentUser));
+          applyRoleUI();
+          renderTab();
+        }
+      } catch(_) {}
+    }
+  }
+}
+initApp();
+
+// تسجيل Service Worker — يفرض update ويعيد تحميل الصفحة عند نسخة جديدة
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/mobile/sw.js').then(reg => {
+    reg.update().catch(() => {});
+    // نتفقّد التحديثات كل دقيقة
+    setInterval(() => reg.update().catch(() => {}), 60000);
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'activated' && navigator.serviceWorker.controller) {
+          // وصل SW جديد + كان فيه controller قبل = نسخة جديدة جاهزة
+          location.reload();
+        }
+      });
+    });
+  }).catch(() => {});
+
+  // لو الـ controller تغيّر (SW جديد استلم) — أعد تحميل
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    location.reload();
+  });
+}
+</script>
+</body>
+</html>
