@@ -1,0 +1,962 @@
+{
+"snapshot": "2026-11-20",
+"categories": [
+{
+"code": "LGT-01",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "الإضاءة",
+"sub_en": "",
+"type": "ثريا - شانديلير",
+"type_en": ""
+},
+{
+"code": "LGT-02",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "الإضاءة",
+"sub_en": "",
+"type": "إضاءة ليد",
+"type_en": ""
+},
+{
+"code": "LGT-03",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "الإضاءة",
+"sub_en": "",
+"type": "أباجورات",
+"type_en": ""
+},
+{
+"code": "LGT-04",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "الإضاءة",
+"sub_en": "",
+"type": "كشافات مساطر",
+"type_en": ""
+},
+{
+"code": "SEA-01",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "كراسي",
+"sub_en": "",
+"type": "كراسي",
+"type_en": ""
+},
+{
+"code": "SEA-02",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "كراسي",
+"sub_en": "",
+"type": "كنب",
+"type_en": ""
+},
+{
+"code": "SEA-03",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "كراسي",
+"sub_en": "",
+"type": "بوفات",
+"type_en": ""
+},
+{
+"code": "TBL-01",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "طاولات",
+"sub_en": "",
+"type": "كنسول ضيافة",
+"type_en": ""
+},
+{
+"code": "TBL-02",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "طاولات",
+"sub_en": "",
+"type": "كنسول توزيعات",
+"type_en": ""
+},
+{
+"code": "TBL-03",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "طاولات",
+"sub_en": "",
+"type": "طاولة وسط",
+"type_en": ""
+},
+{
+"code": "TBL-04",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "طاولات",
+"sub_en": "",
+"type": "طاولة خدمة",
+"type_en": ""
+},
+{
+"code": "TBL-05",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "طاولات",
+"sub_en": "",
+"type": "زجاج",
+"type_en": ""
+},
+{
+"code": "TBL-06",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "طاولات",
+"sub_en": "",
+"type": "مراية طاولات",
+"type_en": ""
+},
+{
+"code": "TEX-01",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "كوشنز - ستائر",
+"sub_en": "",
+"type": "كوشنز",
+"type_en": ""
+},
+{
+"code": "TEX-02",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "كوشنز - ستائر",
+"sub_en": "",
+"type": "ستائر",
+"type_en": ""
+},
+{
+"code": "STD-01",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "استاندات وصناديق",
+"sub_en": "",
+"type": "صناديق",
+"type_en": ""
+},
+{
+"code": "STD-02",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "استاندات وصناديق",
+"sub_en": "",
+"type": "استاند حفر CNC",
+"type_en": ""
+},
+{
+"code": "STD-03",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "استاندات وصناديق",
+"sub_en": "",
+"type": "استاند",
+"type_en": ""
+},
+{
+"code": "GAT-01",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "مداخل وبوابات",
+"sub_en": "",
+"type": "مدخل",
+"type_en": ""
+},
+{
+"code": "GAT-02",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "مداخل وبوابات",
+"sub_en": "",
+"type": "مراية",
+"type_en": ""
+},
+{
+"code": "GAT-03",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "مداخل وبوابات",
+"sub_en": "",
+"type": "دولاب عبايات",
+"type_en": ""
+},
+{
+"code": "UTL-01",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "أدوات",
+"sub_en": "",
+"type": "علبة مناديل",
+"type_en": ""
+},
+{
+"code": "UTL-02",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "أدوات",
+"sub_en": "",
+"type": "مراية داخلية",
+"type_en": ""
+},
+{
+"code": "UTL-03",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "أدوات",
+"sub_en": "",
+"type": "صواني",
+"type_en": ""
+},
+{
+"code": "UTL-04",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "أدوات",
+"sub_en": "",
+"type": "صحون",
+"type_en": ""
+},
+{
+"code": "UTL-05",
+"wh": "factory",
+"main": "ديكور",
+"main_en": "Decor",
+"sub": "أدوات",
+"sub_en": "",
+"type": "ورد صناعي",
+"type_en": ""
+},
+{
+"code": "HOS-01",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "صواني تقديم",
+"type_en": "Serving Trays"
+},
+{
+"code": "HOS-02",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "صواني حلي ومالح",
+"type_en": "Sweet & Savory Trays"
+},
+{
+"code": "HOS-03",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "صحون VIP حلي ومالح (صغيرة)",
+"type_en": "VIP Small Plates (Sweet & Savory)"
+},
+{
+"code": "HOS-04",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "كاسات وكب درينك",
+"type_en": "Glasses & Drink Cups"
+},
+{
+"code": "HOS-05",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "فناجين قهوة",
+"type_en": "Coffee Cups"
+},
+{
+"code": "HOS-06",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "بيالات شاي",
+"type_en": "Tea Glasses"
+},
+{
+"code": "HOS-07",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "اكواب كبتشينو",
+"type_en": "Cappuccino Cups"
+},
+{
+"code": "HOS-08",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "الضيافة",
+"sub_en": "Hospitality",
+"type": "صحون تقديم",
+"type_en": "Serving Plates"
+},
+{
+"code": "ACC-01",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "فازات",
+"type_en": "Vases"
+},
+{
+"code": "ACC-02",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "اباجورات الهدب",
+"type_en": "Fringe Lampshades"
+},
+{
+"code": "ACC-03",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "كتب",
+"type_en": "Books"
+},
+{
+"code": "ACC-04",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "ديفيوزر",
+"type_en": "Diffuser"
+},
+{
+"code": "ACC-05",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "شمعدانات",
+"type_en": "Candle Holders"
+},
+{
+"code": "ACC-06",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "مجسمات",
+"type_en": "Figurines"
+},
+{
+"code": "ACC-07",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "مناديل",
+"type_en": "Napkins"
+},
+{
+"code": "ACC-08",
+"wh": "w2",
+"main": "الكماليات",
+"main_en": "Amenities",
+"sub": "اكسسوارات",
+"sub_en": "Accessories",
+"type": "طفاية",
+"type_en": "Ashtray"
+}
+],
+"assets": [
+{
+"id": "J260725190139378",
+"at": "2026-07-25 19:01:39",
+"code": "STD-02",
+"type": "استاند حفر CNC",
+"name": "استاند حفر CNC",
+"qty": 1,
+"counts": {
+"ممتاز": 1,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "معاذ",
+"notes": "",
+"desc": ""
+},
+{
+"id": "J261117162133742",
+"at": "2026-11-17 16:21:33",
+"code": "TBL-03",
+"type": "طاولة وسط",
+"name": "طاولة وسط",
+"qty": 2,
+"counts": {
+"ممتاز": 2,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "طاولة وسط كبير"
+},
+{
+"id": "J261117162710926",
+"at": "2026-11-17 16:27:11",
+"code": "TBL-03",
+"type": "طاولة وسط",
+"name": "طاولة وسط",
+"qty": 2,
+"counts": {
+"ممتاز": 2,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "طاولة وسط صغير"
+},
+{
+"id": "J261118101641600",
+"at": "2026-11-18 10:16:41",
+"code": "TBL-03",
+"type": "طاولة وسط",
+"name": "طاولة",
+"qty": 9,
+"counts": {
+"ممتاز": 9,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "طاولة الحجم وسط"
+},
+{
+"id": "J261118102035563",
+"at": "2026-11-18 10:20:35",
+"code": "TBL-03",
+"type": "طاولة وسط",
+"name": "طاولة صغيرة1",
+"qty": 11,
+"counts": {
+"ممتاز": 11,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "طاولات صغيرة"
+},
+{
+"id": "J261118102417946",
+"at": "2026-11-18 10:24:18",
+"code": "TBL-03",
+"type": "طاولة وسط",
+"name": "طاولة صغير",
+"qty": 10,
+"counts": {
+"ممتاز": 10,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "طاولة خشبية"
+},
+{
+"id": "J261118102533155",
+"at": "2026-11-18 10:25:34",
+"code": "TBL-03",
+"type": "طاولة وسط",
+"name": "طاولة وسط",
+"qty": 10,
+"counts": {
+"ممتاز": 10,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "طاولة خشبية كبيرة"
+},
+{
+"id": "J261118103157150",
+"at": "2026-11-18 10:31:57",
+"code": "LGT-03",
+"type": "أباجورات",
+"name": "أباجورات",
+"qty": 4,
+"counts": {
+"ممتاز": 4,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "اباجورة اكليرك اللون ازرق"
+},
+{
+"id": "J261118103607689",
+"at": "2026-11-18 10:36:08",
+"code": "LGT-03",
+"type": "أباجورات",
+"name": "أباجورات",
+"qty": 6,
+"counts": {
+"ممتاز": 5,
+"جيد": 0,
+"يحتاج صيانة": 1,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "الإضائة لا تعمل",
+"desc": "اباجورات"
+},
+{
+"id": "J261118105123683",
+"at": "2026-11-18 10:51:23",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 22,
+"counts": {
+"ممتاز": 22,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي خشبي"
+},
+{
+"id": "J261118105643372",
+"at": "2026-11-18 10:56:44",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 8,
+"counts": {
+"ممتاز": 8,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي كنب لونين"
+},
+{
+"id": "J261118110304700",
+"at": "2026-11-18 11:03:05",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 10,
+"counts": {
+"ممتاز": 10,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي كنب قاعدة حديد مذهبة"
+},
+{
+"id": "J261118110651819",
+"at": "2026-11-18 11:06:52",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 14,
+"counts": {
+"ممتاز": 14,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي ملبس ابيض"
+},
+{
+"id": "J261118111454460",
+"at": "2026-11-18 11:14:54",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 21,
+"counts": {
+"ممتاز": 21,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي كنب ملبس بالكامل"
+},
+{
+"id": "J261118111724965",
+"at": "2026-11-18 11:17:25",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 8,
+"counts": {
+"ممتاز": 8,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي كنب قواعد خشبية"
+},
+{
+"id": "J261118111958768",
+"at": "2026-11-18 11:19:58",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 18,
+"counts": {
+"ممتاز": 18,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي كنب ملبس بالكامل مع اهداب"
+},
+{
+"id": "J261118115139746",
+"at": "2026-11-18 11:51:39",
+"code": "SEA-01",
+"type": "كراسي",
+"name": "كراسي",
+"qty": 10,
+"counts": {
+"ممتاز": 10,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كرسي كنب شكل صدفه"
+},
+{
+"id": "J261118115421358",
+"at": "2026-11-18 11:54:22",
+"code": "LGT-03",
+"type": "أباجورات",
+"name": "أباجورات",
+"qty": 4,
+"counts": {
+"ممتاز": 4,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "اباجورة اكليرك اللون اخضر زيتي"
+},
+{
+"id": "J261119102818327",
+"at": "2026-11-19 10:28:18",
+"code": "TBL-01",
+"type": "كنسول ضيافة",
+"name": "كنسول ضيافة",
+"qty": 1,
+"counts": {
+"ممتاز": 1,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "كنسول ضيافة طويل باهداب"
+},
+{
+"id": "J261119103233582",
+"at": "2026-11-19 10:32:34",
+"code": "STD-03",
+"type": "استاند",
+"name": "استاند",
+"qty": 11,
+"counts": {
+"ممتاز": 11,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "استاند رفوف صغير"
+},
+{
+"id": "J261119113308785",
+"at": "2026-11-19 11:33:08",
+"code": "STD-03",
+"type": "استاند",
+"name": "استاند",
+"qty": 2,
+"counts": {
+"ممتاز": 2,
+"جيد": 0,
+"يحتاج صيانة": 0,
+"تالف": 0
+},
+"loc": "",
+"by": "أحمد أبو بكر",
+"notes": "",
+"desc": "استاند كتابة الاسماء"
+}
+],
+"photos": [
+{
+"item": "J260725190139378",
+"state": "ممتاز",
+"drive": "1mgZT-PVg6hPSzU9rRIo3Yr5JQ0QUdvsg"
+},
+{
+"item": "J261117162133742",
+"state": "ممتاز",
+"drive": "1125byu69SW8k62cQokY3dhxaek41zv5q"
+},
+{
+"item": "J261117162710926",
+"state": "ممتاز",
+"drive": "13O9_pvK8JEOthSb-9E-Nlyoy1hmwIckF"
+},
+{
+"item": "J261118101641600",
+"state": "ممتاز",
+"drive": "1sfHp6OuL2_RrkhJKNk5pYzPoAmdixsbY"
+},
+{
+"item": "J261118102035563",
+"state": "ممتاز",
+"drive": "1FP2u6SR43jwr0VmzU_yu69Qm-oZCV0y6"
+},
+{
+"item": "J261118102417946",
+"state": "ممتاز",
+"drive": "1-aNQS7TJWBqr4PKUdhRwA3FgKdtq2A3M"
+},
+{
+"item": "J261118102533155",
+"state": "ممتاز",
+"drive": "1SV0cqAomezTUz9ABnHY_0TKHllwmeLng"
+},
+{
+"item": "J261118103157150",
+"state": "ممتاز",
+"drive": "1TATbVLQftTUQ9K9N7zdsr6dcgJFjkLsX"
+},
+{
+"item": "J261118103607689",
+"state": "ممتاز",
+"drive": "1WWk96asFf_l2T05xS8EwxEKK8j3PbqOU"
+},
+{
+"item": "J261118103607689",
+"state": "يحتاج صيانة",
+"drive": "1hvtnzc89FHHZ70aUcAwXEdX97a4ke-TA"
+},
+{
+"item": "J261118105123683",
+"state": "ممتاز",
+"drive": "1sWn95j2QEMsX1Fl1bY1bKZtslGGyZsul"
+},
+{
+"item": "J261118105643372",
+"state": "ممتاز",
+"drive": "1cQFx509t81J6sSkW3ILcKIWXb6om57Uw"
+},
+{
+"item": "J261118110304700",
+"state": "ممتاز",
+"drive": "1XPH0SMF3V7EuZvHsxNIrGE2P2W57zajg"
+},
+{
+"item": "J261118110651819",
+"state": "ممتاز",
+"drive": "1yBkpqOF2Btzmi9RyuUesYvXnGfatcJsw"
+},
+{
+"item": "J261118111454460",
+"state": "ممتاز",
+"drive": "1t124Sb0YQmRGh-11x6BmVQp56jShc_qm"
+},
+{
+"item": "J261118111454460",
+"state": "إضافية",
+"drive": "1Jz-3W5NDwoQdgdA7ss4C9pkMsPBjlXyl"
+},
+{
+"item": "J261118111724965",
+"state": "ممتاز",
+"drive": "1aTW_MZpQp5CCyhJF56i0Vf70sF5cXgMo"
+},
+{
+"item": "J261118111724965",
+"state": "إضافية",
+"drive": "1kkpofQ9iKnU6EJqyES6dfyTyS9Q5Slra"
+},
+{
+"item": "J261118111724965",
+"state": "إضافية",
+"drive": "1cAp8SmdVp0kqWq2EPV4ieq2RF6usMHaD"
+},
+{
+"item": "J261118111958768",
+"state": "ممتاز",
+"drive": "1cH4ijkArjHLKaEnXa16pKSGZ5sZYE1rl"
+},
+{
+"item": "J261118111958768",
+"state": "إضافية",
+"drive": "16waN1J4yLTTwCU8Hz708rLADO5M6BD8c"
+},
+{
+"item": "J261118111958768",
+"state": "إضافية",
+"drive": "14WSIoUwSlm2qqUT9ED-mPkKCY6ID3gA3"
+},
+{
+"item": "J261118115139746",
+"state": "ممتاز",
+"drive": "1-bdxWiV3vg2wWTO-C5RPwReAwTkQJcCJ"
+},
+{
+"item": "J261118115139746",
+"state": "إضافية",
+"drive": "1o_uiEq0JFFG7mkf2l5yr55N322s6XVsC"
+},
+{
+"item": "J261118115139746",
+"state": "إضافية",
+"drive": "1L2rgPld_OUEBgcN2B1XH3RgqT_TTm3E5"
+},
+{
+"item": "J261118115421358",
+"state": "ممتاز",
+"drive": "174iMz_ju1JUuDtNAqPevV866OfOtnR0E"
+},
+{
+"item": "J261118115421358",
+"state": "إضافية",
+"drive": "1Kg08rTqesWeIsE4dDvTyqbNqBpwI_JIL"
+},
+{
+"item": "J261119102818327",
+"state": "ممتاز",
+"drive": "1NYhvDFhALSUXLlrxtWgWCAeMaktq6fda"
+},
+{
+"item": "J261119102818327",
+"state": "إضافية",
+"drive": "1wEIoNcvAuuv8ROgjz7Bgic1og8dZCCwK"
+},
+{
+"item": "J261119103233582",
+"state": "ممتاز",
+"drive": "19-qumoyvA5pOFJib3ZGT4QtNCMjpYC9G"
+},
+{
+"item": "J261119113308785",
+"state": "ممتاز",
+"drive": "15Hgqm3FvKP-p8PohBFZDfYuUNMclQqVm"
+}
+]
+}

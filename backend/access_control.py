@@ -449,6 +449,7 @@ RULES = [
     (r'POST',       r'^/api/events$',                  [('events', 'create')]),
     (r'PUT',        r'^/api/events/',                  [('events', 'edit')]),
     (r'DELETE',     r'^/api/events/',                  [('events', 'delete')]),
+    (r'GET|POST',   r'^/api/jard/',                    [('inventory', 'view'), ('raw_materials', 'view')]),
     (r'GET',        r'^/api/exp/',                     [('expenses', 'view'), ('finance', 'view')]),
     (r'POST',       r'^/api/exp/',                     [('expenses', 'view'), ('finance', 'view')]),
     (r'POST',       r'^/api/wpgen/',                  [('work_plans', 'view')]),

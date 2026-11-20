@@ -48,6 +48,7 @@ import crm_routes
 import wpgen_routes
 import ops_routes
 import expenses_routes
+import jard_native
 import contracts_routes
 import hr_routes
 
@@ -300,6 +301,7 @@ def init_database():
         ops_native.init_tables(conn)
         import exec_native
         exec_native.init_tables(conn)
+        jard_native.init_tables(conn)
         conn.commit()
     except Exception as e:
         print('⚠ gen tables', e)
@@ -674,6 +676,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
         if not handled and ctx:
             handled = wpgen_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
+            handled = jard_native.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
+        if not handled and ctx:
             handled = expenses_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
             handled = hr_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
@@ -705,6 +709,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return self.send_static_file(UPLOADS_DIR / path.replace('/uploads/', '', 1))
         if path in ('/operations', '/operations/'):
             return self.send_static_file(DASHBOARD_DIR / 'operations.html')
+        if path in ('/jard', '/jard/'):
+            return self.send_static_file(DASHBOARD_DIR / 'jard.html')
         if path in ('/execution', '/execution/'):
             return self.send_static_file(DASHBOARD_DIR / 'execution.html')
         if path in ('/expenses', '/expenses/'):
@@ -1207,6 +1213,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             if ops_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if self._ctx and expenses_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
+                return
+            if self._ctx and jard_native.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if self._ctx and hr_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return

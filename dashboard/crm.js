@@ -201,6 +201,10 @@ function buildSidebar() {
       o.innerHTML = (NEW_NAV_ICONS.work_plans || '') + '<span>مهام قسمي (العمليات)</span>'; nav.appendChild(o);
       const x = document.createElement('a'); x.className = 'nav-item'; x.id = 'nav-exec'; x.href = '/execution'; x.title = 'يوم التنفيذ';
       x.innerHTML = (NEW_NAV_ICONS.events || NEW_NAV_ICONS.work_plans || '') + '<span>يوم التنفيذ</span>'; nav.appendChild(x);
+      if (can('inventory') || can('raw_materials')) {
+        const j = document.createElement('a'); j.className = 'nav-item'; j.id = 'nav-jard'; j.href = '/jard'; j.title = 'الجرد';
+        j.innerHTML = (NEW_NAV_ICONS.inventory || '') + '<span>الجرد (المصنع والمستودع 2)</span>'; nav.appendChild(j);
+      }
     }
     const visible = mods.filter(m => can(m.key));
     if (!visible.length) return;
