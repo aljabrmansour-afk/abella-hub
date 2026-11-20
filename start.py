@@ -8,6 +8,16 @@ if not db.exists():
         from cryptography.fernet import Fernet
         db.write_bytes(Fernet(key.encode()).decrypt(enc.read_bytes()))
         print('✓ تم تحميل قاعدة البيانات الأولية')
+# استرجاع كلمة مرور حساب mansour: يُضبط RESET_MANSOUR في Railway مرة وحدة ثم يُحذف
+_rp = os.environ.get('RESET_MANSOUR')
+if _rp and db.exists():
+    sys.path.insert(0, str(pathlib.Path(__file__).parent / 'backend'))
+    import access_control as _ac
+    _c = sqlite3.connect(str(db))
+    _c.execute("UPDATE users SET password_hash=?, must_change_password=0, is_active=1 WHERE username='mansour'", (_ac.hash_password(_rp),))
+    _c.execute("DELETE FROM sessions WHERE user_id=(SELECT id FROM users WHERE username='mansour')") if _c.execute("SELECT 1 FROM sqlite_master WHERE name='sessions'").fetchone() else None
+    _c.commit(); _c.close()
+    print('✓ تم تعيين كلمة مرور جديدة لحساب mansour — احذف RESET_MANSOUR من Railway')
 def backup_loop():
     bdir = DATA / 'backups'; bdir.mkdir(exist_ok=True)
     while True:
