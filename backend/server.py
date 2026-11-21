@@ -898,8 +898,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
                 }
                 upcoming = conn.execute("""SELECT e.*, c.full_name as customer_name FROM events e
                                           JOIN customers c ON e.customer_id=c.id
-                                          WHERE e.event_date >= date('now') AND e.status NOT IN ('cancelled','closed')
-                                          ORDER BY e.event_date LIMIT 5""").fetchall()
+                                          WHERE COALESCE(e.actual_date, e.event_date) >= date('now','+3 hours') AND e.status NOT IN ('cancelled','closed','completed')
+                                          ORDER BY COALESCE(e.actual_date, e.event_date) LIMIT 5""").fetchall()
                 stats['upcoming_events'] = rows_to_list(upcoming)
                 _c = getattr(self, '_ctx', None)
                 if _c and not (_c['perms'].get('is_super') or _c['user'].get('role') in ('owner', 'general_manager', 'admin')):
@@ -913,44 +913,16 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             # ===== المصاريف حسب القسم (للوحة المالية) =====
             if path == '/api/expenses/by-department':
                 result = {}
-                # المصاريف من Google Sheets (sheet_expenses)
-                dept_map = {
-                    'execution': 'مصاريف التنفيذ',
-                    'supervision': 'مصاريف الإشراف',
-                    'hospitality': 'مصاريف الضيافة',
-                }
-                for key, label in dept_map.items():
-                    row = conn.execute("""
-                        SELECT
-                            COUNT(*) as cnt,
-                            COALESCE(SUM(net_cost), 0) as total,
-                            COALESCE(SUM(paid), 0) as paid,
-                            COALESCE(SUM(remaining), 0) as remaining
-                        FROM sheet_expenses WHERE expense_type=?
-                    """, (key,)).fetchone()
-                    result[key] = {
-                        'label': label,
-                        'count': row['cnt'] or 0,
-                        'total': row['total'] or 0,
-                        'paid': row['paid'] or 0,
-                        'remaining': row['remaining'] or 0,
-                    }
-                # المشتريات من sheet_purchases
-                row = conn.execute("""
-                    SELECT
-                        COUNT(*) as cnt,
-                        COALESCE(SUM(net_cost), 0) as total,
-                        COALESCE(SUM(paid), 0) as paid,
-                        COALESCE(SUM(remaining), 0) as remaining
-                    FROM sheet_purchases
-                """).fetchone()
-                result['purchases'] = {
-                    'label': 'المشتريات',
-                    'count': row['cnt'] or 0,
-                    'total': row['total'] or 0,
-                    'paid': row['paid'] or 0,
-                    'remaining': row['remaining'] or 0,
-                }
+                # من فواتير المصروفات الأربعة (نفس مصدر صفحة المصروفات وأبيلا اليوم)
+                W = "COALESCE(is_test,0)=0 AND COALESCE(status,'active') NOT IN ('deleted','cancelled','محذوف','ملغي')"
+                for key, k, label in (('execution', 'exe', 'مصاريف التنفيذ'), ('supervision', 'sup', 'مصاريف الإشراف'),
+                                      ('hospitality', 'hos', 'مصاريف الضيافة'), ('purchases', 'pur', 'المشتريات')):
+                    row = conn.execute(f"""SELECT COUNT(*) cnt,
+                            COALESCE(SUM(CASE WHEN COALESCE(net,0)<>0 THEN net ELSE COALESCE(total,0)-COALESCE(vat,0) END),0) total,
+                            COALESCE(SUM(paid),0) paid, COALESCE(SUM(CASE WHEN remaining>0 THEN remaining ELSE 0 END),0) remaining
+                            FROM exp_invoices WHERE k=? AND {W}""", (k,)).fetchone()
+                    result[key] = {'label': label, 'count': row['cnt'] or 0, 'total': row['total'] or 0,
+                                   'paid': row['paid'] or 0, 'remaining': row['remaining'] or 0}
                 return self.send_json(result)
 
             if path == '/api/events':

@@ -3018,11 +3018,13 @@ async function renderFinance() {
       api('/events'),
       api('/expenses/by-department').catch(() => null)
     ]);
-    const totalRevenue = events.reduce((s, e) => s + (e.total_price || 0), 0);
-    const totalCost = events.reduce((s, e) => s + (e.cost_total || e.cost_estimate || 0), 0);
-    const totalProfit = events.reduce((s, e) => s + (e.profit || e.profit_estimate || 0), 0);
-    const totalCollected = events.reduce((s, e) => s + (e.paid_amount || 0), 0);
-    const totalRemaining = totalRevenue - totalCollected;
+    const live = events.filter(e => !['cancelled','lead','quoted'].includes(e.status));
+    const totalRevenueVat = live.reduce((s, e) => s + (e.total_price || 0), 0);
+    const totalRevenue = Math.round(totalRevenueVat / 1.15 * 100) / 100;   // قبل الضريبة — نفس أساس الربح
+    const totalCost = live.reduce((s, e) => s + (e.cost_total || e.cost_estimate || 0), 0);
+    const totalProfit = live.reduce((s, e) => s + (e.profit || e.profit_estimate || 0), 0);
+    const totalCollected = live.reduce((s, e) => s + (e.paid_amount || 0), 0);
+    const totalRemaining = Math.max(0, totalRevenueVat - totalCollected);
 
     // تجميع المصاريف حسب القسم - من API أو احتساب محلي
     const depts = expensesByDept || {
@@ -3050,9 +3052,9 @@ async function renderFinance() {
 
       <!-- ملخص علوي -->
       <div class="stats-grid">
-        <div class="stat-card success"><div class="stat-label">إجمالي الإيرادات</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalRevenue)}</div></div>
+        <div class="stat-card success"><div class="stat-label">الإيرادات قبل الضريبة</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalRevenue)}</div><div style="font-size:11px;color:var(--text-light)">شامل الضريبة ${fmtMoney(totalRevenueVat)}</div></div>
         <div class="stat-card warning"><div class="stat-label">إجمالي المصاريف</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalDeptExpense || totalCost)}</div></div>
-        <div class="stat-card success"><div class="stat-label">صافي الربح</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalProfit)}</div></div>
+        <div class="stat-card success"><div class="stat-label">صافي ربح المناسبات</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalProfit)}</div><div style="font-size:11px;color:var(--text-light)">الإيراد قبل الضريبة − مصاريف المناسبة</div></div>
         <div class="stat-card danger" title="مجموع المتبقي على فواتير الموردين من جداول المصاريف والمشتريات"><div class="stat-label">المتبقي للموردين</div><div class="stat-value" style="font-size:22px">${fmtMoney(totalDeptRemaining)}</div></div>
       </div>
 
@@ -3088,17 +3090,18 @@ async function renderFinance() {
       <div class="card">
         <div class="card-header"><h3 class="card-title">الربحية حسب المناسبة</h3></div>
         <table>
-          <thead><tr><th>كود العقد</th><th>أمر التشغيل</th><th>المناسبة</th><th>الإيراد</th><th>التكلفة</th><th>الربح</th><th>هامش %</th><th>المتحصل</th><th>المتبقي</th></tr></thead>
-          <tbody>${events.map(e => {
+          <thead><tr><th>كود العقد</th><th>أمر التشغيل</th><th>المناسبة</th><th>الإيراد (قبل الضريبة)</th><th>التكلفة</th><th>الربح</th><th>هامش %</th><th>المتحصل</th><th>المتبقي</th></tr></thead>
+          <tbody>${live.slice().sort((a,b)=>String(b.actual_date||b.event_date).localeCompare(String(a.actual_date||a.event_date))).map(e => {
             const cost = e.cost_total || e.cost_estimate || 0;
             const profit = e.profit || e.profit_estimate || 0;
-            const margin = e.total_price ? ((profit / e.total_price) * 100).toFixed(1) : 0;
-            const remaining = (e.total_price || 0) - (e.paid_amount || 0);
+            const revEx = (e.total_price || 0) / 1.15;
+            const margin = revEx ? ((profit / revEx) * 100).toFixed(1) : 0;
+            const remaining = Math.max(0, (e.total_price || 0) - (e.paid_amount || 0));
             return `<tr onclick="showEventDetails(${e.id})" style="cursor:pointer">
               <td><strong style="color:var(--gold);font-family:monospace">${e.contract_code || '-'}</strong></td>
               <td><span style="color:var(--primary);font-family:monospace">${e.operation_order || '-'}</span></td>
-              <td>${e.title}</td>
-              <td>${fmtMoney(e.total_price)}</td>
+              <td>${e.title}<div style="font-size:11px;color:var(--text-light)">${fmtDate ? fmtDate(e.actual_date||e.event_date) : (e.actual_date||e.event_date)}</div></td>
+              <td>${fmtMoney(revEx)}</td>
               <td>${fmtMoney(cost)}</td>
               <td style="color:${profit >= 0 ? 'var(--success)' : 'var(--danger)'};font-weight:700">${fmtMoney(profit)}</td>
               <td>${margin}%</td>

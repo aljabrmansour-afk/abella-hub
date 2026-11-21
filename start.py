@@ -38,6 +38,11 @@ def sheets_sync_loop():
     time.sleep(60)
     sys.path.insert(0, str(pathlib.Path(__file__).parent / 'backend'))
     import sync_sheets, sync_generator
+    try:   # تصحيح فوري للحالات والأرباح من البيانات الموجودة قبل أول مزامنة
+        _r = sqlite3.connect(str(db), timeout=30)
+        sync_sheets.refresh_events(_r); _r.close()
+    except Exception as e:
+        print('⚠ refresh_events', e)
     every = int(os.environ.get('SHEETS_SYNC_MINUTES', '15'))
     while every > 0:
         try:
