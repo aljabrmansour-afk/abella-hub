@@ -3324,9 +3324,24 @@ async function loadTopBarStats() {
 // ============ التنبيهات الذكية ============
 async function loadAlerts() {
   try {
+    const alerts = [];
+    // غير الإدارة: تنبيهات مهام قسمه فقط (المتأخرة والقريبة)
+    if (typeof isTop === 'function' && !isTop()) {
+      try {
+        const mine = await api('/ops/mytasks');
+        mine.filter(t => t.late || t.soon).slice(0, 10).forEach(t => alerts.push({
+          icon: t.late ? '⏰' : '🔔', type: t.late ? 'danger' : 'warning',
+          title: t.late ? 'مهمة متأخرة' : 'مهمة قريبة', msg: `${t.O || ''} · ${t.title}`,
+          action: () => { location.href = '/operations'; }
+        }));
+      } catch (e) {}
+      window.__currentAlerts = alerts;
+      const b = document.getElementById('alertBadge');
+      if (b) { b.textContent = alerts.length; b.style.display = alerts.length ? 'flex' : 'none'; }
+      return;
+    }
     const [events, inv] = await Promise.all([api('/events'), api('/inventory')]);
     const today = new Date().toISOString().split('T')[0];
-    const alerts = [];
     // مناسبات بدون خطة عمل
     try {
       const plans = await api('/workplans');

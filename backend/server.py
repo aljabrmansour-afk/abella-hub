@@ -893,7 +893,7 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
                                           ORDER BY e.event_date LIMIT 5""").fetchall()
                 stats['upcoming_events'] = rows_to_list(upcoming)
                 _c = getattr(self, '_ctx', None)
-                if _c and not (ac.can(_c['perms'], 'finance', 'view') or ac.can(_c['perms'], 'payments', 'view')):
+                if _c and not (_c['perms'].get('is_super') or _c['user'].get('role') in ('owner', 'general_manager', 'admin')):
                     for _k in list(stats.keys()):
                         if any(w in _k for w in ('revenue','collected','pending_payments','expenses','profit','inventory_value','cost')):
                             stats[_k] = None

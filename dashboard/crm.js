@@ -259,7 +259,7 @@ function wrapRenderPage() {
       return setContent('<div class="empty">🔒 ما عندك صلاحية على هذا القسم</div>');
     }
     switch (currentPage) {
-      case 'dashboard': if (!can('finance')) return renderMyDay(); break;
+      case 'dashboard': if (!isTop()) return renderMyDay(); break;
       case 'confirmations': return renderConfirmations();
       case 'leads': return renderLeads();
       case 'quotes': return renderQuotes();
@@ -306,6 +306,9 @@ function patchLegacy() {
 // ===================================================================
 // يومي (لوحة لمن ليس لديه صلاحية المالية)
 // ===================================================================
+// لوحة المعلومات الكاملة للمالكة والمدير العام ومدير النظام فقط — الباقي «يومي»
+function isTop() { return !!(CRM.perms && (CRM.perms.is_super || ['owner', 'general_manager', 'admin'].includes((CRM.me || {}).role))); }
+
 async function renderMyDay() {
   const jobs = [];
   const T = todayISO();
@@ -314,9 +317,16 @@ async function renderMyDay() {
   if (can('leads')) jobs.push(capi('/leads').then(r => ['leads', r]).catch(() => ['leads', []]));
   if (can('quotes')) jobs.push(capi('/quotes').then(r => ['quotes', r]).catch(() => ['quotes', []]));
   if (can('events')) jobs.push(capi('/events').then(r => ['events', r]).catch(() => ['events', []]));
+  jobs.push(capi('/ops/mytasks').then(r => ['opsTasks', r]).catch(() => ['opsTasks', null]));
   const data = Object.fromEntries(await Promise.all(jobs));
   const cards = [];
   const kpis = [];
+  if (data.opsTasks && data.opsTasks.length) {
+    const T2 = data.opsTasks, late = T2.filter(t => t.late).length;
+    kpis.push(`<div class="stat-card ${late ? 'danger' : ''}" onclick="location.href='/operations'"><div class="stat-label">مهام قسمي المفتوحة</div><div class="stat-value">${T2.length}</div><div class="stat-sub">${late ? late + ' متأخرة' : 'لا يوجد تأخير'}</div></div>`);
+    cards.push(`<div class="card"><div class="card-header"><h3 class="card-title">🧩 مهام قسمي (من العقود وخطط العمل)</h3><a class="btn btn-sm btn-outline" href="/operations">الكل</a></div>
+      <table><tbody>${T2.slice(0, 10).map(t => `<tr onclick="location.href='/operations'"><td>${t.late ? '<span style="color:#B3261E">⚠</span> ' : ''}<strong>${esc(t.title)}</strong><div class="muted small">${esc(t.O || '')} · ${esc(t.client || '')} · ${esc(t.dept)}</div></td><td class="nowrap">${t.due ? dShort(t.due) : ''} <small class="muted">${esc(t.time || '')}</small>${t.tentative ? ' <small class="muted">(متوقع)</small>' : ''}</td><td>${esc(t.status)}</td></tr>`).join('')}</tbody></table></div>`);
+  }
   if (data.conf) {
     const due = data.conf.filter(r => r.needs_contact);
     kpis.push(`<div class="stat-card ${due.length ? 'danger' : 'success'}" onclick="goPage('confirmations')"><div class="stat-label">تأكيدات تحتاج اتصال</div><div class="stat-value">${due.length}</div></div>`);

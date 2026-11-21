@@ -122,6 +122,10 @@ def handle(h, conn, method, path, query, data, ctx, send_json):
                 pass
         send_json(r)
         return True
+    if path == '/api/ops/mytasks' and method == 'GET':
+        import ops_native
+        send_json(ops_native.dept_tasks_for_user(conn, ctx['user'], bool(ctx['perms'].get('is_super'))))
+        return True
     if path.startswith('/api/ops/checklist/') and method == 'GET':
         import ops_native
         try:
