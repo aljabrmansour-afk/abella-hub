@@ -318,9 +318,17 @@ async function renderMyDay() {
   if (can('quotes')) jobs.push(capi('/quotes').then(r => ['quotes', r]).catch(() => ['quotes', []]));
   if (can('events')) jobs.push(capi('/events').then(r => ['events', r]).catch(() => ['events', []]));
   jobs.push(capi('/ops/mytasks').then(r => ['opsTasks', r]).catch(() => ['opsTasks', null]));
+  jobs.push(capi('/ops/myplans').then(r => ['myPlans', r]).catch(() => ['myPlans', null]));
   const data = Object.fromEntries(await Promise.all(jobs));
   const cards = [];
   const kpis = [];
+  if (data.myPlans && data.myPlans.length) {
+    kpis.push(`<div class="stat-card success"><div class="stat-label">خطط معتمدة مكلّف فيها</div><div class="stat-value">${data.myPlans.length}</div></div>`);
+    cards.push(`<div class="card"><div class="card-header"><h3 class="card-title">📋 خططي المعتمدة</h3><span class="muted small">خطة قسمك وقائمة التحقق لكل مناسبة</span></div>
+      ${data.myPlans.map(p => `<div style="padding:10px 0;border-bottom:1px solid var(--border,#eee)"><strong>${esc(p.O || p.Q)}</strong> · ${esc(p.client || '')}
+        <div class="muted small">${p.date ? dShort(p.date) : ''}${p.confirmed ? '' : ' (متوقع)'} · نسخة ${p.version}${p.approvedBy ? ' · اعتمدها ' + esc(p.approvedBy) : ''}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">${p.docs.map(d => `<a href="${esc(d.url)}" target="_blank" style="border:1px solid #D4B97A;color:#8B6F47;border-radius:8px;padding:5px 10px;font-size:12px;text-decoration:none;line-height:1.4">📄 ${esc(d.title)}</a>`).join('')}</div></div>`).join('')}</div>`);
+  }
   if (data.opsTasks && data.opsTasks.length) {
     const T2 = data.opsTasks, late = T2.filter(t => t.late).length;
     kpis.push(`<div class="stat-card ${late ? 'danger' : ''}" onclick="location.href='/operations'"><div class="stat-label">مهام قسمي المفتوحة</div><div class="stat-value">${T2.length}</div><div class="stat-sub">${late ? late + ' متأخرة' : 'لا يوجد تأخير'}</div></div>`);

@@ -1066,3 +1066,59 @@ def checklist(conn, key):
             'plan': {'version': R['version'], 'approved': R['approved']} if R else None,
             'ops': ex['ops'] if ex else '', 'sup': ex['sup'] if ex else '',
             'sections': [{'title': t, 'rows': rows} for t, rows in sections]}
+
+
+# ───────────────────────── خططي المعتمدة (كل شخص يشوف خطة قسمه) ─────────────────────────
+DEPT_DOCS = {
+    'المصنع': ('factory', 'ck_factory'), 'الكماليات': ('amenities', 'ck_amenities'),
+    'الضيافة': ('hospitality', 'ck_hospitality'), 'المشتريات': ('purchases', 'ck_purchases'),
+    'الورد': ('factory', 'full'), 'التشغيل': ('full', 'ck_factory', 'ck_amenities'), 'العمليات': ('full',),
+}
+_DOC_HINTS = {'factory': ('factory', 'مصنع'), 'amenities': ('amen', 'كماليات', 'Amenities'), 'hospitality': ('hosp', 'ضيافة'),
+              'purchases': ('purch', 'buy', 'مشتريات'), 'full': ('full', 'الكاملة')}
+
+
+def _match_doc(key, title, want):
+    """يطابق مفتاح/عنوان المستند (من المنصة أو المولّد القديم) مع النوع المطلوب"""
+    ck = want.startswith('ck_')
+    base = want[3:] if ck else want
+    is_ck = key.startswith('ck_') or 'تحقق' in (title or '') or 'Checklist' in (title or '')
+    if ck != is_ck:
+        return False
+    return any(h.lower() in (key + ' ' + (title or '')).lower() for h in _DOC_HINTS.get(base, (base,)))
+
+
+def my_plans(conn, user, is_super):
+    try:
+        me = member(conn, user, is_super)
+    except PermissionError:
+        return []
+    wants = []
+    if me['isOps']:
+        wants = ['full', 'factory', 'amenities', 'hospitality', 'purchases']
+    else:
+        for d in me['depts']:
+            wants += [w for w in DEPT_DOCS.get(d, ()) if w not in wants]
+    if not wants:
+        return []
+    out = []
+    rows = conn.execute("""SELECT p.quote_code Q, p.approved_version v, p.approved_at, p.approved_by, o.O, o.client, o.E, o.C, o.closed
+                           FROM wpg_plans p JOIN opn_orders o ON o.Q=p.quote_code
+                           WHERE COALESCE(p.approved_version,0)>0 AND COALESCE(o.closed,'')<>'نعم'
+                           ORDER BY COALESCE(NULLIF(o.C,''), o.E)""").fetchall()
+    for r in rows:
+        v = conn.execute("SELECT pdfs_json FROM wpg_versions WHERE quote_code=? AND v=?", (r['Q'], r['v'])).fetchone()
+        try:
+            pdfs = json.loads((v[0] if v else '') or '{}') or {}
+        except Exception:
+            pdfs = {}
+        docs = []
+        for want in wants:
+            for k, d in pdfs.items():
+                d = d if isinstance(d, dict) else {'url': d, 'title': k}
+                if d.get('url') and _match_doc(k, d.get('title'), want) and not any(x['url'] == d['url'] for x in docs):
+                    docs.append({'key': k, 'title': d.get('title') or k, 'url': d['url']})
+        if docs:
+            out.append({'Q': r['Q'], 'O': r['O'], 'client': r['client'], 'date': t_(r['C']) or t_(r['E']), 'confirmed': bool(t_(r['C'])),
+                        'version': r['v'], 'approvedAt': r['approved_at'], 'approvedBy': r['approved_by'], 'docs': docs})
+    return out
