@@ -7,6 +7,7 @@
 2) ملخص مكتوب بالذكاء الاصطناعي (اختياري): إذا ضُبط ANTHROPIC_API_KEY في Railway يكتب Claude «الزبدة» بجمل قصيرة
    من نتائج القواعد والأرقام، ويتحدّث كل 6 ساعات (أو بزر التحديث).
 """
+import datetime
 import json, os, statistics, datetime, urllib.request
 
 VAT = 1.15
@@ -197,6 +198,34 @@ def build(conn, base):
             add('amber', 'السعة', f'{len(busy)} يوم فيه مناسبات أكثر من السعة ({cap})', '، '.join(f"{d}: {n}" for d, n in busy[:5]), '/operations', 60)
     except Exception:
         pass
+    # ── 10) الدليل الإجرائي: ملفات المشاريع ──
+    try:
+        import project_native as pn
+        pn.init_tables(conn)
+        t = _today().isoformat()
+        late = conn.execute("""SELECT COUNT(*), COUNT(DISTINCT O) FROM prj_checklist WHERE status NOT IN ('done','na') AND due<>'' AND due<?""", (t,)).fetchone()
+        if late[0]:
+            add('amber', 'الدليل الإجرائي', f'{late[0]} بند متأخر في القائمة الشاملة عبر {late[1]} مشروع', 'أي شيء غير موثق = لم يتم', '/project', 55)
+        iss = conn.execute("SELECT COUNT(*), SUM(type='شكوى عميل') FROM prj_issues WHERE status<>'محلولة'").fetchone()
+        if iss[0]:
+            add('red' if iss[1] else 'amber', 'العملاء', f'{iss[0]} شكوى/مشكلة مفتوحة' + (f' منها {iss[1]} شكوى عميل' if iss[1] else ''), '', '/project', 80)
+        items = pn.list_projects(conn, 'active')
+        nodep = [p for p in items if p['deposit'] is False and p['date'] >= t]
+        if nodep:
+            add('red', 'الدليل الإجرائي', f'{len(nodep)} مناسبة قادمة بدون عربون — لا تخطيط قبله', '، '.join(f"{p['O']} {p['client']}" for p in nodep[:5]), '/project', 75)
+        noclose = [p for p in pn.list_projects(conn, 'closing') if not p['closed'] and p['date'] <= (_today() - datetime.timedelta(days=2)).isoformat()]
+        if noclose:
+            add('amber', 'الدليل الإجرائي', f'{len(noclose)} مناسبة منتهية ما أُقفل ملفها خلال 48 ساعة', '، '.join(p['O'] for p in noclose[:6]), '/project?s=closing', 45)
+        nosv = [p for p in pn.list_projects(conn, 'closing') if not p['survey'] and p['date'] >= (_today() - datetime.timedelta(days=14)).isoformat()]
+        if nosv:
+            add('info', 'رضا العملاء', f'{len(nosv)} عميل ما وصله استبيان الرضا بعد مناسبته', '، '.join(f"{p['O']} {p['client']}" for p in nosv[:5]), '/project?s=closing', 30)
+        k = {x['key']: x for x in pn.kpis(conn, 90)['items']}
+        for key in ('csat', 'nps'):
+            x = k.get(key)
+            if x and x['value'] is not None and not x['ok']:
+                add('amber', 'رضا العملاء', f"{x['label']} {x['value']}{x['unit']} تحت الهدف ({x['target']}{x['unit']})", x['note'], '/project?s=kpi', 50)
+    except Exception as e:
+        add('info', 'الدليل الإجرائي', 'تعذّر تحليل ملفات المشاريع', str(e)[:120], '/project', 1)
     out.sort(key=lambda x: (LEVEL_ORDER[x['level']], -x['score']))
     return out
 

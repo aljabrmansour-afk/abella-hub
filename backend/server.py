@@ -49,6 +49,7 @@ import wpgen_routes
 import ops_routes
 import expenses_routes
 import jard_native
+import project_native
 import today_routes
 import contracts_routes
 import hr_routes
@@ -303,6 +304,7 @@ def init_database():
         import exec_native
         exec_native.init_tables(conn)
         jard_native.init_tables(conn)
+        project_native.init_tables(conn)
         for _col in ("extra_roles TEXT", "deleted INTEGER DEFAULT 0"):
             try:
                 conn.execute("ALTER TABLE users ADD COLUMN " + _col)
@@ -728,7 +730,9 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return True
         if data is None and method in ('POST', 'PUT'):
             data = {}
-        handled = crm_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
+        handled = project_native.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
+        if not handled:
+            handled = crm_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
             handled = contracts_routes.handle(self, conn, method, path, query or {}, data or {}, ctx, self.send_json)
         if not handled and ctx:
@@ -777,6 +781,10 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             return self.send_static_file(DASHBOARD_DIR / 'today.html')
         if path in ('/jard', '/jard/'):
             return self.send_static_file(DASHBOARD_DIR / 'jard.html')
+        if path in ('/project', '/project/'):
+            return self.send_static_file(DASHBOARD_DIR / 'project.html')
+        if path.startswith('/survey/'):
+            return self.send_static_file(DASHBOARD_DIR / 'survey.html')
         if path in ('/execution', '/execution/'):
             return self.send_static_file(DASHBOARD_DIR / 'execution.html')
         if path in ('/expenses', '/expenses/'):
@@ -1229,6 +1237,8 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
             if self._ctx and expenses_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if self._ctx and jard_native.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
+                return
+            if project_native.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return
             if self._ctx and hr_routes.handle(self, conn, 'POST', path, {}, data, self._ctx, self.send_json):
                 return

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ملف المشروع — منصّة أبيلا</title>
+<style>
+:root{--g:#8B6F47;--g2:#C9AE84;--ln:#E8DFD0;--bg:#FAF7F2;--ok:#2E7D4F;--bad:#B3261E;--warn:#B7791F}
+*{box-sizing:border-box}body{margin:0;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;background:var(--bg);color:#2B2420;font-size:14px}
+#hubbar{background:#FFF6E5;border-bottom:1px solid var(--ln);padding:7px 14px;font-size:13px}#hubbar a{color:var(--g);font-weight:700;text-decoration:none}
+header{padding:14px 14px 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}header h1{margin:0;font-size:21px;color:var(--g)}
+main{padding:0 14px 40px;max-width:1150px;margin:auto}
+.card{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:12px}.card h3{margin:0 0 10px;font-size:15px;color:var(--g)}
+.tabs{display:flex;gap:6px;margin:6px 0 12px;overflow-x:auto;padding-bottom:2px}.tabs button{border:1px solid var(--ln);background:#fff;border-radius:20px;padding:6px 13px;font:inherit;cursor:pointer;white-space:nowrap}
+.tabs button.on{background:var(--g);color:#fff;border-color:var(--g)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.pj{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:12px;cursor:pointer;text-decoration:none;color:inherit;display:block}.pj:hover{border-color:var(--g2)}
+.pj .top{display:flex;gap:8px;align-items:baseline}.pj .o{font-family:monospace;color:var(--g);font-weight:700}.pj .d{margin-inline-start:auto;font-size:12px;color:#7A6A58}
+.bar{height:6px;background:#F1EADF;border-radius:4px;overflow:hidden;margin:8px 0 6px}.bar i{display:block;height:100%;background:var(--g)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}.chip{font-size:11px;padding:1px 8px;border-radius:10px;background:#F1EADF;color:var(--g)}
+.chip.ok{background:#E6F2EA;color:var(--ok)}.chip.no{background:#FBE9E7;color:var(--bad)}.chip.w{background:#FFF4E5;color:var(--warn)}
+.muted{color:#9A8B7A;font-size:12px}.num{font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 5px;border-bottom:1px solid #F0E9DD;text-align:right;vertical-align:top}th{color:#7A6A58;font-weight:600}
+.scroll{overflow-x:auto}
+button.b,a.b{font:inherit;border:1px solid var(--g);background:var(--g);color:#fff;border-radius:9px;padding:6px 12px;cursor:pointer;text-decoration:none;display:inline-block}
+button.o{background:#fff;color:var(--g)}button.s{padding:3px 9px;font-size:12px}button:disabled{opacity:.5;cursor:default}
+input,select,textarea{font:inherit;border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:#fff;width:100%}textarea{min-height:64px}
+.f{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}.f label{display:block;font-size:12px;color:#7A6A58;margin-bottom:3px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}.opts label{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--ln);border-radius:16px;padding:3px 10px;font-size:13px;color:inherit;cursor:pointer}
+.opts input{width:auto}.opts label.on{background:#F6EFE3;border-color:var(--g2)}
+.sec{font-weight:700;color:var(--g);background:#FBF8F3}.st{border:1px solid var(--ln);border-radius:8px;padding:2px 6px;font-size:12px;width:auto}
+tr.done td{color:#9A8B7A}tr.late td:nth-child(4){color:var(--bad);font-weight:700}
+.kp{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}.kp div{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:12px}
+.kp b{display:block;font-size:24px;margin:4px 0}.kp .ok b{color:var(--ok)}.kp .no b{color:var(--bad)}
+.gate{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--ln);border-radius:10px;margin-bottom:6px}.gate.on{background:#E6F2EA;border-color:#BFDCC9}
+.flag{background:#FFF4E5;border-inline-start:4px solid var(--warn);padding:7px 10px;border-radius:8px;margin-bottom:6px}
+.flag.r{background:#FBE9E7;border-color:var(--bad)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:700px){table.cl .h{display:none}table.cl td{padding:8px 3px}.mo{display:block!important}}
+.mo{display:none;font-size:12px;color:#7A6A58;margin-top:2px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#2B2420;color:#fff;padding:8px 16px;border-radius:10px;display:none;z-index:9}
+</style>
+<link rel="stylesheet" href="/assets/fonts.css">
+<script src="/assets/icons.js" defer></script>
+</head>
+<body>
+<div id="hubbar"><a href="/dashboard/">← منصّة أبيلا</a> · ملف المشروع</div>
+<header><h1 id="h1">ملفات المشاريع</h1><span class="muted" id="sub"></span></header>
+<main id="main"><div class="card">جارٍ التحميل…</div></main>
+<div id="toast"></div>
+<script src="/assets/session.js"></script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f=n=>n==null||n===''?'—':Math.round(+n).toLocaleString('en-US');
+const TODAY=new Date(Date.now()+108e5).toISOString().slice(0,10);
+const ST={contracted:'متعاقد',planning:'قيد التخطيط',ready:'جاهز',in_progress:'قيد التنفيذ',completed:'منتهية',cancelled:'ملغاة'};
+const CL={todo:'لم يبدأ',doing:'جارٍ',done:'منجز',na:'لا ينطبق'};
+let D=null,L=null,TAB='overview',SCOPE='active',ME=null;
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2600)}
+async function api(fn,args){const r=await fetch('/api/prj/call',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,args})});
+ if(r.status===401){location.href='/dashboard/';throw 0}const j=await r.json();if(!j.ok){toast(j.error||'خطأ');throw new Error(j.error)}return j.data}
+const qs=new URLSearchParams(location.search);
+async function boot(){const o=qs.get('o');if(o){TAB=qs.get('t')||'overview';await openP(o)}else{SCOPE=qs.get('s')||'active';await loadList()}}
+// ───────── القائمة ─────────
+async function loadList(){
+ $('#h1').textContent='ملفات المشاريع';
+ if(SCOPE==='kpi'){const k=await api('kpis',{days:90});L=L||await api('list',{scope:'active'});ME=L.me;renderKpi(k);return}
+ L=await api('list',{scope:SCOPE});ME=L.me;renderList()}
+function scopeTabs(){return `<div class="tabs">${[['active','الجارية والقادمة'],['closing','المنتهية (الإقفال والاستبيان)'],['all','الكل'],...(ME&&ME.manage?[['kpi','مؤشرات الأداء']]:[])]
+ .map(([k,t])=>`<button class="${SCOPE===k?'on':''}" onclick="SCOPE='${k}';history.replaceState(0,'','?s=${k}');loadList()">${t}</button>`).join('')}</div>`}
+function renderList(){
+ const it=L.items;$('#sub').textContent=it.length+' مشروع';
+ $('#main').innerHTML=scopeTabs()+(it.length?`<div class="grid">${it.map(p=>{const c=p.checklist,pc=c.n?Math.round(c.done/c.n*100):0;
+  return `<a class="pj" href="?o=${esc(p.O)}"><div class="top"><span class="o">${esc(p.O)}</span><b>${esc(p.client||'')}</b>${p.tier?`<span class="chip">${esc(p.tier)}</span>`:''}<span class="d">${esc(p.date||'')}${p.confirmed?'':' · غير مؤكد'}</span></div>
+  <div class="muted">${esc(p.title||'')} · ${esc(ST[p.status]||p.status)}${p.venue?' · '+esc(p.venue):''}</div>
+  <div class="bar"><i style="width:${pc}%"></i></div><div class="muted">القائمة الشاملة ${c.done}/${c.n}${c.late?` · <span style="color:var(--bad)">${c.late} متأخر</span>`:''}</div>
+  <div class="chips" style="margin-top:6px">${chip(p.deposit===false?false:p.deposit,'العربون')}${chip(p.needs,'الاحتياجات')}${p.date<=TODAY?chip(p.qc,'اعتماد التسليم')+chip(p.closed,'الإقفال')+chip(p.survey,'الاستبيان'):''}</div>
+  ${p.flags.map(x=>`<div class="flag ${/عربون|شكوى|48/.test(x)?'r':''}" style="margin:6px 0 0;font-size:12px">${esc(x)}</div>`).join('')}</a>`}).join('')}</div>`:'<div class="card muted">ما فيه مشاريع في هذا القسم</div>')}
+function chip(v,t){return v==null?'':`<span class="chip ${v?'ok':'no'}">${v?'✓':'✗'} ${t}</span>`}
+function renderKpi(k){$('#sub').textContent='آخر '+k.days+' يوم · '+k.events+' مناسبة منتهية';
+ $('#main').innerHTML=scopeTabs()+`<div class="kp">${k.items.map(x=>`<div class="${x.ok==null?'':x.ok?'ok':'no'}"><small>${esc(x.label)}</small><b class="num">${x.value==null?'—':x.value+(x.unit||'')}</b>
+  <small class="muted">الهدف ${x.better==='low'?'≤':'≥'} ${x.target}${x.unit||''}${x.note?' · '+esc(x.note):''}</small></div>`).join('')}
+  <div><small>التلفيات المسجلة</small><b class="num">${k.damages.count}</b><small class="muted">تكلفة ${f(k.damages.cost)} ر.س</small></div></div>
+  ${ME.super?`<div class="card" style="margin-top:12px"><h3>إعدادات القواعد</h3><div class="f">
+   <div><label>الحد الأدنى للميزانية (قبل الضريبة)</label><input id="s_min_budget" type="number" value="${L.settings.min_budget}"></div>
+   <div><label>الحد الأدنى لهامش الربح %</label><input id="s_min_margin" type="number" value="${L.settings.min_margin}"></div>
+   <div><label>نسبة العربون المطلوبة قبل اعتماد الخطة %</label><input id="s_deposit_pct" type="number" value="${L.settings.deposit_pct}"></div></div>
+   <div style="margin-top:10px"><button class="b" onclick="saveSet()">حفظ</button></div></div>`:''}`}
+async function saveSet(){const a={};['min_budget','min_margin','deposit_pct'].forEach(k=>a[k]=+$('#s_'+k).value);L.settings=await api('settings',a);toast('تم الحفظ')}
+// ───────── المشروع ─────────
+async function openP(o){D=await api('get',{O:o});ME=D.me;render()}
+async function act(fn,args){D=await api(fn,Object.assign({O:D.p.O},args));ME=D.me;render();toast('تم ✓')}
+const TABS=[['overview','نظرة عامة'],['needs','احتياجات العميل'],['checklist','القائمة الشاملة'],['risks','المخاطر'],['qc','الجودة والتسليم'],['changes','طلبات التغيير'],['issues','الشكاوى والمشاكل'],['close','الإقفال'],['survey','رضا العميل']];
+function render(){const p=D.p;$('#h1').innerHTML=`<a href="?" style="color:var(--g);text-decoration:none">ملفات المشاريع</a> ‹ ${esc(p.O)} — ${esc(p.client||'')}`;
+ $('#sub').textContent=(p.date||'')+(p.confirmed?' (مؤكد)':' (متوقع — غير مؤكد)')+' · '+(ST[p.status]||p.status);
+ $('#main').innerHTML=`<div class="tabs">${TABS.map(([k,t])=>`<button class="${TAB===k?'on':''}" onclick="TAB='${k}';history.replaceState(0,'','?o=${esc(p.O)}&t=${k}');render()">${t}</button>`).join('')}</div><div id="body"></div>`;
+ ({overview:vOverview,needs:vNeeds,checklist:vChecklist,risks:vRisks,qc:vQc,changes:vChanges,issues:vIssues,close:vClose,survey:vSurvey})[TAB]()}
+const B=h=>$('#body').innerHTML=h;
+function vOverview(){const p=D.p,r=D.report,dp=p.deposit,cl=D.checklist,done=cl.filter(x=>x.status==='done'||x.status==='na').length,late=cl.filter(x=>x.status!=='done'&&x.status!=='na'&&x.due&&x.due<TODAY);
+ const nxt=cl.filter(x=>x.status!=='done'&&x.status!=='na').slice(0,8);
+ B(`${!p.confirmed&&p.date<TODAY&&p.status!=='cancelled'?'<div class="flag r">تجاوز التاريخ المتوقع والموعد غير مؤكد — أكّدوا الموعد أو أعيدوا الجدولة</div>':''}
+ ${dp&&!dp.ok&&p.status!=='completed'?`<div class="flag r">العربون لم يُستلم (المستلم ${f(dp.paid)} من ${f(dp.need)} ر.س) — حسب الدليل: لا تخطيط ولا اعتماد خطة قبل العربون</div>`:''}
+ <div class="card"><div class="f">
+  <div><label>العميل</label><b>${esc(p.client||'')}</b><div class="muted">${esc(p.phone||'')}</div></div>
+  <div><label>المناسبة</label><b>${esc(p.title||'')}</b><div class="muted">${esc(p.venue_name||'')}</div></div>
+  <div><label>العقد · أمر التشغيل</label><b class="num">${esc(p.B||'—')} · ${esc(p.O)}</b></div>
+  <div><label>تصنيف العميل</label>${ME.manage?`<select onchange="api('tier',{O:'${esc(p.O)}',tier:this.value}).then(()=>toast('تم'))"><option value="">—</option>${D.tiers.map(t=>`<option ${p.tier===t?'selected':''}>${t}</option>`).join('')}</select>`:esc(p.tier||'—')}</div>
+  ${r.revenueVat!=null?`<div><label>قيمة العقد (شامل)</label><b class="num">${f(r.revenueVat)}</b><div class="muted">المستلم ${f(r.collected)} · المتبقي ${f(r.remaining)}</div></div>
+  <div><label>الربح حتى الآن</label><b class="num" style="color:${r.profit<0?'var(--bad)':'var(--ok)'}">${f(r.profit)}</b><div class="muted">هامش ${r.margin??'—'}% (الحد ${r.minMargin}%) · التكلفة ${f(r.cost)}</div></div>`:''}
+ </div></div>
+ <div class="card"><h3>القائمة الشاملة: ${done}/${cl.length}${late.length?` · <span style="color:var(--bad)">${late.length} متأخر</span>`:''}</h3>
+  <div class="bar"><i style="width:${cl.length?Math.round(done/cl.length*100):0}%"></i></div>
+  <table>${nxt.map(x=>`<tr class="${x.due&&x.due<TODAY?'late':''}"><td>${esc(x.title)}</td><td class="muted">${esc(x.owner)}</td><td class="muted">${esc(x.sec)}</td><td class="num">${esc(x.due||'')}</td></tr>`).join('')}</table>
+  <div style="margin-top:8px"><button class="b o s" onclick="TAB='checklist';render()">كل البنود</button></div></div>
+ <div class="card"><h3>الحالة</h3><div class="chips">${chip(!!Object.keys(D.needs.data).length,'استمارة الاحتياجات')}${chip(D.risks.length>0,'سجل المخاطر')}${chip(Object.values(D.qc.s).filter(Boolean).length>=D.qc.signers.length,'اعتماد التسليم')}${chip(!!(D.close&&D.close.closed_at),'الإقفال')}${chip(D.surveys.some(s=>s.answered_at),'الاستبيان')}
+  ${D.changes.filter(c=>c.status==='بانتظار الاعتماد').length?`<span class="chip w">${D.changes.filter(c=>c.status==='بانتظار الاعتماد').length} طلب تغيير بانتظار الاعتماد</span>`:''}
+  ${D.issues.filter(c=>c.status!=='محلولة').length?`<span class="chip no">${D.issues.filter(c=>c.status!=='محلولة').length} شكوى/مشكلة مفتوحة</span>`:''}</div></div>`)}
+function vNeeds(){const d=D.needs.data;
+ B(`<div class="card"><h3>استمارة احتياجات العميل (2.A)</h3><div class="muted" style="margin-bottom:10px">تُعبّأ في الاجتماع التعريفي وتُبنى عليها الخطة. ${D.needs.at?'آخر حفظ '+esc(D.needs.at)+' — '+esc(D.needs.by):''}</div>
+ <div class="f">${D.needs.fields.map(([k,t,ty,op])=>ty==='multi'?`<div style="grid-column:1/-1"><label>${t}</label><div class="opts">${op.map(o=>`<label class="${(d[k]||[]).includes(o)?'on':''}"><input type="checkbox" data-k="${k}" value="${esc(o)}" ${(d[k]||[]).includes(o)?'checked':''} onchange="this.parentNode.classList.toggle('on',this.checked)">${esc(o)}</label>`).join('')}</div></div>`
+  :ty==='text'?`<div style="grid-column:1/-1"><label>${t}</label><textarea data-k="${k}">${esc(d[k]||'')}</textarea></div>`:`<div><label>${t}</label><input type="number" data-k="${k}" value="${esc(d[k]||'')}"></div>`).join('')}
+  <div style="grid-column:1/-1"><label>إقرار العميل (الاسم / تاريخ الموافقة على الاستمارة)</label><input id="clientOk" value="${esc(D.needs.clientOk||'')}"></div></div>
+ <div style="margin-top:12px"><button class="b" onclick="saveNeeds()">حفظ الاستمارة</button></div></div>`)}
+function saveNeeds(){const d={};document.querySelectorAll('#body [data-k]').forEach(e=>{const k=e.dataset.k;if(e.type==='checkbox'){d[k]=d[k]||[];if(e.checked)d[k].push(e.value)}else d[k]=e.type==='number'?(e.value?+e.value:''):e.value});
+ act('needs',{data:d,clientOk:$('#clientOk').value})}
+function vChecklist(){const cl=D.checklist;let h='';
+ D.secs.forEach(s=>{const rows=cl.filter(x=>x.sec===s);if(!rows.length)return;const dn=rows.filter(x=>x.status==='done'||x.status==='na').length;
+  h+=`<tr class="sec"><td colspan="6" style="padding:8px 5px">${esc(s)} <span class="muted">${dn}/${rows.length}</span></td></tr>`+rows.map(x=>{const late=x.status!=='done'&&x.status!=='na'&&x.due&&x.due<TODAY;
+  return `<tr class="${x.status==='done'?'done':''} ${late?'late':''}"><td class="h">${x.n}</td><td onclick="ev(${x.id})" style="cursor:pointer">${esc(x.title)}<div class="mo">${esc(x.owner)} · <span style="${late?'color:var(--bad);font-weight:700':''}">${esc(x.due||'')}</span></div>${x.note?`<div class="muted">${esc(x.note)}</div>`:''}${x.evidence?`<div class="muted">الدليل: ${/^https?:/.test(x.evidence)?`<a href="${esc(x.evidence)}" target="_blank">رابط</a>`:esc(x.evidence)}</div>`:''}</td><td class="muted h">${esc(x.owner)}</td><td class="num h">${esc(x.due||'')}</td>
+   <td><select class="st" onchange="act('check',{id:${x.id},status:this.value})">${Object.entries(CL).map(([k,t])=>`<option value="${k}" ${x.status===k?'selected':''}>${t}</option>`).join('')}</select>${x.done_by?`<div class="muted">${esc(x.done_by)} · ${esc((x.done_at||'').slice(5))}</div>`:''}</td>
+   <td class="h"><button class="b o s" onclick="ev(${x.id})">دليل/ملاحظة</button></td></tr>`}).join('')});
+ B(`<div class="card"><h3>القائمة الشاملة — Master Checklist</h3><div class="muted" style="margin-bottom:8px">مواعيد البنود محسوبة من تاريخ المناسبة (${esc(D.p.date||'')}) وتتعدل تلقائياً لو تغيّر. «أي شيء غير موثق = لم يتم».</div>
+ <div class="scroll"><table class="cl"><tr><th class="h">#</th><th>البند</th><th class="h">المسؤول</th><th class="h">الموعد</th><th>الحالة</th><th class="h"></th></tr>${h}</table></div>
+ ${ME.manage?`<div class="row" style="margin-top:10px"><input id="nt" placeholder="بند إضافي" style="flex:2"><input id="no" placeholder="المسؤول" style="flex:1"><input id="nd" type="date" style="flex:1"><button class="b" onclick="act('checkAdd',{title:$('#nt').value,owner:$('#no').value,due:$('#nd').value})">إضافة</button></div>`:''}</div>`)}
+function ev(id){const x=D.checklist.find(y=>y.id===id);const e=prompt('دليل الإنجاز (رابط صورة/ملف أو وصف):',x.evidence||'');if(e===null)return;const n=prompt('ملاحظة (اختياري):',x.note||'');act('check',{id,status:x.status,evidence:e,note:n??x.note})}
+function vRisks(){const P=['منخفضة','متوسطة','عالية'],I=['منخفض','متوسط','عالٍ','حرج'];
+ B(`<div class="card"><h3>سجل المخاطر (RG.1)</h3><div class="scroll"><table><tr><th>المخاطرة</th><th>الاحتمالية</th><th>الأثر</th><th>خطة الاستجابة</th><th>المسؤول</th><th>الحالة</th><th></th></tr>
+ ${D.risks.map(r=>`<tr data-id="${r.id}"><td><input value="${esc(r.risk)}" data-f="risk"></td><td><select data-f="prob">${P.map(x=>`<option ${r.prob===x?'selected':''}>${x}</option>`).join('')}</select></td>
+  <td><select data-f="impact">${I.map(x=>`<option ${r.impact===x?'selected':''}>${x}</option>`).join('')}</select></td><td><textarea data-f="response" style="min-height:40px">${esc(r.response||'')}</textarea></td>
+  <td><input value="${esc(r.owner||'')}" data-f="owner"></td><td><select data-f="status">${['مفتوحة','مُفعّلة','مغلقة'].map(x=>`<option ${r.status===x?'selected':''}>${x}</option>`).join('')}</select></td>
+  <td>${ME.manage?`<button class="b s" onclick="saveRisk(${r.id})">حفظ</button> <button class="b o s" onclick="if(confirm('حذف؟'))act('risk',{id:${r.id},delete:1})">حذف</button>`:''}</td></tr>`).join('')}</table></div>
+ ${ME.manage?`<div class="row" style="margin-top:10px"><input id="rk" placeholder="مخاطرة جديدة" style="flex:2"><input id="rr" placeholder="خطة الاستجابة" style="flex:2"><button class="b" onclick="act('risk',{risk:$('#rk').value,response:$('#rr').value})">إضافة</button></div>`:''}</div>`)}
+function saveRisk(id){const tr=document.querySelector(`tr[data-id="${id}"]`),a={id};tr.querySelectorAll('[data-f]').forEach(e=>a[e.dataset.f]=e.value);act('risk',a)}
+function vQc(){const q=D.qc;
+ B(`<div class="card"><h3>نقاط الاعتماد يوم التنفيذ</h3><div class="muted" style="margin-bottom:8px">لا ينتقل العمل للمرحلة التالية قبل اعتماد مدير التشغيل.</div>
+ ${q.gates.map(g=>`<div class="gate ${q.g[g]?'on':''}"><b style="flex:1">${q.g[g]?'✓ ':''}${esc(g)}</b><span class="muted">${q.g[g]?esc(q.g[g].by)+' · '+esc(q.g[g].at.slice(11)):''}</span>${ME.manage?`<button class="b ${q.g[g]?'o':''} s" onclick="act('qc',{gate:'${g}'})">${q.g[g]?'إلغاء':'اعتماد'}</button>`:''}</div>`).join('')}</div>
+ <div class="card"><h3>فحص الجودة النهائي — قبل وصول العميل بـ 30 دقيقة</h3><table><tr><th>البند</th><th>النتيجة</th><th>ملاحظة</th></tr>
+ ${q.items.map(i=>{const v=q.i[i]||{};return `<tr><td>${esc(i)}</td><td style="white-space:nowrap"><button class="b ${v.v==='ok'?'':'o'} s" onclick="act('qc',{item:'${esc(i)}',v:'ok'})">✓ مطابق</button> <button class="b ${v.v==='fix'?'':'o'} s" style="${v.v==='fix'?'background:var(--bad);border-color:var(--bad)':''}" onclick="act('qc',{item:'${esc(i)}',v:'fix',note:prompt('الملاحظة؟')||''})">✗ يحتاج تصحيح</button></td><td class="muted">${esc(v.note||'')}${v.by?' · '+esc(v.by):''}</td></tr>`}).join('')}</table></div>
+ <div class="card"><h3>اعتماد التسليم النهائي</h3><div class="muted" style="margin-bottom:8px">الاعتماد متاح بعد ما تكون كل بنود الفحص «مطابق».</div>
+ ${q.signers.map(s=>`<div class="gate ${q.s[s]?'on':''}"><b style="flex:1">${esc(s)}</b><span class="muted">${q.s[s]?esc(q.s[s].by)+' · '+esc(q.s[s].at):''}</span>${ME.manage?`<button class="b ${q.s[s]?'o':''} s" onclick="act('qc',{sign:'${s}'})">${q.s[s]?'إلغاء':'توقيع'}</button>`:''}</div>`).join('')}</div>`)}
+function vChanges(){const pend=D.changes.filter(c=>c.status==='بانتظار الاعتماد');
+ B(`<div class="card"><h3>طلبات التغيير بعد العقد (ملحق أ)</h3><div class="muted" style="margin-bottom:8px">أي تعديل بعد العقد يُوثّق ويُسعّر قبل التنفيذ. المستوى يتحدد تلقائياً من نسبة المبلغ لقيمة العقد: ${D.levels.map(l=>`${l.level}${l.max!=null?' ≤'+l.max+'%':''} ← ${l.approver}`).join(' · ')}</div>
+ <div class="f"><div style="grid-column:1/-1"><label>وصف التغيير</label><textarea id="cd"></textarea></div>
+  <div><label>النوع</label><select id="ck">${['تعديل بند','إضافة بند','حذف بند','تغيير التاريخ','تغيير الموقع','إلغاء'].map(x=>`<option>${x}</option>`).join('')}</select></div>
+  <div><label>أثره المالي (ر.س، بالسالب للتخفيض)</label><input id="ca" type="number" value="0"></div></div>
+ <div style="margin-top:10px"><button class="b" onclick="act('change',{descr:$('#cd').value,kind:$('#ck').value,amount:+$('#ca').value})">تسجيل الطلب</button></div></div>
+ <div class="card"><div class="scroll"><table><tr><th>التاريخ</th><th>التغيير</th><th>المبلغ</th><th>المستوى</th><th>الحالة</th><th></th></tr>
+ ${D.changes.map(c=>`<tr><td class="muted">${esc(c.at)}<div>${esc(c.by_name)}</div></td><td>${esc(c.descr)}<div class="muted">${esc(c.kind)}</div></td><td class="num">${f(c.amount)}<div class="muted">${c.pct}%</div></td><td>${esc(c.level)}<div class="muted">${esc(c.approver)}</div></td>
+  <td>${esc(c.status)}${c.decided_by?`<div class="muted">${esc(c.decided_by)}</div>`:''}</td><td style="white-space:nowrap">${ME.manage?(c.status==='بانتظار الاعتماد'?`<button class="b s" onclick="act('change',{id:${c.id},decision:'معتمد'})">اعتماد</button> <button class="b o s" onclick="act('change',{id:${c.id},decision:'مرفوض'})">رفض</button>`:c.status==='معتمد'?`<button class="b o s" onclick="act('change',{id:${c.id},decision:'منفّذ'})">نُفّذ</button>`:''):''}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">ما فيه طلبات</td></tr>'}</table></div></div>`)}
+function sla(x){const H={'منخفضة':[24,168],'متوسطة':[4,72],'عالية':[1,24],'حرجة':[.25,4]}[x.severity]||[4,72];const t0=new Date(x.at.replace(' ','T')+':00+03:00'),now=Date.now();
+ const ackDue=t0.getTime()+H[0]*36e5,resDue=t0.getTime()+H[1]*36e5;let s=[];
+ if(!x.ack_at&&now>ackDue)s.push('تجاوز مهلة الاستجابة');if(x.status!=='محلولة'&&now>resDue)s.push('تجاوز مهلة الحل');
+ return `<div class="muted">الاستجابة ${H[0]<1?H[0]*60+' دقيقة':H[0]+' ساعة'} · الحل ${H[1]} ساعة</div>${s.length?`<div style="color:var(--bad);font-size:12px;font-weight:700">${s.join(' · ')}</div>`:''}`}
+function vIssues(){
+ B(`<div class="card"><h3>الشكاوى والمشاكل والتصعيد (ملحقا ب وج)</h3><div class="f"><div style="grid-column:1/-1"><label>الوصف</label><textarea id="id_"></textarea></div>
+  <div><label>النوع</label><select id="it">${D.issueTypes.map(x=>`<option>${x}</option>`).join('')}</select></div>
+  <div><label>الخطورة</label><select id="is">${D.severity.map(x=>`<option ${x==='متوسطة'?'selected':''}>${x}</option>`).join('')}</select></div>
+  <div><label>المسؤول عن المعالجة</label><input id="io"></div></div>
+  <div style="margin-top:10px"><button class="b" onclick="act('issue',{descr:$('#id_').value,type:$('#it').value,severity:$('#is').value,owner:$('#io').value})">تسجيل</button></div></div>
+ <div class="card"><div class="scroll"><table><tr><th>التاريخ</th><th>الوصف</th><th>النوع/الخطورة</th><th>الحالة</th><th></th></tr>
+ ${D.issues.map(x=>`<tr><td class="muted">${esc(x.at)}<div>${esc(x.by_name)}</div></td><td>${esc(x.descr)}${x.resolution?`<div class="muted">المعالجة: ${esc(x.resolution)}</div>`:''}</td><td>${esc(x.type)}<div class="muted">${esc(x.severity)}${x.owner?' · '+esc(x.owner):''}</div>${x.status!=='محلولة'?sla(x):''}</td>
+  <td>${esc(x.status)}</td><td style="white-space:nowrap">${x.status!=='محلولة'?`${!x.ack_at?`<button class="b o s" onclick="act('issue',{id:${x.id},ack:1})">استلمتها</button> `:''}<button class="b o s" onclick="act('issue',{id:${x.id},escalate:1})">تصعيد</button> <button class="b s" onclick="const r=prompt('كيف انحلت؟');if(r)act('issue',{id:${x.id},resolve:1,resolution:r})">حُلّت</button>`:''}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">ما فيه شكاوى أو مشاكل</td></tr>'}</table></div></div>`)}
+function vClose(){const r=D.report,c=D.close||{};
+ B(`${c.closed_at?`<div class="flag" style="background:#E6F2EA;border-color:var(--ok)">أُقفل المشروع ${esc(c.closed_at)} — ${esc(c.closed_by)} ${ME.manage?`<button class="b o s" onclick="act('close',{reopen:1})">إعادة فتح</button>`:''}</div>`:''}
+ <div class="card"><h3>سجل التلفيات</h3><div class="scroll"><table><tr><th>القطعة</th><th>الكمية</th><th>السبب</th><th>التكلفة</th><th>الإجراء</th><th>سجّلها</th><th></th></tr>
+ ${D.damages.map(d=>`<tr><td>${esc(d.item)}</td><td class="num">${d.qty}</td><td>${esc(d.cause)}</td><td class="num">${f(d.cost)}</td><td>${esc(d.action)}</td><td class="muted">${esc(d.by_name)} · ${esc(d.at)}</td><td>${ME.manage?`<button class="b o s" onclick="act('damage',{id:${d.id},delete:1})">حذف</button>`:''}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">ما فيه تلفيات</td></tr>'}</table></div>
+ <div class="row" style="margin-top:10px"><input id="di" placeholder="القطعة (أو الكود)" style="flex:2"><input id="dq" type="number" value="1" style="width:80px;flex:none"><input id="dc" placeholder="السبب" style="flex:2"><input id="dk" type="number" placeholder="التكلفة" style="width:110px;flex:none">
+ <select id="da" style="width:auto"><option>صيانة</option><option>استبدال</option><option>إتلاف</option><option>تحميل على العميل (من التأمين)</option></select><button class="b" onclick="act('damage',{item:$('#di').value,qty:+$('#dq').value,cause:$('#dc').value,cost:+$('#dk').value,action:$('#da').value})">إضافة</button></div></div>
+ <div class="card"><h3>تقرير إغلاق المشروع (8.B)</h3><div class="f">
+  ${r.revenue!=null?`<div><label>الإيراد قبل الضريبة</label><b class="num">${f(r.revenue)}</b></div><div><label>التكلفة</label><b class="num">${f(r.cost)}</b><div class="muted">${Object.entries(r.costBy||{}).map(([k,v])=>k+' '+f(v)).join(' · ')}</div></div>
+  <div><label>الربح · الهامش</label><b class="num" style="color:${r.profit<0?'var(--bad)':'var(--ok)'}">${f(r.profit)} · ${r.margin??'—'}%</b><div class="muted">الحد الأدنى ${r.minMargin}%</div></div>
+  <div><label>التحصيل</label><b class="num">${f(r.collected)}</b><div class="muted">المتبقي ${f(r.remaining)}</div></div>`:''}
+  <div><label>القائمة الشاملة</label><b class="num">${esc(r.checklist)}</b></div><div><label>التلفيات</label><b class="num">${r.damages}</b><div class="muted">${f(r.damagesCost)} ر.س</div></div>
+  <div><label>الشكاوى / المشاكل</label><b class="num">${r.complaints} / ${r.issues}</b></div><div><label>طلبات التغيير</label><b class="num">${r.changes}</b><div class="muted">معتمد ${f(r.changesAmount)} ر.س</div></div>
+  <div><label>رضا العميل · التوصية</label><b class="num">${r.csat??'—'}/5 · ${r.nps??'—'}/10</b></div></div>
+  <div class="f" style="margin-top:12px"><div style="grid-column:1/-1"><label>الدروس المستفادة (Post-Mortem)</label><textarea id="ls">${esc(c.lessons||'')}</textarea></div>
+  <div style="grid-column:1/-1"><label>تقييم الفريق</label><textarea id="te">${esc(c.team_eval||'')}</textarea></div></div>
+  ${ME.manage?`<div class="row" style="margin-top:10px"><button class="b o" onclick="act('close',{lessons:$('#ls').value,teamEval:$('#te').value})">حفظ</button>${c.closed_at?'':`<button class="b" onclick="if(confirm('إقفال المشروع؟'))act('close',{lessons:$('#ls').value,teamEval:$('#te').value,final:1})">إقفال المشروع</button>`}</div>`:''}</div>`)}
+function vSurvey(){const sv=D.surveys;
+ B(`<div class="card"><h3>استبيان رضا العميل (11.A)</h3><div class="muted" style="margin-bottom:8px">يُرسل خلال 24 ساعة من المناسبة. الرابط يفتح للعميل بدون تسجيل دخول، وأي تقييم منخفض يفتح شكوى تلقائياً لخدمة العملاء.</div>
+ <button class="b" onclick="newSv()">إنشاء رابط استبيان</button></div>
+ ${sv.map(s=>{const u=location.origin+'/survey/'+s.token,d=s.data||{};return `<div class="card"><div class="row"><b>${s.answered_at?'✓ تم الرد '+esc(s.answered_at):'بانتظار رد العميل'}</b><span class="muted">أُنشئ ${esc(s.created_at)} — ${esc(s.created_by)}</span></div>
+  <div class="row" style="margin:8px 0"><input value="${u}" readonly onclick="this.select()" style="flex:1;direction:ltr"><button class="b o s" onclick="navigator.clipboard.writeText('${u}');toast('نُسخ')">نسخ</button>
+  <a class="b s" target="_blank" href="https://wa.me/${(D.p.phone||'').replace(/\D/g,'').replace(/^0/,'966')}?text=${encodeURIComponent('أهلاً '+(D.p.client||'')+'، شكراً لثقتك بأبيلا 🤍 يسعدنا رأيك في مناسبتك عبر هذا الرابط: '+u)}">واتساب</a></div>
+  ${s.answered_at?`<table>${[['الرضا',d.csat+'/5'],['التوصية',d.nps+'/10'],['مقارنة بالتوقعات',d.expect],['التواصل',d.comm],['التنفيذ',d.exec],['المواعيد',d.time],['أكثر تفصيلة أعجبتها',d.best],['لمسة غير متوقعة',d.surprise],['ما يمكن تحسينه',d.better],['رد فعل الضيوف',d.guests],['مناسبة أخرى معنا',d.again],['استخدام الصور',d.photos],['إحالة',[d.ref_name,d.ref_phone].filter(Boolean).join(' — ')],['كلمة للعميل',d.comment]].filter(x=>x[1]).map(x=>`<tr><th style="width:170px">${x[0]}</th><td>${esc(x[1])}</td></tr>`).join('')}</table>`:''}</div>`}).join('')}`)}
+async function newSv(){await api('survey',{O:D.p.O});await openP(D.p.O);toast('تم إنشاء الرابط')}
+boot().catch(e=>{if(e)console.error(e)});
+</script>
+</body>
+</html>

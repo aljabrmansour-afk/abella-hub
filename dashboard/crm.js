@@ -202,6 +202,8 @@ function buildSidebar() {
       o.innerHTML = (NEW_NAV_ICONS.work_plans || '') + '<span>مهام قسمي (العمليات)</span>'; nav.appendChild(o);
       const x = document.createElement('a'); x.className = 'nav-item'; x.id = 'nav-exec'; x.href = '/execution'; x.title = 'يوم التنفيذ';
       x.innerHTML = (NEW_NAV_ICONS.events || NEW_NAV_ICONS.work_plans || '') + '<span>يوم التنفيذ</span>'; nav.appendChild(x);
+      const pj = document.createElement('a'); pj.className = 'nav-item'; pj.id = 'nav-project'; pj.href = '/project'; pj.title = 'ملفات المشاريع';
+      pj.innerHTML = '<svg class="nav-svg" viewBox="0 0 28 28" fill="none"><rect x="6" y="4" width="16" height="21" rx="2.5"/><path d="M10.5 4V2.8h7V4"/><path d="M10 12.5l2.2 2.2 4.3-4.3M10 19.5h8"/></svg>' + '<span>ملفات المشاريع (الدليل الإجرائي)</span>'; nav.appendChild(pj);
       if (CRM.perms && (CRM.perms.is_super || ['owner', 'general_manager'].includes(CRM.me.role))) {
         const t = document.createElement('a'); t.className = 'nav-item'; t.id = 'nav-today'; t.href = '/today'; t.title = 'أبيلا اليوم';
         t.innerHTML = (NEW_NAV_ICONS.dashboard || NEW_NAV_ICONS.finance || '') + '<span>أبيلا اليوم (لوحة الإدارة)</span>'; nav.insertBefore(t, nav.firstChild);

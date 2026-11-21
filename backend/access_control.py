@@ -412,7 +412,7 @@ def can(perms, module, action='view'):
 # (method regex, path regex, [(module, action), ...] أي واحدة منها تكفي)
 # المسارات اللي ما لها قاعدة: تتطلب تسجيل دخول فقط (تطبيق الجوال وغيره)
 # ============================================================
-PUBLIC_PATHS = [r'^/api/login$', r'^/api/auth/login$', r'^/api/i18n/(ar|en|ur)$', r'^/api/health$']
+PUBLIC_PATHS = [r'^/api/public/survey/[\w-]+$', r'^/api/login$', r'^/api/auth/login$', r'^/api/i18n/(ar|en|ur)$', r'^/api/health$']
 
 RULES = [
     # الموارد البشرية

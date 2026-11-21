@@ -71,6 +71,11 @@ def sheets_sync_loop():
                     expenses_routes.init_tables(_c)
                     expenses_routes.import_sheets(_c)
                     sync_sheets.refresh_events(_c)
+                    try:
+                        import project_native
+                        project_native.sync(_c)
+                    except Exception as e:
+                        print('⚠ ملف المشروع', e)
                 except Exception as e:
                     print('⚠ استيراد المصروفات', e)
                 try:

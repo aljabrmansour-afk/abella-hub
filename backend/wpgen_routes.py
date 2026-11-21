@@ -381,6 +381,16 @@ def call(conn, ctx, fn, args):
         plan, note, docs = a[1], (a[2] if len(a) > 2 else ''), (a[3] if len(a) > 3 else {}) or {}
         base, force = (a[4] if len(a) > 4 else 0), (a[5] if len(a) > 5 else False)
         Q = str(plan.get('Q'))
+        # الدليل الإجرائي م4: لا تخطيط ولا اعتماد خطة قبل استلام العربون (الإدارة العليا تقدر تتجاوز بـ depositOverride)
+        try:
+            import project_native
+            dep = project_native.deposit_ok(conn, Q)
+            if not dep['ok'] and not (ctx['perms'].get('is_super') and (plan.get('depositOverride') or (a[6] if len(a) > 6 else False))):
+                raise PermissionError(f"ما ينفع اعتماد الخطة قبل استلام العربون — المستلم {dep['paid']:,.0f} من {dep['need']:,.0f} ر.س المطلوبة")
+        except PermissionError:
+            raise
+        except Exception:
+            pass
         last = conn.execute("SELECT v, by_name, date FROM wpg_versions WHERE quote_code=? ORDER BY v DESC LIMIT 1", (Q,)).fetchone()
         if not force and last and int(base or 0) < last[0]:
             return {'conflict': True, 'latest': last[0], 'by': last[1], 'date': last[2]}
