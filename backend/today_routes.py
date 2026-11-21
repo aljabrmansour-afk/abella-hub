@@ -146,5 +146,17 @@ def handle(h, conn, method, path, query, data, ctx, send_json):
     if not (ctx['perms'].get('is_super') or ctx['user'].get('role') in ('owner', 'general_manager')):
         send_json({'error': 'اللوحة للإدارة'}, 403)
         return True
-    send_json(compute(conn))
+    base = compute(conn)
+    import insights
+    try:
+        base['insights'] = insights.build(conn, base)
+    except Exception as e:
+        base['insights'] = [{'level': 'info', 'area': 'النظام', 'title': 'تعذّر التحليل', 'detail': str(e)[:200], 'link': '', 'score': 0}]
+    q = query.get('ai') if isinstance(query, dict) else None
+    force = bool(q and (q[0] if isinstance(q, list) else q) == 'refresh')
+    try:
+        base['ai'] = insights.ai_brief(conn, base, base['insights'], force=force)
+    except Exception as e:
+        base['ai'] = {'enabled': True, 'error': str(e)[:200]}
+    send_json(base)
     return True

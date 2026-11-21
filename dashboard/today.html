@@ -20,6 +20,11 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 5px;b
 .bars .stack{width:100%;max-width:46px;display:flex;flex-direction:column-reverse;border-radius:6px 6px 0 0;overflow:hidden}.bars .rev{width:100%;max-width:46px;border:2px dashed var(--g);border-bottom:0;border-radius:6px 6px 0 0}
 .legend span{display:inline-flex;align-items:center;gap:4px;margin-inline-end:10px;font-size:12px}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 .badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;background:#F1EADF;color:var(--g)}.badge.ok{background:#E6F2EA;color:var(--ok)}.badge.no{background:#FBE9E7;color:var(--bad)}
+.zb{border:1px solid var(--ln);border-radius:14px;background:#fff;padding:14px;margin-bottom:12px}.zb h3{margin:0 0 4px;color:var(--g);font-size:16px}
+.zb .hl{font-weight:600;margin:6px 0 10px}.zb ul{margin:0;padding-inline-start:18px}.zb li{margin:4px 0}
+.ins{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #F0E9DD;text-decoration:none;color:inherit}.ins:last-child{border:0}
+.ins i{width:8px;border-radius:4px;flex:none}.ins .a{font-size:11px;color:#9A8B7A}.ins b{display:block}.ins small{color:#7A6A58}
+.lv-red i{background:var(--bad)}.lv-amber i{background:var(--warn)}.lv-info i{background:#8B9DB0}.lv-green i{background:var(--ok)}
 .tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}.tabs button{border:1px solid var(--ln);background:#fff;border-radius:20px;padding:6px 14px;font:inherit;cursor:pointer;white-space:nowrap}.tabs button.on{background:var(--g);color:#fff;border-color:var(--g)}
 </style>
 <link rel="stylesheet" href="/assets/fonts.css">
@@ -35,11 +40,13 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>(
 const f=n=>n==null?'—':Math.round(+n).toLocaleString('en-US'),pc=n=>n==null?'—':n+'%';
 const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];const mn=m=>MN[+m.slice(5,7)-1]+' '+m.slice(2,4);
 let D=null,TAB='pnl';
-async function load(){const r=await fetch('/api/today');if(r.status===401){location.href='/dashboard/';return}D=await r.json();if(D.error){$('#main').innerHTML=`<div class="card">${esc(D.error)}</div>`;return}render()}
+async function load(ai){const r=await fetch('/api/today'+(ai===1?'?ai=refresh':''));if(r.status===401){location.href='/dashboard/';return}D=await r.json();if(D.error){$('#main').innerHTML=`<div class="card">${esc(D.error)}</div>`;return}render()}
 function render(){const k=D.kpis;$('#gen').textContent='تحديث '+D.generated+' UTC';
  const max=Math.max(1,...D.monthly.map(m=>Math.max(m.rev,m.cost)));
  $('#main').innerHTML=`
- ${D.alerts.length?`<div class="card alerts"><h3>تنبيهات</h3>${D.alerts.map(a=>`<div>${esc(a)}</div>`).join('')}</div>`:''}
+ <div class="zb"><div style="display:flex;align-items:center;gap:8px"><h3>الزبدة</h3><span class="muted">${D.ai&&D.ai.at?'ملخص ذكي · '+esc(D.ai.at.replace('T',' ').slice(0,16))+' UTC':'تحليل آلي لكل البيانات'}</span><span style="flex:1"></span>${D.ai&&D.ai.enabled?'<a class="muted" href="#" onclick="load(1);return false">تحديث الملخص ↻</a>':''}</div>
+  ${D.ai&&D.ai.points&&D.ai.points.length?`<div class="hl">${esc(D.ai.headline||'')}</div><ul>${D.ai.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul><hr style="border:0;border-top:1px solid var(--ln);margin:12px 0">`:''}
+  ${(D.insights||[]).map(x=>`<a class="ins lv-${x.level}" href="${esc(x.link||'#')}"><i></i><div><span class="a">${esc(x.area)}</span><b>${esc(x.title)}</b>${x.detail?`<small>${esc(x.detail)}</small>`:''}</div></a>`).join('')||'<div class="muted">ما فيه ملاحظات — كل شي ماشي ✓</div>'}</div>
  <div class="kpi">
   <div><small>مناسبات ${mn(k.month)}</small><b>${k.events}</b><small>إيراد صافي ${f(k.eventsRevenue)}</small></div>
   <div><small>المحصّل هذا الشهر</small><b>${f(k.collected)}</b><small>${k.payments} دفعة</small></div>
@@ -66,7 +73,7 @@ function renderTab(){const t=$('#tab');
  if(TAB==='overdue')t.innerHTML=`<h3>عقود انتهت مناسبتها وعليها متبقي</h3><table><tr><th>O</th><th>العميل</th><th>التاريخ</th><th>قيمة العقد</th><th>المتبقي</th></tr>${D.overdue.map(o=>`<tr><td>${o.o}</td><td>${esc(o.client)}</td><td>${o.date}</td><td class="num">${f(o.rev)}</td><td class="num neg">${f(o.remaining)}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">لا يوجد</td></tr>'}</table>`;
  if(TAB==='sup')t.innerHTML=`<h3>أكبر الموردين (صافي)</h3><table><tr><th>المورد</th><th>فواتير</th><th>الإجمالي</th><th>هذا الشهر</th><th>المستحق له</th></tr>${D.suppliers.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.n}</td><td class="num">${f(s.total)}</td><td class="num">${f(s.month)}</td><td class="num ${s.due>0?'neg':''}">${f(s.due)}</td></tr>`).join('')}</table>`;
  if(TAB==='quotes')t.innerHTML=`<h3>عروض أسعار لم تتحول لعقد</h3><table><tr><th>العرض</th><th>العميل</th><th>تاريخ المناسبة</th><th>القيمة</th><th>الحالة</th><th>تاريخ العرض</th></tr>${D.quotes.map(q=>`<tr><td>${esc(q.quote_code)}</td><td>${esc(q.client_name)}</td><td>${esc(q.expected_date||'')}</td><td class="num">${f(q.total_with_vat)}</td><td>${esc(q.gen_status||q.status)}</td><td>${esc((q.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">لا يوجد</td></tr>'}</table>`;}
-load();setInterval(load,300000);
+load();setInterval(()=>load(),300000);
 </script>
 </body>
 </html>
