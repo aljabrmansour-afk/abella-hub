@@ -275,19 +275,21 @@ def riyadh_today():
     return (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).date().isoformat()
 
 
-def derive_status(sheet_status, date, current=None):
-    """الحالة من تاريخ المناسبة أولاً: ما مضى تاريخه = منتهية، اليوم = قيد التنفيذ، القادم = متعاقد/تحضير."""
+def derive_status(sheet_status, expected, current=None, confirmed=None):
+    """الحالة حسب التاريخ المؤكد فقط:
+    مؤكد ومضى = منتهية، مؤكد واليوم = قيد التنفيذ، غير مؤكد = لا تنتهي مهما مضى المتوقع (تبقى بانتظار التأكيد)."""
     st = (sheet_status or '').strip()
     if any(w in st for w in CANCEL_WORDS):
         return 'cancelled'
     if any(w in st for w in DONE_WORDS):
         return 'completed'
     today = riyadh_today()
-    if date and date < today:
-        return 'completed'
-    if date and date == today:
-        return 'in_progress'
-    # مناسبة قادمة: نحافظ على تقدم داخل المنصة (تخطيط/جاهزة)
+    if confirmed:
+        if confirmed < today:
+            return 'completed'
+        if confirmed == today:
+            return 'in_progress'
+    # غير مؤكد أو مؤكد لتاريخ قادم: نحافظ على تقدم داخل المنصة (تخطيط/جاهزة)
     if current in SYSTEM_PROGRESS:
         return current
     return 'contracted'
@@ -328,6 +330,10 @@ def refresh_events(conn):
 
 
 def _refresh(conn):
+    confirmed = {}   # تواريخ مؤكدة من إدارة العمليات/تأكيد المناسبات
+    if _has_table(conn, 'opn_orders'):
+        for r in conn.execute("SELECT O, C FROM opn_orders WHERE COALESCE(O,'')<>'' AND COALESCE(C,'')<>''"):
+            confirmed[r['O']] = r['C']
     sc = {r['operation_order']: r for r in conn.execute("SELECT * FROM sheet_contracts WHERE operation_order IS NOT NULL")} \
         if _has_table(conn, 'sheet_contracts') else {}
     n = 0
@@ -336,12 +342,13 @@ def _refresh(conn):
         cost = event_cost(conn, op) if op else 0
         c = sc.get(op)
         if c is not None and (e['sync_source'] or '') == 'google_sheets':
-            st = derive_status(c['status'], c['actual_date'] or c['expected_date'] or e['actual_date'] or e['event_date'], e['status'])
+            st = derive_status(c['status'], c['expected_date'] or e['event_date'], e['status'],
+                               c['actual_date'] or e['actual_date'] or confirmed.get(op))
             rev = revenue_ex_vat(c)
         else:
             st = e['status']
             if st not in ('cancelled', 'lead', 'quoted', 'completed', 'closed'):
-                d = e['actual_date'] or e['event_date']
+                d = e['actual_date'] or confirmed.get(op)   # المؤكد فقط
                 if d and d < riyadh_today():
                     st = 'completed'
             rev = round((e['total_price'] or 0) / 1.15, 2)
@@ -414,7 +421,7 @@ def merge_into_events(conn):
         if existing:
             r0 = conn.execute("SELECT status FROM events WHERE id=?", (existing['id'],)).fetchone()
             cur_status = r0['status'] if r0 else None
-        status = derive_status(c['status'], act_d or exp_d, cur_status)
+        status = derive_status(c['status'], exp_d, cur_status, act_d)
 
         if existing:
             # تحديث

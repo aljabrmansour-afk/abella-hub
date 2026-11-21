@@ -2021,7 +2021,7 @@ async function renderEvents() {
                 <td>${e.title}</td>
                 <td>${e.customer_name}<br><small style="color:var(--text-light)">${e.customer_phone || ''}</small></td>
                 <td>${EVENT_TYPES[e.event_type] || e.event_type}</td>
-                <td>${fmtDate(e.event_date)}${e.actual_date && e.actual_date !== e.event_date ? `<br><small style="color:var(--accent)">فعلي: ${fmtDate(e.actual_date)}</small>` : ''}</td>
+                <td>${fmtDate(e.event_date)}${e.actual_date && e.actual_date !== e.event_date ? `<br><small style="color:var(--accent)">فعلي: ${fmtDate(e.actual_date)}</small>` : ''}${!e.actual_date && !['completed','cancelled'].includes(e.status) && e.event_date < new Date(Date.now()+108e5).toISOString().slice(0,10) ? `<br><small style="color:var(--danger);font-weight:700">تجاوز المتوقع — الموعد غير مؤكد</small>` : ''}</td>
                 <td>${e.guests_count || '-'}</td>
                 <td>${fmtMoney(e.total_price)}</td>
                 <td>${badge(e.status, STATUS_LABELS)}</td>
