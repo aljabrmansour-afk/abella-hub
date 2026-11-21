@@ -309,7 +309,8 @@ def sync_orders(conn, log=print):
         SELECT q.quote_code Q, q.contract_code B, COALESCE(NULLIF(q.gen_operation_order,''), e.operation_order) O, q.client_name client,
                q.event_type, q.venue_kind, q.venue_name loc, q.expected_date E, q.confirmed_date conf, q.gen_status, q.status,
                q.source, q.gen_paid_flags flags, q.gen_remaining rem, q.insurance ins_amt, COALESCE(q.is_test,0) is_test,
-               e.total_price ev_total, e.paid_amount ev_paid, e.insurance_amount ev_ins
+               e.total_price ev_total, e.paid_amount ev_paid, e.insurance_amount ev_ins,
+               e.status ev_status, COALESCE(e.actual_date, e.event_date) ev_date
         FROM quotes q LEFT JOIN events e ON e.id = q.event_id
         WHERE COALESCE(q.contract_code,'') <> ''""").fetchall()
     existing = {o['Q']: o for o in _orders(conn)}
@@ -319,6 +320,9 @@ def sync_orders(conn, log=print):
         Q = t_(r['Q'])
         st = t_(r['gen_status']) or ('ملغي' if r['status'] in ('cancelled', 'rejected') else 'عقد')
         closed = st in CLOSED_STATES or any(x in st for x in ('منته', 'ملغ', 'مرفوض'))
+        # المناسبة منتهية/ملغاة في سجل العقود ومضى عليها أسبوع (مهلة الإرجاع والإقفال) → يُقفل الأمر
+        if r.get('ev_status') == 'cancelled' or (r.get('ev_status') == 'completed' and t_(r.get('ev_date')) and t_(r['ev_date']) <= add_d(today_s(), -7)):
+            closed = True
         typ = _type_label(r['event_type'], r['venue_kind'])
         birth = r['event_type'] == 'newborn'
         try:
