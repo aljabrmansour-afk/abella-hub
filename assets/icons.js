@@ -18,7 +18,7 @@
     if (!p) return '';
     return '<svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
   }
-  var SKIP = {SCRIPT:1, STYLE:1, TEXTAREA:1, SELECT:1, OPTION:1, NOSCRIPT:1, svg:1, SVG:1, TITLE:1, CODE:1, PRE:1};
+  var SKIP = {SCRIPT:1, STYLE:1, TEXTAREA:1, NOSCRIPT:1, svg:1, SVG:1, TITLE:1, CODE:1, PRE:1};
   function fix(node) {
     if (node.nodeType === 3) {
       var t = node.nodeValue;
@@ -26,7 +26,7 @@
       RE.lastIndex = 0;
       var par = node.parentNode;
       if (par && par.nodeName === 'OPTION') { RE.lastIndex = 0; node.nodeValue = t.replace(RE, function (ch) { return KEEP[ch.replace('\uFE0F', '')] ? ch : ''; }).replace(/^\s+/, ''); return; }
-      if (!par || SKIP[par.nodeName] || par.nodeName === 'INPUT' || par.isContentEditable || (par.closest && par.closest('svg,select,option,textarea,[data-noicons]'))) return;
+      if (!par || SKIP[par.nodeName] || par.nodeName === 'INPUT' || par.isContentEditable || (par.closest && par.closest('svg,textarea,[data-noicons]'))) return;
       var html = t.replace(/[&<>]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; })
                   .replace(RE, function (ch) { var s = svg(ch); return s === null ? ch : s; });
       var span = document.createElement('span');
