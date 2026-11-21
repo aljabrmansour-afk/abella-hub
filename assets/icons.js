@@ -25,6 +25,7 @@
       if (!t || !RE.test(t)) return;
       RE.lastIndex = 0;
       var par = node.parentNode;
+      if (par && par.nodeName === 'OPTION') { RE.lastIndex = 0; node.nodeValue = t.replace(RE, function (ch) { return KEEP[ch.replace('\uFE0F', '')] ? ch : ''; }).replace(/^\s+/, ''); return; }
       if (!par || SKIP[par.nodeName] || par.nodeName === 'INPUT' || par.isContentEditable || (par.closest && par.closest('svg,select,option,textarea,[data-noicons]'))) return;
       var html = t.replace(/[&<>]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; })
                   .replace(RE, function (ch) { var s = svg(ch); return s === null ? ch : s; });
