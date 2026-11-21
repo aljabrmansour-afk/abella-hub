@@ -82,6 +82,7 @@ function showLogin(msg) {
       <label>كلمة المرور<input id="li-pass" type="password" autocomplete="current-password" dir="ltr" required></label>
       <div id="li-err" class="login-err">${esc(msg || '')}</div>
       <button class="btn" type="submit" id="li-btn">دخول</button>
+      <div data-noicons style="text-align:center;font-size:11.5px;color:#7A6A58;margin-top:18px;line-height:1.8">صُمّم ب<svg viewBox="0 0 24 24" style="width:13px;height:13px;vertical-align:-2px;margin:0 3px"><path fill="#C0392B" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.6 2.9 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4h2c.7-1.3 2.2-2.4 4.3-2.4 3.8 0 5.8 4.1 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>من قبل منصور الجبر في المركز الرئيسي لشركة أبيلا بمدينة الرياض<br>© ${new Date().getFullYear()} شركة أبيلا للأفراح والمناسبات — جميع الحقوق محفوظة</div>
     </form>`;
   ov.style.display = 'flex';
   setTimeout(() => document.getElementById('li-user')?.focus(), 50);

@@ -54,5 +54,24 @@
       }
     }).observe(document.body, {childList: true, subtree: true, characterData: true});
   }
-  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  // توقيع المنصة في كل صفحة
+  var HEART = '<svg viewBox="0 0 24 24" style="width:13px;height:13px;vertical-align:-2px;margin:0 3px" aria-label="قلب"><path fill="#C0392B" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.6 2.9 4.5 6.7 4.5c2.1 0 3.6 1.1 4.3 2.4h2c.7-1.3 2.2-2.4 4.3-2.4 3.8 0 5.8 4.1 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
+  var CREDIT = 'صُمّم ب' + HEART + 'من قبل منصور الجبر في المركز الرئيسي لشركة أبيلا بمدينة الرياض' +
+    '<br><span style="opacity:.85">© ' + new Date().getFullYear() + ' شركة أبيلا للأفراح والمناسبات — جميع الحقوق محفوظة</span>';
+  function credit() {
+    var ex = document.querySelector('footer.credit');
+    if (ex) { ex.setAttribute('data-noicons', ''); ex.innerHTML = CREDIT; return; }
+    if (document.querySelector('.abella-credit')) return;
+    var f = document.createElement('footer');
+    f.className = 'abella-credit'; f.setAttribute('data-noicons', '');
+    f.style.cssText = 'text-align:center;font-size:12px;color:#7A6A58;padding:18px 10px 22px;line-height:1.8';
+    f.innerHTML = CREDIT;
+    var main = document.querySelector('main.main');
+    var mob = document.querySelector('main.app-content');
+    if (main) main.appendChild(f);
+    else if (mob && mob.parentNode) mob.parentNode.insertBefore(f, mob.nextSibling);
+    else document.body.appendChild(f);
+  }
+  function boot() { start(); credit(); }
+  if (document.body) boot(); else document.addEventListener('DOMContentLoaded', boot);
 })();
