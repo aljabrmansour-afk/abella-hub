@@ -226,6 +226,20 @@ def _name(user):
     return (user.get('full_name') or user['username']).split(' — ')[0].strip()
 
 
+def _derive(user):
+    """الدور/الأقسام من كل أدوار الحساب: إدارة عمليات لو أي دور يعطيها، وإلا اتحاد الأقسام"""
+    import access_control as ac
+    role, depts = '', []
+    for r in ac.user_roles(user):
+        rr, dd = HUB_ROLE_MAP.get(r or '', ('', []))
+        if rr == ROLE_OPS:
+            role = ROLE_OPS
+        elif rr == ROLE_DEPT and role != ROLE_OPS:
+            role = ROLE_DEPT
+        depts += [d for d in dd if d not in depts]
+    return role, depts
+
+
 def member(conn, user, is_super):
     r = conn.execute("SELECT role, depts, active FROM opn_team WHERE username=?", (user['username'],)).fetchone()
     if r and t_(r['active']) == 'لا':
@@ -236,7 +250,7 @@ def member(conn, user, is_super):
         role, depts = t_(r['role']), [d for d in re.split(r'[،,]', t_(r['depts'])) if t_(d) in DEPTS]
         depts = [t_(d) for d in depts]
     else:
-        role, depts = HUB_ROLE_MAP.get(user.get('role') or '', ('', []))
+        role, depts = _derive(user)
     if role not in (ROLE_ADMIN, ROLE_OPS) and not (role == ROLE_DEPT and depts):
         raise PermissionError('لم يُحدَّد دورك أو قسمك في إدارة العمليات بعد — راجع الإدارة')
     return {'name': _name(user), 'username': user['username'], 'role': role, 'depts': depts,
@@ -755,18 +769,18 @@ def _team(conn):
     """كل حسابات المنصة النشطة مع دورها في إدارة العمليات"""
     import access_control as ac
     out = []
-    for u in conn.execute("SELECT id, username, full_name, role, is_active FROM users ORDER BY full_name").fetchall():
+    for u in conn.execute("SELECT id, username, full_name, role, extra_roles, is_active FROM users WHERE COALESCE(deleted,0)=0 ORDER BY full_name").fetchall():
         u = dict(u)
         if not u.get('is_active', 1):
             continue
-        sup = bool(ac.get_perms(conn, u['role']).get('is_super'))
+        sup = bool(ac.get_user_perms(conn, u).get('is_super'))
         r = conn.execute("SELECT role, depts, active FROM opn_team WHERE username=?", (u['username'],)).fetchone()
         if sup:
             role, depts, src = ROLE_ADMIN, '', 'مدير في المنصة'
         elif r and t_(r['role']):
             role, depts, src = t_(r['role']), t_(r['depts']), 'محدد'
         else:
-            role, dl = HUB_ROLE_MAP.get(u['role'] or '', ('', []))
+            role, dl = _derive(u)
             depts, src = '، '.join(dl), 'من دور الحساب' if role else ''
         out.append({'username': u['username'], 'name': _name(u), 'hubRole': u['role'], 'role': role, 'depts': depts,
                     'active': not (r and t_(r['active']) == 'لا'), 'src': src, 'super': sup})

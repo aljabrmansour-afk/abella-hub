@@ -55,19 +55,23 @@ def _name(u):
 def staff(conn):
     import access_control as ac
     out = []
-    for u in conn.execute("SELECT username, full_name, role, is_active FROM users ORDER BY full_name").fetchall():
+    for u in conn.execute("SELECT username, full_name, role, extra_roles, is_active FROM users WHERE COALESCE(deleted,0)=0 ORDER BY full_name").fetchall():
         u = dict(u)
         if not u.get('is_active', 1):
             continue
         r = conn.execute("SELECT role, team, all_projects, active FROM exn_team WHERE username=?", (u['username'],)).fetchone()
         if r and t_(r['active']) == 'لا':
             continue
-        if ac.get_perms(conn, u['role']).get('is_super'):
+        if ac.get_user_perms(conn, u).get('is_super'):
             role, team, allp = ADMIN, '', 0
         elif r and t_(r['role']):
             role, team, allp = t_(r['role']), t_(r['team']), int(r['all_projects'] or 0)
         else:
-            role, team = HUB_ROLE_MAP.get(u['role'] or '', ('', ''))
+            # أعلى دور من أدوار الحساب: مشرف ← مدير تشغيل ← موظف
+            cands = [HUB_ROLE_MAP.get(r, ('', '')) for r in ac.user_roles(u)]
+            rank = {SUP: 0, OPS: 1, STAFF: 2}
+            cands = sorted([c for c in cands if c[0]], key=lambda c: rank.get(c[0], 9))
+            role, team = cands[0] if cands else ('', '')
             allp = 0
         if not role:
             continue

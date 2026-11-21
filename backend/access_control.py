@@ -374,6 +374,33 @@ def get_perms(conn, role):
                                  'edit': bool(r['can_edit']), 'delete': bool(r['can_delete'])}
     return {'is_super': is_super, 'role_name': role_row['name'] if role_row else role, 'modules': mods}
 
+def user_roles(user):
+    """الدور الأساسي + الأدوار الإضافية (الشخص ممكن يمسك أكثر من دور)"""
+    out = [user.get('role')] if user.get('role') else []
+    for r in (user.get('extra_roles') or '').split(','):
+        r = r.strip()
+        if r and r not in out:
+            out.append(r)
+    return out
+
+
+def get_user_perms(conn, user):
+    """اتحاد صلاحيات كل أدوار المستخدم"""
+    roles = user_roles(user)
+    merged = {'is_super': False, 'role_name': '', 'modules': {}, 'roles': roles}
+    names = []
+    for r in roles:
+        p = get_perms(conn, r)
+        names.append(p['role_name'])
+        merged['is_super'] = merged['is_super'] or p['is_super']
+        for m, acts in p['modules'].items():
+            cur = merged['modules'].setdefault(m, {a: False for a in ACTIONS})
+            for a, v in acts.items():
+                cur[a] = cur[a] or v
+    merged['role_name'] = ' + '.join(n for n in names if n)
+    return merged
+
+
 def can(perms, module, action='view'):
     if perms.get('is_super'):
         return True
@@ -484,7 +511,7 @@ def check(conn, method, path, user_id):
     user = get_user(conn, user_id)
     if not user or not user.get('is_active'):
         return False, 401, 'الحساب غير مفعّل', None
-    perms = get_perms(conn, user['role'])
+    perms = get_user_perms(conn, user)
     ctx = {'user': user, 'perms': perms}
     # تغيير كلمة المرور الإجباري: يُسمح فقط بمسارات الحساب
     if user.get('must_change_password') and not path.startswith('/api/auth/') and path not in ('/api/me', '/api/permissions/me'):

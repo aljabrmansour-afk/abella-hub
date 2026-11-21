@@ -303,6 +303,11 @@ def init_database():
         import exec_native
         exec_native.init_tables(conn)
         jard_native.init_tables(conn)
+        for _col in ("extra_roles TEXT", "deleted INTEGER DEFAULT 0"):
+            try:
+                conn.execute("ALTER TABLE users ADD COLUMN " + _col)
+            except Exception:
+                pass
         _seed_team_20261120(conn)
         conn.commit()
     except Exception as e:
@@ -1052,7 +1057,7 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
                 return self.send_json(rows_to_list(conn.execute("SELECT * FROM teams ORDER BY id").fetchall()))
             if path == '/api/users':
                 return self.send_json(rows_to_list(conn.execute(
-                    "SELECT id, username, full_name, role, is_active FROM users ORDER BY full_name").fetchall()))
+                    "SELECT id, username, full_name, role, is_active FROM users WHERE COALESCE(deleted,0)=0 ORDER BY full_name").fetchall()))
 
             # ===== خطط العمل =====
             if path == '/api/workplans':

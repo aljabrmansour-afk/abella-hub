@@ -277,7 +277,7 @@ def _login(h, conn, data, send_json):
     conn.execute("UPDATE users SET last_login=CURRENT_TIMESTAMP WHERE id=?", (user['id'],))
     conn.commit()
     u = dict(user)
-    perms = ac.get_perms(conn, u['role'])
+    perms = ac.get_user_perms(conn, u)
     send_json({'token': token, 'user': ac.public_user(u, perms), 'perms': perms})
     return True
 
@@ -337,6 +337,12 @@ def _super_users_left(conn, excluding_id=None):
                            WHERE r.is_super=1 AND u.is_active=1 AND u.id IS NOT ?""",
                         (excluding_id,)).fetchone()[0]
 
+def _extra_roles(conn, data, primary):
+    keys = [k for k in (data.get('extra_roles') or []) if k and k != primary]
+    valid = {r[0] for r in conn.execute("SELECT key FROM roles")}
+    return ','.join(k for k in dict.fromkeys(keys) if k in valid) or None
+
+
 def _admin(conn, method, path, query, data, ctx, send_json):
     uid = ctx['user']['id']
 
@@ -344,9 +350,13 @@ def _admin(conn, method, path, query, data, ctx, send_json):
     if path == '/api/admin/users' and method == 'GET':
         rows = _rows(conn, """SELECT u.id, u.username, u.full_name, u.phone, u.email, u.role, u.job_title,
                                      u.language, u.is_active, u.last_login, u.created_at, u.must_change_password,
-                                     u.can_record_expenses, r.name AS role_name, r.is_super
+                                     u.can_record_expenses, u.extra_roles, r.name AS role_name, r.is_super
                               FROM users u LEFT JOIN roles r ON r.key=u.role
+                              WHERE COALESCE(u.deleted,0)=0
                               ORDER BY u.is_active DESC, r.is_super DESC, u.full_name""")
+        names = {x['key']: x['name'] for x in _rows(conn, "SELECT key, name FROM roles")}
+        for u in rows:
+            u['extra_role_names'] = [names.get(k.strip(), k.strip()) for k in (u.get('extra_roles') or '').split(',') if k.strip()]
         send_json(rows)
         return True
 
@@ -373,13 +383,17 @@ def _admin(conn, method, path, query, data, ctx, send_json):
         if len(pw) < 8 and not temp:
             send_json({'error': 'كلمة المرور 8 أحرف على الأقل'}, 400)
             return True
+        if conn.execute("SELECT 1 FROM users WHERE lower(username)=?", (username,)).fetchone():
+            send_json({'error': 'اسم المستخدم مستخدم من قبل'}, 400)
+            return True
         cur = conn.execute("""INSERT INTO users (username, password_hash, full_name, phone, email, role,
                                                  job_title, language, is_active, must_change_password,
-                                                 can_record_expenses)
-                              VALUES (?,?,?,?,?,?,?,?,?,1,?)""",
+                                                 can_record_expenses, extra_roles)
+                              VALUES (?,?,?,?,?,?,?,?,?,1,?,?)""",
                            (username, ac.hash_password(pw), data['full_name'].strip(), data.get('phone'),
                             data.get('email'), role, data.get('job_title'), data.get('language') or 'ar',
-                            1 if data.get('is_active', 1) else 0, data.get('can_record_expenses') or None))
+                            1 if data.get('is_active', 1) else 0, data.get('can_record_expenses') or None,
+                            _extra_roles(conn, data, role)))
         ac.audit(conn, uid, 'CREATE', 'user', cur.lastrowid, new={'username': username, 'role': role})
         if data.get('employee_id'):
             try:
@@ -410,6 +424,8 @@ def _admin(conn, method, path, query, data, ctx, send_json):
                 send_json({'error': 'لازم يبقى مستخدم واحد على الأقل بصلاحية كاملة'}, 400)
                 return True
             fields.append("role=?"); params.append(data['role'])
+        if 'extra_roles' in data:
+            fields.append("extra_roles=?"); params.append(_extra_roles(conn, data, data.get('role') or target['role']))
         if 'is_active' in data:
             active = 1 if data['is_active'] else 0
             if not active and tid == uid:
@@ -438,7 +454,7 @@ def _admin(conn, method, path, query, data, ctx, send_json):
             return True
         params.append(tid)
         conn.execute(f"UPDATE users SET {', '.join(fields)} WHERE id=?", params)
-        if reset_pw or data.get('is_active') in (0, False) or 'role' in data:
+        if reset_pw or data.get('is_active') in (0, False) or 'role' in data or 'extra_roles' in data:
             ac.kill_user_sessions(conn, tid)
         ac.audit(conn, uid, 'UPDATE', 'user', tid,
                  new={k: v for k, v in data.items() if k not in ('new_password',)})
@@ -447,17 +463,21 @@ def _admin(conn, method, path, query, data, ctx, send_json):
         return True
 
     if m and method == 'DELETE':
-        # لا نحذف المستخدم نهائياً (مرتبط بالسجلات) — نوقفه
+        # حذف من قائمة المستخدمين: الحساب يُقفل ويختفي، وسجلاته (العقود، المصروفات، السجل) تبقى باسمه
         tid = int(m.group(1))
         if tid == uid:
-            send_json({'error': 'ما تقدر توقف حسابك أنت'}, 400)
+            send_json({'error': 'ما تقدر تحذف حسابك أنت'}, 400)
             return True
         if _super_users_left(conn, excluding_id=tid) == 0:
             send_json({'error': 'لازم يبقى مستخدم واحد على الأقل بصلاحية كاملة'}, 400)
             return True
-        conn.execute("UPDATE users SET is_active=0 WHERE id=?", (tid,))
+        t = _row(conn, "SELECT username FROM users WHERE id=?", (tid,))
+        if not t:
+            send_json({'error': 'المستخدم غير موجود'}, 404)
+            return True
+        conn.execute("UPDATE users SET is_active=0, deleted=1, username=? WHERE id=?", (f"{t['username']}__del{tid}", tid))
         ac.kill_user_sessions(conn, tid)
-        ac.audit(conn, uid, 'DEACTIVATE', 'user', tid)
+        ac.audit(conn, uid, 'DELETE', 'user', tid, old={'username': t['username']})
         conn.commit()
         send_json({'success': True})
         return True

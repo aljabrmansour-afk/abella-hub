@@ -964,10 +964,10 @@ async function admUsers(head) {
   pageShell('المستخدمين والصلاحيات', can('users', 'edit') ? '<button class="btn" onclick="userEditor()">+ مستخدم جديد</button>' : '', head + `
     <div class="card tight"><div class="tbl-wrap"><table><thead><tr><th>الاسم</th><th>اسم الدخول</th><th>الدور</th><th>المسمى</th><th>الجوال</th><th>آخر دخول</th><th>الحالة</th><th></th></tr></thead><tbody>
     ${users.map(u => `<tr class="${u.is_active ? '' : 'off'}"><td><strong>${esc(u.full_name)}</strong></td><td dir="ltr" style="text-align:right">${esc(u.username)}</td>
-      <td>${pill(u.role_name || u.role, u.is_super ? 'gold' : '')}</td><td>${esc(u.job_title || '')}</td><td dir="ltr" style="text-align:right">${esc(u.phone || '')}</td>
+      <td>${pill(u.role_name || u.role, u.is_super ? 'gold' : '')}${(u.extra_role_names || []).map(n => ' ' + pill('+ ' + n, '')).join('')}</td><td>${esc(u.job_title || '')}</td><td dir="ltr" style="text-align:right">${esc(u.phone || '')}</td>
       <td>${u.last_login ? esc(u.last_login.slice(0, 16)) : '<span class="muted">لم يدخل</span>'}${u.must_change_password ? '<br>' + pill('ينتظر تغيير كلمة المرور', 'warn') : ''}</td>
       <td>${u.is_active ? pill('فعّال', 'ok') : pill('موقوف', 'bad')}</td>
-      <td class="nowrap">${can('users', 'edit') ? `<button class="btn btn-sm btn-outline" onclick="userEditor(${u.id})">تعديل</button> <button class="btn btn-sm btn-outline" onclick="userReset(${u.id})">كلمة مرور مؤقتة</button>` : ''}</td></tr>`).join('')}
+      <td class="nowrap">${can('users', 'edit') ? `<button class="btn btn-sm btn-outline" onclick="userEditor(${u.id})">تعديل</button> <button class="btn btn-sm btn-outline" onclick="userReset(${u.id})">كلمة مرور مؤقتة</button> <button class="btn btn-sm btn-outline" style="color:#B3261E;border-color:#E7B9B4" onclick="userDelete(${u.id})">حذف</button>` : ''}</td></tr>`).join('')}
     </tbody></table></div></div>`);
 }
 function roleOptions(sel) { return ADM.roles.map(r => `<option value="${r.key}" ${r.key === sel ? 'selected' : ''}>${esc(r.name)}${r.is_super ? ' (صلاحية كاملة)' : ''}</option>`).join(''); }
@@ -978,13 +978,16 @@ function userEditor(id) {
     <div class="form-group"><label class="form-label">اسم الدخول * <small class="muted">(إنجليزي)</small></label><input id="us-user" class="form-input" dir="ltr" value="${esc(u.username || '')}" placeholder="rahaf"></div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">الدور (يحدد الأقسام اللي يشوفها) *</label><select id="us-role" class="form-select">${roleOptions(u.role)}</select></div>
     <div class="form-group"><label class="form-label">المسمى الوظيفي</label><input id="us-title" class="form-input" value="${esc(u.job_title || '')}"></div></div>
+    <div class="form-group"><label class="form-label">أدوار إضافية <small class="muted">(لو الشخص ماسك أكثر من دور — يشوف أقسام كل أدواره)</small></label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px 14px">${ADM.roles.filter(r => !r.is_super).map(r => `<label class="chk" style="margin:0"><input type="checkbox" class="us-xrole" value="${r.key}" ${(u.extra_roles || '').split(',').includes(r.key) ? 'checked' : ''}> ${esc(r.name)}</label>`).join('')}</div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">الجوال</label><input id="us-phone" class="form-input" dir="ltr" value="${esc(u.phone || '')}"></div>
     <div class="form-group"><label class="form-label">اللغة</label><select id="us-lang" class="form-select"><option value="ar" ${u.language === 'ar' ? 'selected' : ''}>عربي</option><option value="en" ${u.language === 'en' ? 'selected' : ''}>English</option><option value="ur" ${u.language === 'ur' ? 'selected' : ''}>اردو</option></select></div></div>
     ${id ? `<label class="chk"><input id="us-active" type="checkbox" ${u.is_active ? 'checked' : ''}> الحساب فعّال</label>` : `<div class="form-group"><label class="form-label">كلمة المرور <small class="muted">(اتركها فاضية لتوليد كلمة مؤقتة)</small></label><input id="us-pass" class="form-input" dir="ltr"></div><p class="muted small">المستخدم يُطلب منه تغيير كلمة المرور أول ما يدخل.</p>`}`,
     `<button class="btn" onclick="userSave(${id || 'null'})">حفظ</button><button class="btn btn-outline" onclick="closeModal()">إلغاء</button>`);
 }
 async function userSave(id) {
-  const d = { full_name: val('us-name'), username: val('us-user'), role: val('us-role'), job_title: val('us-title'), phone: val('us-phone'), language: val('us-lang') };
+  const d = { full_name: val('us-name'), username: val('us-user'), role: val('us-role'), job_title: val('us-title'), phone: val('us-phone'), language: val('us-lang'),
+    extra_roles: [...document.querySelectorAll('.us-xrole:checked')].map(x => x.value).filter(k => k !== val('us-role')) };
   try {
     if (id) {
       d.is_active = document.getElementById('us-active').checked ? 1 : 0;
@@ -996,6 +999,11 @@ async function userSave(id) {
     }
     renderUsersAdmin();
   } catch (e) { toast(e.message, 'error'); }
+}
+async function userDelete(id) {
+  const u = CRM.users.find(x => x.id === id);
+  if (!confirm(`حذف ${u.full_name} من المنصة؟\nحسابه يتقفل ويختفي من القوائم، وسجلاته القديمة (العقود والمصروفات والسجل) تبقى باسمه.`)) return;
+  try { await capi('/admin/users/' + id, 'DELETE'); toast('حُذف ' + u.full_name, 'success'); renderUsersAdmin(); } catch (e) { toast(e.message, 'error'); }
 }
 function showCredentials(name, username, pw) {
   const link = location.origin + '/';
