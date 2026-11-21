@@ -89,6 +89,12 @@ def to_date(val):
     if re.match(r'^\d{4}-\d{1,2}-\d{1,2}$', s):
         parts = s.split('-')
         return f"{parts[0]}-{parts[1].zfill(2)}-{parts[2].zfill(2)}"
+    m = re.match(r'^(\d{1,2})-(\d{1,2})-(\d{4})', s)   # 19/10/2026
+    if m:
+        return f"{m.group(3)}-{m.group(2).zfill(2)}-{m.group(1).zfill(2)}"
+    m = re.match(r'^(\d{4}-\d{2}-\d{2})[T ]', s)
+    if m:
+        return m.group(1)
     return None
 
 
@@ -160,9 +166,9 @@ def sync_expenses(conn, rows, expense_type):
     conn.execute("DELETE FROM sheet_expenses WHERE expense_type=?", (expense_type,))
 
     count = 0
-    for row in rows[2:]:
-        # رقم أمر التشغيل في العمود A، لو فاضي = صف فاضي
-        if len(row) < 5 or not clean_text(row[0]):
+    for row in rows[1:]:
+        # رقم أمر التشغيل في العمود A (O####) — غير ذلك ترويسة/صف فاضي
+        if len(row) < 5 or not re.match(r'^O\d+', clean_text(row[0]) or ''):
             continue
         try:
             # تحديد ترتيب الأعمدة (مصاريف التنفيذ مختلف قليلاً)
@@ -218,8 +224,8 @@ def sync_purchases(conn, rows):
     conn.execute("DELETE FROM sheet_purchases")
 
     count = 0
-    for row in rows[2:]:
-        if len(row) < 5 or not clean_text(row[0]):
+    for row in rows[1:]:
+        if len(row) < 5 or not re.match(r'^O\d+', clean_text(row[0]) or ''):
             continue
         try:
             conn.execute("""INSERT INTO sheet_purchases
@@ -256,6 +262,94 @@ def sync_purchases(conn, rows):
     return count
 
 
+
+# ============================================================
+# قواعد الحالة والتكلفة (مصدر واحد للحقيقة)
+# ============================================================
+DONE_WORDS = ('منتهي', 'منتهية', 'مكتمل', 'مكتملة', 'منفذ', 'منفذة', 'تم التنفيذ', 'مغلق')
+CANCEL_WORDS = ('ملغي', 'ملغى', 'ملغية', 'إلغاء', 'الغاء')
+SYSTEM_PROGRESS = ('planning', 'ready')
+
+
+def riyadh_today():
+    return (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).date().isoformat()
+
+
+def derive_status(sheet_status, date, current=None):
+    """الحالة من تاريخ المناسبة أولاً: ما مضى تاريخه = منتهية، اليوم = قيد التنفيذ، القادم = متعاقد/تحضير."""
+    st = (sheet_status or '').strip()
+    if any(w in st for w in CANCEL_WORDS):
+        return 'cancelled'
+    if any(w in st for w in DONE_WORDS):
+        return 'completed'
+    today = riyadh_today()
+    if date and date < today:
+        return 'completed'
+    if date and date == today:
+        return 'in_progress'
+    # مناسبة قادمة: نحافظ على تقدم داخل المنصة (تخطيط/جاهزة)
+    if current in SYSTEM_PROGRESS:
+        return current
+    return 'contracted'
+
+
+def revenue_ex_vat(c):
+    """الإيراد قبل الضريبة (الربح يُحسب عليه لا على المبلغ شامل الضريبة)"""
+    base = (c['contract_value'] or 0) + (c['additional'] or 0)
+    if base:
+        return base - (c['discount'] or 0)
+    return round((c['contract_value_with_vat'] or 0) / 1.15, 2)
+
+
+def _has_table(conn, name):
+    return bool(conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)).fetchone())
+
+
+def event_cost(conn, op):
+    """صافي تكلفة المناسبة من فواتير المصروفات الأربعة (إشراف/تنفيذ/ضيافة/مشتريات)"""
+    if _has_table(conn, 'exp_invoices') and conn.execute("SELECT 1 FROM exp_invoices WHERE source='sheet' LIMIT 1").fetchone():
+        r = conn.execute("""SELECT COALESCE(SUM(CASE WHEN COALESCE(net,0)<>0 THEN net ELSE COALESCE(total,0)-COALESCE(vat,0) END),0)
+                            FROM exp_invoices WHERE operation_order=? AND COALESCE(is_test,0)=0
+                            AND COALESCE(status,'active') NOT IN ('deleted','cancelled','محذوف','ملغي')""", (op,)).fetchone()
+        return round(r[0] or 0, 2)
+    a = conn.execute("SELECT COALESCE(SUM(net_cost),0) FROM sheet_expenses WHERE operation_order=?", (op,)).fetchone()[0]
+    b = conn.execute("SELECT COALESCE(SUM(net_cost),0) FROM sheet_purchases WHERE operation_order=?", (op,)).fetchone()[0]
+    return round((a or 0) + (b or 0), 2)
+
+
+def refresh_events(conn):
+    """إعادة حساب الحالة والتكلفة والربح لكل المناسبات (تُستدعى بعد استيراد المصروفات وكل يوم)"""
+    _rf = conn.row_factory
+    conn.row_factory = sqlite3.Row
+    try:
+        return _refresh(conn)
+    finally:
+        conn.row_factory = _rf
+
+
+def _refresh(conn):
+    sc = {r['operation_order']: r for r in conn.execute("SELECT * FROM sheet_contracts WHERE operation_order IS NOT NULL")} \
+        if _has_table(conn, 'sheet_contracts') else {}
+    n = 0
+    for e in conn.execute("SELECT id, operation_order, status, event_date, actual_date, total_price, sync_source FROM events").fetchall():
+        op = e['operation_order']
+        cost = event_cost(conn, op) if op else 0
+        c = sc.get(op)
+        if c is not None and (e['sync_source'] or '') == 'google_sheets':
+            st = derive_status(c['status'], c['actual_date'] or c['expected_date'] or e['actual_date'] or e['event_date'], e['status'])
+            rev = revenue_ex_vat(c)
+        else:
+            st = e['status']
+            if st not in ('cancelled', 'lead', 'quoted', 'completed', 'closed'):
+                d = e['actual_date'] or e['event_date']
+                if d and d < riyadh_today():
+                    st = 'completed'
+            rev = round((e['total_price'] or 0) / 1.15, 2)
+        conn.execute("UPDATE events SET status=?, cost_total=?, profit=? WHERE id=?", (st, cost, round(rev - cost, 2), e['id']))
+        n += 1
+    conn.commit()
+    return n
+
 # ============================================================
 # دمج البيانات في events و customers
 # ============================================================
@@ -289,12 +383,7 @@ def merge_into_events(conn):
         else:
             customer_id = cust['id']
 
-        # 2. حساب التكلفة الإجمالية لهذه المناسبة من جدول المصاريف
-        cost_row = conn.execute("""SELECT COALESCE(SUM(net_cost), 0) as total_cost
-                                   FROM sheet_expenses WHERE operation_order=?""", (op_order,)).fetchone()
-        purchase_row = conn.execute("""SELECT COALESCE(SUM(net_cost), 0) as total_cost
-                                       FROM sheet_purchases WHERE operation_order=?""", (op_order,)).fetchone()
-        total_cost = (cost_row['total_cost'] or 0) + (purchase_row['total_cost'] or 0)
+        total_cost = event_cost(conn, op_order)
 
         # 3. التحقق من وجود المناسبة بنفس رقم أمر التشغيل
         existing = conn.execute("SELECT id, sync_source FROM events WHERE operation_order=?", (op_order,)).fetchone()
@@ -315,19 +404,17 @@ def merge_into_events(conn):
 
         revenue = c['contract_value_with_vat'] or c['contract_value'] or 0
         paid = c['received'] or 0
-        profit = revenue - total_cost
-
-        # تحديد الحالة
-        if c['status']:
-            status_map = {
-                'قيد التنفيذ': 'in_progress',
-                'مكتمل': 'completed',
-                'منفذ': 'completed',
-                'ملغي': 'cancelled',
-            }
-            status = status_map.get(c['status'], 'contracted')
-        else:
-            status = 'contracted'
+        if _has_table(conn, 'gen_payments'):   # دفعات مسجلة في المولد/المنصة بعد آخر تحديث للجدول
+            gp = conn.execute("SELECT COALESCE(SUM(amount),0) FROM gen_payments WHERE contract_code=?", (c['contract_code'],)).fetchone()[0]
+            paid = max(paid, gp or 0)
+        profit = round(revenue_ex_vat(c) - total_cost, 2)
+        exp_d = c['expected_date']
+        act_d = c['actual_date']
+        cur_status = None
+        if existing:
+            r0 = conn.execute("SELECT status FROM events WHERE id=?", (existing['id'],)).fetchone()
+            cur_status = r0['status'] if r0 else None
+        status = derive_status(c['status'], act_d or exp_d, cur_status)
 
         if existing:
             # تحديث
@@ -335,12 +422,13 @@ def merge_into_events(conn):
                 customer_id=?, event_type=?, contract_code=?, total_price=?, paid_amount=?,
                 insurance_amount=?, insurance_returned=?, discount=?,
                 cost_total=?, profit=?, venue_name=?, sync_source='google_sheets',
-                event_date=COALESCE(?, event_date), updated_at=CURRENT_TIMESTAMP
+                event_date=COALESCE(?, event_date), actual_date=COALESCE(?, actual_date),
+                status=?, updated_at=CURRENT_TIMESTAMP
                 WHERE id=?""",
                 (customer_id, event_type, c['contract_code'], revenue, paid,
                  c['insurance'] or 0, c['insurance_returned'] or 0, c['discount'] or 0,
                  total_cost, profit, c['venue'],
-                 c['expected_date'] or c['actual_date'], existing['id']))
+                 exp_d or act_d, act_d, status, existing['id']))
             events_updated += 1
         else:
             # إنشاء
@@ -349,19 +437,19 @@ def merge_into_events(conn):
                               (f"EVT-{year}-%",)).fetchone()['c'] + 1
             event_code = f"EVT-{year}-{cnt:04d}"
 
-            event_date = c['expected_date'] or c['actual_date'] or datetime.date.today().isoformat()
+            event_date = exp_d or act_d or datetime.date.today().isoformat()
             title = f"{c['event_type'] or 'مناسبة'} — {customer_name}"
 
             conn.execute("""INSERT INTO events
                 (event_code, operation_order, contract_code, customer_id, event_type, title,
                  event_date, venue_name, status, total_price, paid_amount,
                  insurance_amount, insurance_returned, discount,
-                 cost_total, profit, sync_source, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'google_sheets', 1)""",
+                 cost_total, profit, sync_source, created_by, actual_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'google_sheets', 1, ?)""",
                 (event_code, op_order, c['contract_code'], customer_id, event_type, title,
                  event_date, c['venue'], status, revenue, paid,
                  c['insurance'] or 0, c['insurance_returned'] or 0, c['discount'] or 0,
-                 total_cost, profit))
+                 total_cost, profit, act_d))
             events_added += 1
 
     return customers_added, events_added, events_updated
@@ -431,6 +519,7 @@ def run_sync(db_path, log_callback=None):
         # 2. دمج البيانات في events و customers
         log_callback(f"\n🔄 دمج البيانات في النظام...")
         customers_added, events_added, events_updated = merge_into_events(conn)
+        refresh_events(conn)
         results['merged'] = {
             'customers_added': customers_added,
             'events_added': events_added,

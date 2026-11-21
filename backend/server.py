@@ -626,6 +626,34 @@ def save_data_url_image(data_url, subfolder=''):
 # ============================================================
 # معالج HTTP
 # ============================================================
+
+def _exp_stats(conn):
+    """إحصاءات المصروفات من فواتير المصروفات الأربعة (المصدر الحقيقي) لا من جدول expenses القديم"""
+    if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='exp_invoices'").fetchone():
+        return {'total_expenses': 0, 'monthly_expenses': [], 'expenses_by_category': [], 'expenses_by_vendor': [], 'expenses_by_user': []}
+    W = "COALESCE(is_test,0)=0 AND COALESCE(status,'active') NOT IN ('deleted','cancelled','محذوف','ملغي')"
+    lab = {'sup': 'الإشراف', 'hos': 'الضيافة', 'exe': 'التنفيذ', 'pur': 'المشتريات'}
+    def q(sql):
+        cur = conn.execute(sql)
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, r)) for r in cur.fetchall()]
+    cats = q(f"SELECT k cat, SUM(total) total, COUNT(*) n FROM exp_invoices WHERE {W} GROUP BY k ORDER BY total DESC")
+    for c in cats:
+        c['cat'] = lab.get(c['cat'], c['cat'])
+    return {
+        'total_expenses': conn.execute(f"SELECT COALESCE(SUM(total),0) FROM exp_invoices WHERE {W}").fetchone()[0],
+        'total_expenses_net': conn.execute(f"SELECT COALESCE(SUM(net),0) FROM exp_invoices WHERE {W}").fetchone()[0],
+        'expenses_unpaid': conn.execute(f"SELECT COALESCE(SUM(remaining),0) FROM exp_invoices WHERE {W} AND remaining>0").fetchone()[0],
+        'monthly_expenses': q(f"""SELECT substr(invoice_date,1,7) month, SUM(total) total FROM exp_invoices
+                                 WHERE {W} AND invoice_date LIKE '20%' GROUP BY month ORDER BY month DESC LIMIT 6"""),
+        'expenses_by_category': cats,
+        'expenses_by_vendor': q(f"""SELECT COALESCE(NULLIF(sup_key,''), supplier, item) vendor, SUM(total) total, COUNT(*) n FROM exp_invoices
+                                   WHERE {W} GROUP BY vendor HAVING vendor IS NOT NULL AND vendor<>'' ORDER BY total DESC LIMIT 10"""),
+        'expenses_by_user': q(f"""SELECT COALESCE(NULLIF(person,''), entered_by) user_name, '' role, SUM(total) total, COUNT(*) n FROM exp_invoices
+                                 WHERE {W} GROUP BY user_name HAVING user_name IS NOT NULL AND user_name<>'' ORDER BY total DESC LIMIT 12"""),
+    }
+
+
 class AbelaHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         ts = datetime.datetime.now().strftime("%H:%M:%S")
@@ -858,31 +886,7 @@ class AbelaHandler(http.server.BaseHTTPRequestHandler):
                     'total_workplans': conn.execute("SELECT COUNT(*) c FROM work_plans").fetchone()['c'],
                     'pending_checklists': conn.execute("SELECT COUNT(*) c FROM warehouse_checklists WHERE status IN ('pending','in_progress')").fetchone()['c'],
                     # === مالية مفصّلة ===
-                    'total_expenses': conn.execute("SELECT COALESCE(SUM(amount),0) v FROM expenses WHERE status!='rejected'").fetchone()['v'] if conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'").fetchone() else 0,
-                    'monthly_expenses': rows_to_list(conn.execute("""
-                        SELECT strftime('%Y-%m', expense_date) as month,
-                               SUM(amount) as total
-                        FROM expenses WHERE status!='rejected'
-                        GROUP BY month ORDER BY month DESC LIMIT 6
-                    """).fetchall()) if conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'").fetchone() else [],
-                    'expenses_by_category': rows_to_list(conn.execute("""
-                        SELECT expense_category as cat, SUM(amount) as total, COUNT(*) as n
-                        FROM expenses WHERE status!='rejected'
-                        GROUP BY expense_category ORDER BY total DESC
-                    """).fetchall()) if conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'").fetchone() else [],
-                    'expenses_by_vendor': rows_to_list(conn.execute("""
-                        SELECT vendor_name as vendor, SUM(amount) as total, COUNT(*) as n
-                        FROM expenses WHERE status!='rejected' AND vendor_name IS NOT NULL AND vendor_name != ''
-                        GROUP BY vendor_name ORDER BY total DESC LIMIT 10
-                    """).fetchall()) if conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'").fetchone() else [],
-                    'expenses_by_user': rows_to_list(conn.execute("""
-                        SELECT u.full_name as user_name, u.role,
-                               COALESCE(SUM(e.amount),0) as total, COUNT(e.id) as n
-                        FROM users u
-                        LEFT JOIN expenses e ON e.recorded_by=u.id AND e.status!='rejected'
-                        WHERE u.can_record_expenses IS NOT NULL
-                        GROUP BY u.id ORDER BY total DESC
-                    """).fetchall()) if conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'").fetchone() else [],
+                    **_exp_stats(conn),
                     'monthly_revenue': rows_to_list(conn.execute("""
                         SELECT strftime('%Y-%m', COALESCE(actual_date, event_date)) as month,
                                SUM(total_price) as revenue,

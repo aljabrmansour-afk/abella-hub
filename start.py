@@ -65,6 +65,7 @@ def sheets_sync_loop():
                     import expenses_routes
                     expenses_routes.init_tables(_c)
                     expenses_routes.import_sheets(_c)
+                    sync_sheets.refresh_events(_c)
                 except Exception as e:
                     print('⚠ استيراد المصروفات', e)
                 try:

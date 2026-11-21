@@ -37,22 +37,22 @@ def get_routes(handler, conn, path, query, get_body_json, get_user_id, send_json
 
     # ===== الداش بورد اللحظي للمالكة =====
     if path == '/api/owner/live':
-        today = conn.execute("SELECT date('now') as d").fetchone()['d']
+        today = conn.execute("SELECT date('now','+3 hours') as d").fetchone()['d']
         live = {
             'timestamp': conn.execute("SELECT datetime('now') as t").fetchone()['t'],
             'today_events': rows_to_list(conn.execute("""
                 SELECT e.*, c.full_name as customer_name
                 FROM events e JOIN customers c ON e.customer_id=c.id
-                WHERE date(e.event_date)=? ORDER BY e.event_start_time""", (today,)).fetchall()),
+                WHERE date(COALESCE(e.actual_date,e.event_date))=? AND e.status<>'cancelled' ORDER BY e.event_start_time""", (today,)).fetchall()),
             'tomorrow_events': rows_to_list(conn.execute("""
                 SELECT e.*, c.full_name as customer_name
                 FROM events e JOIN customers c ON e.customer_id=c.id
-                WHERE date(e.event_date)=date('now','+1 day')""").fetchall()),
+                WHERE date(COALESCE(e.actual_date,e.event_date))=date('now','+3 hours','+1 day') AND e.status<>'cancelled'""").fetchall()),
             'active_workplans': rows_to_list(conn.execute("""
                 SELECT wp.*, e.title as event_title, e.event_date,
                        u.full_name as planner_name,
                        (SELECT COUNT(*) FROM work_plan_items WHERE plan_id=wp.id) as items_count
-                FROM work_plans wp JOIN events e ON wp.event_id=e.id JOIN users u ON wp.planner_id=u.id
+                FROM work_plans wp JOIN events e ON wp.event_id=e.id LEFT JOIN users u ON wp.designer_id=u.id
                 WHERE wp.status IN ('draft','approved') ORDER BY e.event_date""").fetchall()),
             'active_checklists': rows_to_list(conn.execute("""
                 SELECT cl.*, wp.title as plan_title, e.title as event_title, e.event_date,
@@ -68,7 +68,7 @@ def get_routes(handler, conn, path, query, get_body_json, get_user_id, send_json
                        wp.created_at
                 FROM work_plans wp
                 JOIN events e ON wp.event_id=e.id
-                JOIN users u ON wp.planner_id=u.id
+                LEFT JOIN users u ON wp.designer_id=u.id
                 LEFT JOIN approvals a ON a.entity_type='workplan' AND a.entity_id=wp.id
                 WHERE wp.status='draft' AND (a.decision IS NULL OR a.decision='pending')
                 ORDER BY wp.created_at DESC""").fetchall()),

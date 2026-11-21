@@ -40,12 +40,12 @@ def compute(conn):
         cons.append(d)
     by_o = {c['o']: c for c in cons}
     # ── المصروفات ──
-    exp = [dict(r) for r in conn.execute("""SELECT k, operation_order o, sup_key, item, total, net, paid, remaining, invoice_date, entered_at, invoice_number,
+    exp = [dict(r) for r in conn.execute("""SELECT k, operation_order o, sup_key, item, total, vat, net, paid, remaining, invoice_date, entered_at, invoice_number,
                                                   attachment, person, source FROM exp_invoices WHERE status<>'deleted' AND COALESCE(is_test,0)=0""")]
     cost_o = {}
     for e in exp:
         c = cost_o.setdefault(e['o'] or '—', {'sup': 0, 'hos': 0, 'exe': 0, 'pur': 0})
-        c[e['k']] += float(e['net'] or 0)
+        c[e['k']] += float(e['net'] or 0) or (float(e['total'] or 0) - float(e.get('vat') or 0))
 
     def ev_month(c):
         return (c['date'] or '')[:7]
